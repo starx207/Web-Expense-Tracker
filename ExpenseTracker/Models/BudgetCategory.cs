@@ -11,8 +11,11 @@ namespace Web_Expense_Tracker.Models
         [StringLength(50)]
         public string Name { get; set; }
 
+        [Required]
         public BudgetType Type { get; set; }
 
+        [Required]
+        [DataType(DataType.Currency)]
         public double Amount { get; set; }
     }
 }
