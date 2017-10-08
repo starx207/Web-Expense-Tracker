@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExpenseTracker.Models
 {
@@ -12,8 +13,13 @@ namespace ExpenseTracker.Models
         [Required]
         public DateTime Date { get; set; }
 
+        [ForeignKey("OverrideCategory")]
+        public int? OverrideCategoryID { get; set; }
+
         public int? PayeeID { get; set; }
 
         public Payee PayableTo { get; set; }
+
+        public BudgetCategory OverrideCategory { get; set; }
     }
 }

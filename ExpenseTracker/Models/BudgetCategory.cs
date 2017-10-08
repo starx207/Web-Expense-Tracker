@@ -22,6 +22,13 @@ namespace ExpenseTracker.Models
         public double Amount { get; set; }
 
         [Required]
+        [DataType(DataType.Date)]
+        public DateTime BeginEffectiveDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime EndEffectiveDate { get; set; }
+
+        [Required]
         public BudgetType Type { get; set; }
 
         public ICollection<Payee> Payees { get; set; }

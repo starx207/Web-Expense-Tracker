@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,6 +12,13 @@ namespace ExpenseTracker.Models
         [StringLength(50)]
         [Required]
         public string Name { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime BeginEffectiveDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime EndEffectiveDate { get; set; }
 
         public int? BudgetCategoryID { get; set; }
 
