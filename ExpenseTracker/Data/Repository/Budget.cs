@@ -2,10 +2,10 @@ namespace ExpenseTracker.Data.Repository
 {
     public class Budget : IBudget
     {
-        private readonly BudgetContext _context;
+        private readonly IBudgetAccess _repo;
 
-        public Budget(BudgetContext context) {
-            _context = context;
+        public Budget(IBudgetAccess repository) {
+            _repo = repository;
         }
 
 
