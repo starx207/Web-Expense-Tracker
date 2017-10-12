@@ -1,7 +1,7 @@
 using ExpenseTracker.Models;
 using System.Linq;
 
-namespace ExpenseTracker.Data
+namespace ExpenseTracker.Data.Repository
 {
     public interface IBudgetAccess
     {
