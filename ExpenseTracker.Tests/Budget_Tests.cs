@@ -77,5 +77,10 @@ namespace ExpenseTracker.Tests
 
             Assert.AreEqual(4, allCategories.Count(), "GetCategories() should return 4 BudgetCategories");
         }
+        
+        [TestMethod]
+        public void GetBudgetCategoryById() {
+            throw new NotImplementedException();   
+        }
     }
 }
