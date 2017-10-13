@@ -79,11 +79,7 @@ namespace ExpenseTracker.Tests
         }
         
         [TestMethod]
-<<<<<<< HEAD
         public void GetBudgetCategoryByName() {
-=======
-        public void GetBudgetCategoryByID() {
->>>>>>> afec237ba34bf67381b38306c63b0c5599a45512
             throw new NotImplementedException();   
         }
     }
