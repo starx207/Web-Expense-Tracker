@@ -12,9 +12,10 @@ namespace ExpenseTracker.Tests
     public class Budget_Tests
     {
         private IBudgetAccess repo;
+        private Dictionary<int, string> categoryRef;
 
         [TestInitialize]
-        public void InitializeBudgetAccessObject() {
+        public void InitializeTestData() {
             List<BudgetCategory> categories = new List<BudgetCategory> {
                 new BudgetCategory {
                     ID = 1,
@@ -49,6 +50,12 @@ namespace ExpenseTracker.Tests
                     Type = BudgetType.Income
                 }
             };
+            categoryRef = new Dictionary<int, string>();
+            categoryRef.Add(1, "Rent");
+            categoryRef.Add(2, "Groceries");
+            categoryRef.Add(3, "Old Groceries");
+            categoryRef.Add(4, "ARC Income");
+
             List<Transaction> transactions = new List<Transaction>();
             List<Payee> payees = new List<Payee>();
             repo = new MockBudgetAccess(transactions, payees, categories);
@@ -68,14 +75,27 @@ namespace ExpenseTracker.Tests
         }
 
         [TestMethod]
-        public void GetAllBudgetCategories() {
+        public void GetAllBudgetCategoriesReturnsCorrectCount() {
             IBudget budget = new Budget(repo);
-
             IQueryable<BudgetCategory> allCategories;
 
             allCategories = budget.GetCategories();
 
             Assert.AreEqual(4, allCategories.Count(), "GetCategories() should return 4 BudgetCategories");
+        }
+
+        [DataTestMethod]
+        [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
+        public void GetAllBudgetCategoriesReturnsCorrectCategories(int id) {
+            IBudget budget = new Budget(repo);
+            BudgetCategory category;
+            IQueryable<BudgetCategory> allCategories;
+            string expectedName = categoryRef[id];
+
+            allCategories = budget.GetCategories();
+            category = allCategories.Where(c => c.ID == id).First();
+
+            Assert.AreEqual(expectedName, category.Name, $"BudgetCategory with ID = {id} should have Name = {expectedName}");
         }
     }
 }
