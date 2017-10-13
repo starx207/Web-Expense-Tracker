@@ -26,7 +26,7 @@ namespace ExpenseTracker.Models
         public DateTime BeginEffectiveDate { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime EndEffectiveDate { get; set; }
+        public DateTime? EndEffectiveDate { get; set; }
 
         [Required]
         public BudgetType Type { get; set; }
