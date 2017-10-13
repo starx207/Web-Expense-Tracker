@@ -11,7 +11,7 @@ namespace ExpenseTracker.Tests
     [TestClass]
     public class Budget_Tests
     {
-        private IBudgetAccess repository;
+        private IBudgetAccess repo;
 
         [TestInitialize]
         public void InitializeBudgetAccessObject() {
