@@ -79,7 +79,7 @@ namespace ExpenseTracker.Tests
         }
         
         [TestMethod]
-        public void GetBudgetCategoryById() {
+        public void GetBudgetCategoryByName() {
             throw new NotImplementedException();   
         }
     }
