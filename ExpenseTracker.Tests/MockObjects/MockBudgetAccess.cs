@@ -3,6 +3,7 @@ using ExpenseTracker.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Tests.Mock
 {
@@ -42,13 +43,13 @@ namespace ExpenseTracker.Tests.Mock
         public void DeleteBudgetCategory(BudgetCategory categoryToDelete) {
             categories.Remove(categoryToDelete);
         }
-        public void AddTransactionAsync(Transaction transactionToAdd) {
+        public void AddTransaction(Transaction transactionToAdd) {
             transactions.Add(transactionToAdd);
         }
-        public void AddPayeeAsync(Payee payeeToAdd) {
+        public void AddPayee(Payee payeeToAdd) {
             payees.Add(payeeToAdd);
         }
-        public void AddBudgetCategoryAsync(BudgetCategory categoryToAdd) {
+        public void AddBudgetCategory(BudgetCategory categoryToAdd) {
             categories.Add(categoryToAdd);
         }
         public void EditTransaction(Transaction transactionToEdit) {
@@ -87,5 +88,11 @@ namespace ExpenseTracker.Tests.Mock
                 categories.Add(categoryToEdit);
             }
         }
+
+        public async Task SaveChangesAsync() {
+            await new Task(PretendToDoSomething);
+        }
+
+        private void PretendToDoSomething() { }
     }
 }

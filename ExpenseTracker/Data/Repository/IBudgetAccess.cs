@@ -1,5 +1,6 @@
 using ExpenseTracker.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
@@ -11,11 +12,12 @@ namespace ExpenseTracker.Data.Repository
         void DeleteTransaction(Transaction transactionToDelete);
         void DeletePayee(Payee payeeToDelete);
         void DeleteBudgetCategory(BudgetCategory categoryToDelete);
-        void AddTransactionAsync(Transaction transactionToAdd);
-        void AddPayeeAsync(Payee payeeToAdd);
-        void AddBudgetCategoryAsync(BudgetCategory categoryToAdd);
+        void AddTransaction(Transaction transactionToAdd);
+        void AddPayee(Payee payeeToAdd);
+        void AddBudgetCategory(BudgetCategory categoryToAdd);
         void EditTransaction(Transaction transactionToEdit);
         void EditPayee(Payee payeeToEdit);
         void EditBudgetCategory(BudgetCategory categoryToEdit);
+        Task SaveChangesAsync();
     }
 }

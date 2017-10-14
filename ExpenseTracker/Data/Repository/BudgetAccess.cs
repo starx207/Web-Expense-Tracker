@@ -1,5 +1,6 @@
 using ExpenseTracker.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
@@ -43,16 +44,16 @@ namespace ExpenseTracker.Data.Repository
         #endregion
 
         #region "ADD methods"
-        public async void AddTransactionAsync(Transaction transactionToAdd) {
-            await _context.Transactions.AddAsync(transactionToAdd);
+        public void AddTransaction(Transaction transactionToAdd) {
+            _context.Transactions.Add(transactionToAdd);
         }
 
-        public async void AddPayeeAsync(Payee payeeToAdd) {
-            await _context.Payees.AddAsync(payeeToAdd);
+        public void AddPayee(Payee payeeToAdd) {
+            _context.Payees.Add(payeeToAdd);
         }
 
-        public async void AddBudgetCategoryAsync(BudgetCategory categoryToAdd) {
-            await _context.BudgetCategories.AddAsync(categoryToAdd);
+        public void AddBudgetCategory(BudgetCategory categoryToAdd) {
+            _context.BudgetCategories.Add(categoryToAdd);
         }
         #endregion
 
@@ -69,5 +70,9 @@ namespace ExpenseTracker.Data.Repository
             _context.BudgetCategories.Update(categoryToEdit);
         }
         #endregion
+
+        public async Task SaveChangesAsync() {
+            await _context.SaveChangesAsync();
+        }
     }
 }
