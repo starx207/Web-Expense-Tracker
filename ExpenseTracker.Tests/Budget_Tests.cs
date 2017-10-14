@@ -13,6 +13,7 @@ namespace ExpenseTracker.Tests
     {
         private IBudgetAccess repo;
         private Dictionary<int, string> categoryRef;
+        private int categoryCount;
 
         [TestInitialize]
         public void InitializeTestData() {
@@ -51,10 +52,10 @@ namespace ExpenseTracker.Tests
                 }
             };
             categoryRef = new Dictionary<int, string>();
-            categoryRef.Add(1, "Rent");
-            categoryRef.Add(2, "Groceries");
-            categoryRef.Add(3, "Old Groceries");
-            categoryRef.Add(4, "ARC Income");
+            foreach (var category in categories) {
+                categoryRef.Add(category.ID, category.Name);
+            }
+            categoryCount = categories.Count;
 
             List<Transaction> transactions = new List<Transaction>();
             List<Payee> payees = new List<Payee>();
@@ -81,7 +82,7 @@ namespace ExpenseTracker.Tests
 
             allCategories = budget.GetCategories();
 
-            Assert.AreEqual(4, allCategories.Count(), "GetCategories() should return 4 BudgetCategories");
+            Assert.AreEqual(categoryCount, allCategories.Count(), $"GetCategories() should return {categoryCount} BudgetCategories");
         }
 
         [DataTestMethod]
@@ -96,6 +97,25 @@ namespace ExpenseTracker.Tests
             category = allCategories.Where(c => c.ID == id).First();
 
             Assert.AreEqual(expectedName, category.Name, $"BudgetCategory with ID = {id} should have Name = {expectedName}");
+        }
+
+        [TestMethod]
+        public void AddANewBudgetCategory() {
+            IBudget budget = new Budget(repo);
+            BudgetCategory newCategory = new BudgetCategory {
+                ID = 5,
+                Name = "Insurance",
+                Amount = 280.94,
+                BeginEffectiveDate = new DateTime(2016, 09, 01),
+                EndEffectiveDate = null,
+                Type = BudgetType.Expense
+            };
+            int newCount;
+
+            budget.AddBudgetCategory(newCategory);
+            newCount = budget.GetCategories().Count();
+
+            Assert.AreEqual(categoryCount + 1, newCount, $"Before adding, count was {categoryCount}. It should now be {categoryCount + 1}");
         }
     }
 }
