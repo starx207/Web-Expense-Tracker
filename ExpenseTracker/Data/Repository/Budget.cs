@@ -14,5 +14,9 @@ namespace ExpenseTracker.Data.Repository
         public IQueryable<BudgetCategory> GetCategories() {
             return repo.BudgetCategories();
         }
+
+        public void AddBudgetCategory(BudgetCategory categoryToAdd) {
+            repo.AddBudgetCategory(categoryToAdd);
+        }
     }
 }
