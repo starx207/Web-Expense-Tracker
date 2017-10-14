@@ -7,5 +7,6 @@ namespace ExpenseTracker.Data.Repository
     {
         IQueryable<BudgetCategory> GetCategories();
         void AddBudgetCategory(BudgetCategory categoryToAdd);
+        void RemoveBudgetCategory(BudgetCategory categoryToRemove);
     }
 }

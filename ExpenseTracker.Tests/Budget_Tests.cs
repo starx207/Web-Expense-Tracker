@@ -115,7 +115,27 @@ namespace ExpenseTracker.Tests
             budget.AddBudgetCategory(newCategory);
             newCount = budget.GetCategories().Count();
 
-            Assert.AreEqual(categoryCount + 1, newCount, $"Before adding, count was {categoryCount}. It should now be {categoryCount + 1}");
+            Assert.IsTrue(newCount == categoryCount + 1, "No category was added");
+
+            BudgetCategory retrievedCategory;
+            try {
+                retrievedCategory = budget.GetCategories().Where(c => c.Name == "Insurance").First();
+                Assert.AreEqual(5, retrievedCategory.ID, "Category ID does not match expected ID of category added");
+            } catch {
+                Assert.Fail("No \"Insurance\" category was found");
+            }
+        }
+
+        [TestMethod]
+        public void RemoveABudgetCategory() {
+            IBudget budget = new Budget(repo);
+            BudgetCategory remove = budget.GetCategories().Where(c => c.ID == 1).First();
+            int newCount;
+
+            budget.RemoveBudgetCategory(remove);
+            newCount = budget.GetCategories().Count();
+
+            Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
         }
     }
 }

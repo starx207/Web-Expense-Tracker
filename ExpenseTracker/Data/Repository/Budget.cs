@@ -18,5 +18,8 @@ namespace ExpenseTracker.Data.Repository
         public void AddBudgetCategory(BudgetCategory categoryToAdd) {
             repo.AddBudgetCategory(categoryToAdd);
         }
+        public void RemoveBudgetCategory(BudgetCategory categoryToRemove) { 
+            repo.DeleteBudgetCategory(categoryToRemove);
+        }
     }
 }
