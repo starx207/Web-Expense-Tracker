@@ -23,7 +23,7 @@ namespace ExpenseTracker.Controllers
         // GET: BudgetCategory
         public async Task<IActionResult> Index()
         {
-            return View(await _context.GetCategories().ToListAsync());
+            return View(nameof(Index), await _context.GetCategories().ToListAsync());
         }
 
         // GET: BudgetCategory/Details/5
@@ -41,13 +41,13 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
-            return View(budgetCategory);
+            return View(nameof(Details), budgetCategory);
         }
 
         // GET: BudgetCategory/Create
         public IActionResult Create()
         {
-            return View();
+            return View(nameof(Create));
         }
 
         // POST: BudgetCategory/Create
@@ -64,7 +64,7 @@ namespace ExpenseTracker.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(budgetCategory);
+            return View(nameof(Create) ,budgetCategory);
         }
 
         // GET: BudgetCategory/Edit/5
@@ -80,7 +80,7 @@ namespace ExpenseTracker.Controllers
             {
                 return NotFound();
             }
-            return View(budgetCategory);
+            return View(nameof(Edit) ,budgetCategory);
         }
 
         // POST: BudgetCategory/Edit/5
@@ -90,7 +90,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
             // if (id != budgetCategory.ID)
             // {
             //     return NotFound();
@@ -116,7 +116,7 @@ namespace ExpenseTracker.Controllers
             //     }
             //     return RedirectToAction(nameof(Index));
             // }
-            //return View(budgetCategory);
+            //return View(nameof(Edit), budgetCategory);
         }
 
         // GET: BudgetCategory/Delete/5
@@ -134,7 +134,7 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
-            return View(budgetCategory);
+            return View(nameof(Delete), budgetCategory);
         }
 
         // POST: BudgetCategory/Delete/5
