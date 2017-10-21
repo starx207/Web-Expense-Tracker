@@ -17,6 +17,7 @@ namespace ExpenseTracker.Tests
 
         [TestInitialize]
         public void InitializeTestData() {
+            // Create in-memory BudgetCategories
             List<BudgetCategory> categories = new List<BudgetCategory> {
                 new BudgetCategory {
                     ID = 1,
@@ -51,14 +52,20 @@ namespace ExpenseTracker.Tests
                     Type = BudgetType.Income
                 }
             };
+            // Add categories and ids to dictionary for verification
             categoryRef = new Dictionary<int, string>();
             foreach (var category in categories) {
                 categoryRef.Add(category.ID, category.Name);
             }
+            // Record the number of categories at the start of the test
             categoryCount = categories.Count;
 
+            // Create in-memory Transactions
             List<Transaction> transactions = new List<Transaction>();
+            // Create in-memory Payees
             List<Payee> payees = new List<Payee>();
+
+            // Iniitlize the IBudgetAccess repo with in-memory data
             repo = new MockBudgetAccess(transactions, payees, categories);
         }
 
@@ -71,7 +78,7 @@ namespace ExpenseTracker.Tests
             } catch {
                 Assert.Fail("Budget class does not implement IBudget");
             }
-            // if no error, test passes
+            // if no error, Budget implements IBudget. Test passes
             Assert.IsTrue(true);
         }
 
