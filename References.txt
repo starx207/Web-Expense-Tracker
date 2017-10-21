@@ -1,0 +1,7 @@
+// .NET Packages needed for scaffolding (these go in the .proj file):
+<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0"/>
+<DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.0"/>
+
+// .NET CLI for scaffolding a controller -- [] indicates a variable
+dotnet restore
+dotnet aspnet-codegenerator controller -name [Controller Name] -m [Model Name] -dc [Data Context Name] --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
