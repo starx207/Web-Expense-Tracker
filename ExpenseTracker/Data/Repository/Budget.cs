@@ -1,6 +1,7 @@
 using ExpenseTracker.Models;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
@@ -20,6 +21,10 @@ namespace ExpenseTracker.Data.Repository
         }
         public void RemoveBudgetCategory(BudgetCategory categoryToRemove) { 
             repo.DeleteBudgetCategory(categoryToRemove);
+        }
+
+        public async Task SaveChangesAsync() {
+            await repo.SaveChangesAsync();
         }
     }
 }

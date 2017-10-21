@@ -1,5 +1,6 @@
 using ExpenseTracker.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
@@ -8,5 +9,6 @@ namespace ExpenseTracker.Data.Repository
         IQueryable<BudgetCategory> GetCategories();
         void AddBudgetCategory(BudgetCategory categoryToAdd);
         void RemoveBudgetCategory(BudgetCategory categoryToRemove);
+        Task SaveChangesAsync();
     }
 }
