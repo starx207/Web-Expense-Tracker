@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Tests.Mock
 {
-    public class MockBudget : IBudget
+    internal class MockBudget : IBudget
     {
-        private List<BudgetCategory> _categories;
-        public MockBudget(List<BudgetCategory> addCategories) {
+        private TestAsyncEnumerable<BudgetCategory> _categories;
+        public MockBudget(TestAsyncEnumerable<BudgetCategory> addCategories) {
             _categories = addCategories;
         }
         public IQueryable<BudgetCategory> GetCategories() {
@@ -17,12 +17,15 @@ namespace ExpenseTracker.Tests.Mock
         }
 
         public void AddBudgetCategory(BudgetCategory category) {
-            _categories.Add(category);
+            IEnumerable<BudgetCategory> newCategories = _categories.AsEnumerable().Append(category);
+            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
         }
 
         public void RemoveBudgetCategory(BudgetCategory category) {
-            BudgetCategory categoryToRemove = _categories.Where(c => c.ID == category.ID).First();
-            _categories.Remove(categoryToRemove);
+            BudgetCategory categoryToRemove = _categories.AsQueryable().Where(c => c.ID == category.ID).First();
+            List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
+            newCategories.Remove(categoryToRemove);
+            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
         }
 
         public async Task SaveChangesAsync() {
