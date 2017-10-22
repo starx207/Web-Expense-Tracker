@@ -75,5 +75,33 @@ namespace ExpenseTracker.Tests
 
             Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
         }
+
+        [TestMethod]
+        public void CreateMethodGetReturnsView() {
+            IActionResult actionResult = controller.Create();
+            var result = actionResult as ViewResult;
+
+            Assert.AreEqual("Create", result.ViewName, $"Create method returned '{result.ViewName}' instead of 'Create'");
+        }
+
+        [TestMethod]
+        public async Task CreatePostAddsValidCategoryAndRedirectsToIndex() {
+            BudgetCategory newCategory = new BudgetCategory {
+                ID = 10,
+                Name = "New Test Category",
+                Amount = 700,
+                Type = BudgetType.Expense,
+                BeginEffectiveDate = new DateTime(2016, 09, 01),
+                EndEffectiveDate = null
+            };
+
+            IActionResult actionResult = await controller.Create(newCategory);
+            var viewResult = actionResult as ViewResult;
+            
+            Assert.AreEqual("Index", viewResult.ViewName, "Create should redirect to Index after successful create");
+
+            BudgetCategory category = budget.GetCategories().Where(c => c.ID == 10).First();
+            Assert.AreEqual(newCategory.Name, category.Name, "New category was not properly added");
+        }
     }
 }

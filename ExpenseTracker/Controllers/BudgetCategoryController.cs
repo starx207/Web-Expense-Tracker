@@ -59,7 +59,6 @@ namespace ExpenseTracker.Controllers
         {
             if (ModelState.IsValid)
             {
-                //_context.Add(budgetCategory);
                 _context.AddBudgetCategory(budgetCategory);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
