@@ -89,10 +89,8 @@ namespace ExpenseTracker.Tests.Mock
             }
         }
 
-        public async Task SaveChangesAsync() {
-            await new Task(PretendToDoSomething);
+        public async Task<int> SaveChangesAsync() {
+            return await Task.FromResult(1);
         }
-
-        private void PretendToDoSomething() { }
     }
 }
