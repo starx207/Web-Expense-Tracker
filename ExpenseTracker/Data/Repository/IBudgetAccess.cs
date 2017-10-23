@@ -18,6 +18,6 @@ namespace ExpenseTracker.Data.Repository
         void EditTransaction(Transaction transactionToEdit);
         void EditPayee(Payee payeeToEdit);
         void EditBudgetCategory(BudgetCategory categoryToEdit);
-        Task SaveChangesAsync();
+        Task<int> SaveChangesAsync();
     }
 }

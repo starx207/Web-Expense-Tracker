@@ -23,8 +23,8 @@ namespace ExpenseTracker.Data.Repository
             repo.DeleteBudgetCategory(categoryToRemove);
         }
 
-        public async Task SaveChangesAsync() {
-            await repo.SaveChangesAsync();
+        public async Task<int> SaveChangesAsync() {
+            return await repo.SaveChangesAsync();
         }
     }
 }

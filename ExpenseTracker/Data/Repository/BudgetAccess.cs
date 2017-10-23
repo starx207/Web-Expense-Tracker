@@ -71,8 +71,8 @@ namespace ExpenseTracker.Data.Repository
         }
         #endregion
 
-        public async Task SaveChangesAsync() {
-            await _context.SaveChangesAsync();
+        public async Task<int> SaveChangesAsync() {
+            return await _context.SaveChangesAsync();
         }
     }
 }
