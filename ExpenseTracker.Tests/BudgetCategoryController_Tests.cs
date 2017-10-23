@@ -86,8 +86,9 @@ namespace ExpenseTracker.Tests
 
         [TestMethod]
         public async Task CreatePostAddsValidCategoryAndRedirectsToIndex() {
+            int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
             BudgetCategory newCategory = new BudgetCategory {
-                ID = 10,
+                ID = testID,
                 Name = "New Test Category",
                 Amount = 700,
                 Type = BudgetType.Expense,
@@ -96,11 +97,11 @@ namespace ExpenseTracker.Tests
             };
 
             IActionResult actionResult = await controller.Create(newCategory);
-            var viewResult = actionResult as ViewResult;
+            var result = actionResult as RedirectToActionResult;
             
-            Assert.AreEqual("Index", viewResult.ViewName, "Create should redirect to Index after successful create");
+            Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
 
-            BudgetCategory category = budget.GetCategories().Where(c => c.ID == 10).First();
+            BudgetCategory category = budget.GetCategories().Where(c => c.ID == testID).First();
             Assert.AreEqual(newCategory.Name, category.Name, "New category was not properly added");
         }
     }
