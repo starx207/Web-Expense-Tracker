@@ -56,7 +56,7 @@ namespace ExpenseTracker.Tests
 
             allCategories = budget.GetCategories();
 
-            Assert.AreEqual(categoryCount, allCategories.Count(), $"GetCategories() should return {categoryCount} BudgetCategories");
+            Assert.AreEqual(categoryCount, allCategories.Count(), "GetCategories() returned wrong number of BudgetCategories");
         }
 
         [DataTestMethod]
@@ -76,9 +76,11 @@ namespace ExpenseTracker.Tests
         [TestMethod]
         public void AddANewBudgetCategory() {
             IBudget budget = new Budget(repo);
+            int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
+            string testName = "Insurance";
             BudgetCategory newCategory = new BudgetCategory {
-                ID = 5,
-                Name = "Insurance",
+                ID = testID,
+                Name = testName,
                 Amount = 280.94,
                 BeginEffectiveDate = new DateTime(2016, 09, 01),
                 EndEffectiveDate = null,
@@ -93,23 +95,32 @@ namespace ExpenseTracker.Tests
 
             BudgetCategory retrievedCategory;
             try {
-                retrievedCategory = budget.GetCategories().Where(c => c.Name == "Insurance").First();
-                Assert.AreEqual(5, retrievedCategory.ID, "Category ID does not match expected ID of category added");
+                retrievedCategory = budget.GetCategories().Where(c => c.Name == testName).First();
+                Assert.AreEqual(testID, retrievedCategory.ID, $"'{testName}' should have ID = {testID}");
             } catch {
-                Assert.Fail("No \"Insurance\" category was found");
+                Assert.Fail($"No '{testName}' category was found");
             }
         }
 
         [TestMethod]
         public void RemoveABudgetCategory() {
             IBudget budget = new Budget(repo);
-            BudgetCategory remove = budget.GetCategories().Where(c => c.ID == 1).First();
+            int testID = repo.BudgetCategories().Select(c => c.ID).First();
+            BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
             int newCount;
 
             budget.RemoveBudgetCategory(remove);
             newCount = budget.GetCategories().Count();
 
             Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
+
+            BudgetCategory removedCategory;
+            try {
+                removedCategory = budget.GetCategories().Where(c => c.ID == testID).First();
+                Assert.Fail($"'{removedCategory.Name}' should have been removed");
+            } catch {
+                Assert.IsTrue(true); // if an error occurs, that means the testID no longer exists
+            }
         }
     }
 }
