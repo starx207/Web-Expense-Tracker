@@ -32,6 +32,7 @@ namespace ExpenseTracker.Tests
             controller = new BudgetCategoryController(budget);
         }
 
+        #region "Index Method Tests"
         [TestMethod]
         public async Task IndexMethodReturnsView() {
             IActionResult actionResult = await controller.Index();
@@ -40,7 +41,9 @@ namespace ExpenseTracker.Tests
             Assert.IsNotNull(result);
             Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
         }
+        #endregion
 
+        #region "Details Method Tests"
         [TestMethod]
         public async Task DetailsMethodReturnsView() {
             int id = budget.GetCategories().First().ID;
@@ -75,7 +78,9 @@ namespace ExpenseTracker.Tests
 
             Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
         }
-
+        #endregion
+        
+        #region "Create Method Tests"
         [TestMethod]
         public void CreateMethodGetReturnsView() {
             IActionResult actionResult = controller.Create();
@@ -128,5 +133,12 @@ namespace ExpenseTracker.Tests
 
             Assert.AreEqual(testID, model.ID, "The BudgetCategory was not sent back to the view");
         }
+        #endregion
+        
+        #region "Delete Method Tests"
+        #endregion
+
+        #region "Edit Method Tests"
+        #endregion
     }
 }
