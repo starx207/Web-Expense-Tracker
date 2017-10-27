@@ -85,7 +85,7 @@ namespace ExpenseTracker.Tests
         }
 
         [TestMethod]
-        public async Task CreatePostAddsValidCategoryAndRedirectsToIndex() {
+        public async Task CreatePostAddsCategoryAndRedirectsToIndex() {
             int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
             BudgetCategory newCategory = new BudgetCategory {
                 ID = testID,
@@ -103,6 +103,30 @@ namespace ExpenseTracker.Tests
 
             BudgetCategory category = budget.GetCategories().Where(c => c.ID == testID).First();
             Assert.AreEqual(newCategory.Name, category.Name, "New category was not properly added");
+        }
+
+        [TestMethod]
+        public async Task CreatePostWithInvalidModelStateReturnsToView() {
+            int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
+            BudgetCategory newCategory = new BudgetCategory {
+                ID = testID,
+                Name = "New Test Category",
+                Type = BudgetType.Expense,
+                Amount = 389,
+                BeginEffectiveDate = new DateTime(2016, 12, 31),
+                EndEffectiveDate = null
+            };
+
+            controller.ModelState.AddModelError("test", "test");
+
+            IActionResult actionResult = await controller.Create(newCategory);
+            var viewResult = actionResult as ViewResult;
+
+            Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
+
+            BudgetCategory model = (BudgetCategory)viewResult.Model;
+
+            Assert.AreEqual(testID, model.ID, "The BudgetCategory was not sent back to the view");
         }
     }
 }
