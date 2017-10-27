@@ -32,6 +32,12 @@ namespace ExpenseTracker.Tests
             controller = new BudgetCategoryController(budget);
         }
 
+
+
+
+
+
+
         #region "Index Method Tests"
         [TestMethod]
         public async Task IndexMethodReturnsView() {
@@ -42,6 +48,12 @@ namespace ExpenseTracker.Tests
             Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
         }
         #endregion
+
+
+
+
+
+
 
         #region "Details Method Tests"
         [TestMethod]
@@ -61,7 +73,7 @@ namespace ExpenseTracker.Tests
             IActionResult actionResult = await controller.Details(id);
 
             if (!categoryReference.ContainsKey(id)) {
-                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. NotFound404 should have been called");
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
             } else {
                 string categoryName = categoryReference[id];
 
@@ -76,13 +88,19 @@ namespace ExpenseTracker.Tests
         public async Task DetailsMethodReturnsNotFoundForNullIndex() {
             IActionResult actionResult = await controller.Details(null);
 
-            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
         }
         #endregion
         
+
+
+
+
+
+
         #region "Create Method Tests"
         [TestMethod]
-        public void CreateMethodGetReturnsView() {
+        public void CreateGETReturnsView() {
             IActionResult actionResult = controller.Create();
             var result = actionResult as ViewResult;
 
@@ -90,7 +108,7 @@ namespace ExpenseTracker.Tests
         }
 
         [TestMethod]
-        public async Task CreatePostAddsCategoryAndRedirectsToIndex() {
+        public async Task CreatePOSTWithAValidModelState() {
             int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
             BudgetCategory newCategory = new BudgetCategory {
                 ID = testID,
@@ -111,7 +129,7 @@ namespace ExpenseTracker.Tests
         }
 
         [TestMethod]
-        public async Task CreatePostWithInvalidModelStateReturnsToView() {
+        public async Task CreatePOSTWithInvalidModelState() {
             int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
             BudgetCategory newCategory = new BudgetCategory {
                 ID = testID,
@@ -135,8 +153,81 @@ namespace ExpenseTracker.Tests
         }
         #endregion
         
+
+
+
+
+
+
         #region "Delete Method Tests"
+        [TestMethod]
+        public async Task DeleteGETReturnsView() {
+            int id = budget.GetCategories().Select(c => c.ID).First();
+
+            IActionResult actionResult = await controller.Delete(id);
+            var result = actionResult as ViewResult;
+            
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Delete", result.ViewName, $"Delete method returned '{result.ViewName}' instead of 'Delete'");
+        }
+
+        [DataTestMethod]
+        [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
+        public async Task DeleteGETReturnsCorrectBudgetCategory(int id) {
+            IActionResult actionResult = await controller.Delete(id);
+
+            if (!categoryReference.ContainsKey(id)) {
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
+            } else {
+                string categoryName = categoryReference[id];
+
+                var result = actionResult as ViewResult;
+                BudgetCategory model = (BudgetCategory)result.ViewData.Model;
+
+                Assert.AreEqual(categoryName, model.Name, $"The wrong BudgetCategory was returned by for ID = {id}");
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteGETReturnsNotFoundForNullIndex() {
+            IActionResult actionResult = await controller.Delete(null);
+
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
+        }
+
+        [TestMethod]
+        public async Task DeletePOSTRemoveExistingCategory() {
+            int testID = budget.GetCategories().Select(c => c.ID).First();
+
+            IActionResult actionResult = await controller.DeleteConfirmed(testID);
+            var result = actionResult as RedirectToActionResult;
+
+            Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+
+            BudgetCategory categoryShouldntBeThere = budget.GetCategories().Where(c => c.ID == testID).SingleOrDefault();
+
+            Assert.IsNull(categoryShouldntBeThere, $"Category with id = {testID} wasn't removed");
+        }
+
+        [TestMethod]
+        public async Task DeletePOSTRemoveNonExistantCategory() {
+            int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 10;
+            int preCount = budget.GetCategories().Count();
+
+            IActionResult actionResult = await controller.DeleteConfirmed(testID);
+            var result = actionResult as RedirectToActionResult;
+
+            Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+
+            Assert.AreEqual(preCount, budget.GetCategories().Count(), "No category should have been removed");
+        }
         #endregion
+
+
+
+
+
+
 
         #region "Edit Method Tests"
         #endregion
