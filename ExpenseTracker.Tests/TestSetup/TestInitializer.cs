@@ -1,6 +1,7 @@
 using ExpenseTracker.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ExpenseTracker.Tests
 {
@@ -34,7 +35,7 @@ namespace ExpenseTracker.Tests
                 },
                 new BudgetCategory {
                     ID = 4,
-                    Name = "ARC Income",
+                    Name = "Income",
                     Amount = 0,
                     BeginEffectiveDate = new DateTime(2016, 06, 27),
                     EndEffectiveDate = null,
@@ -43,6 +44,37 @@ namespace ExpenseTracker.Tests
             };
 
             return categories;
+        }
+
+        public static List<Payee> CreateTestPayees(IQueryable<BudgetCategory> categories) {
+            List<Payee> payees = new List<Payee> {
+                new Payee {
+                    ID = 1,
+                    Name = "Appraisal Research Corp",
+                    BeginEffectiveDate = new DateTime(2016, 7, 1),
+                    EndEffectiveDate = null,
+                    BudgetCategoryID = 4,
+                    Category = categories.Where(c => c.ID == 4).FirstOrDefault()
+                },
+                new Payee {
+                    ID = 2,
+                    Name = "Drum Lessons",
+                    BeginEffectiveDate = new DateTime(2017, 4, 1),
+                    EndEffectiveDate = null,
+                    BudgetCategoryID = 4,
+                    Category = categories.Where(c => c.ID == 4).FirstOrDefault()
+                },
+                new Payee {
+                    ID = 3,
+                    Name = "Kroger",
+                    BeginEffectiveDate = new DateTime(2014, 6, 14),
+                    EndEffectiveDate = null,
+                    BudgetCategoryID = 2,
+                    Category = categories.Where(c => c.ID == 2).FirstOrDefault()
+                } // Add more payees for testing
+            };
+
+            return payees;
         }
     }
 }
