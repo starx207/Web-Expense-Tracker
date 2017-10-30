@@ -71,7 +71,23 @@ namespace ExpenseTracker.Tests
                     EndEffectiveDate = null,
                     BudgetCategoryID = 2,
                     Category = categories.Where(c => c.ID == 2).FirstOrDefault()
-                } // Add more payees for testing
+                },
+                new Payee {
+                    ID = 4,
+                    Name = "Wal Mart",
+                    BeginEffectiveDate = new DateTime(2014, 8, 1),
+                    EndEffectiveDate = new DateTime(2016, 5, 1),
+                    BudgetCategoryID = 3,
+                    Category = categories.Where(c => c.ID == 3).FirstOrDefault()
+                },
+                new Payee {
+                    ID = 5,
+                    Name = "Money Pit",
+                    BeginEffectiveDate = new DateTime(2017, 1, 1),
+                    EndEffectiveDate = null,
+                    BudgetCategoryID = null,
+                    Category = null
+                }
             };
 
             return payees;
