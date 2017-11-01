@@ -1,5 +1,6 @@
 using ExpenseTracker.Data.Repository;
 using ExpenseTracker.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +27,10 @@ namespace ExpenseTracker.Tests.Mock
             List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
             newCategories.Remove(categoryToRemove);
             _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
+        }
+
+        public IQueryable<Payee> GetPayees() {
+            throw new NotImplementedException("GetPayees() is not implemented for the MockBudget");
         }
 
         public async Task<int> SaveChangesAsync() {

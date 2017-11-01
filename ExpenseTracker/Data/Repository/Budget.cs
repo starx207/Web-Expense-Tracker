@@ -23,6 +23,10 @@ namespace ExpenseTracker.Data.Repository
             repo.DeleteBudgetCategory(categoryToRemove);
         }
 
+        public IQueryable<Payee> GetPayees() {
+            return repo.Payees();
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
         }
