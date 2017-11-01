@@ -12,8 +12,10 @@ namespace ExpenseTracker.Tests
     public class Budget_Tests
     {
         private IBudgetAccess repo;
+        private IBudget budget;
         private Dictionary<int, string> categoryRef;
-        private int categoryCount;
+        private Dictionary<int, string> payeeRef;
+        private int categoryCount, payeeCount;
 
         [TestInitialize]
         public void InitializeTestData() {
@@ -27,10 +29,18 @@ namespace ExpenseTracker.Tests
             // Record the number of categories at the start of the test
             categoryCount = categories.Count;
 
+            // Create in-memory Payees
+            List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
+            // Add payees and ids to dictionary for verification
+            payeeRef = new Dictionary<int, string>();
+            foreach (var payee in payees) {
+                payeeRef.Add(payee.ID, payee.Name);
+            }
+            // Record the number of payees at the start of the test
+            payeeCount = payees.Count;
+
             // Create in-memory Transactions
             List<Transaction> transactions = new List<Transaction>();
-            // Create in-memory Payees
-            List<Payee> payees = new List<Payee>();
 
             // Iniitlize the IBudgetAccess repo with in-memory data
             repo = new MockBudgetAccess(transactions, payees, categories);
@@ -39,7 +49,6 @@ namespace ExpenseTracker.Tests
         [TestMethod]
         public void BudgetImplementsIBudget()
         {
-            IBudget budget;
             try {
                 budget = new Budget(repo);
             } catch {
@@ -49,9 +58,10 @@ namespace ExpenseTracker.Tests
             Assert.IsTrue(true);
         }
 
+        #region "BudgetCategory Tests"
         [TestMethod]
         public void GetAllBudgetCategoriesReturnsCorrectCount() {
-            IBudget budget = new Budget(repo);
+            budget = new Budget(repo);
             IQueryable<BudgetCategory> allCategories;
 
             allCategories = budget.GetCategories();
@@ -62,7 +72,7 @@ namespace ExpenseTracker.Tests
         [DataTestMethod]
         [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
         public void GetAllBudgetCategoriesReturnsCorrectCategories(int id) {
-            IBudget budget = new Budget(repo);
+            budget = new Budget(repo);
             BudgetCategory category;
             IQueryable<BudgetCategory> allCategories;
             string expectedName = categoryRef[id];
@@ -75,7 +85,7 @@ namespace ExpenseTracker.Tests
 
         [TestMethod]
         public void AddANewBudgetCategory() {
-            IBudget budget = new Budget(repo);
+            budget = new Budget(repo);
             int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
             string testName = "Insurance";
             BudgetCategory newCategory = new BudgetCategory {
@@ -104,7 +114,7 @@ namespace ExpenseTracker.Tests
 
         [TestMethod]
         public void RemoveABudgetCategory() {
-            IBudget budget = new Budget(repo);
+            budget = new Budget(repo);
             int testID = repo.BudgetCategories().Select(c => c.ID).First();
             BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
             int newCount;
@@ -122,5 +132,49 @@ namespace ExpenseTracker.Tests
                 Assert.IsTrue(true); // if an error occurs, that means the testID no longer exists
             }
         }
+        #endregion
+    
+        #region "Payee Tests"
+
+        [TestMethod]
+        public void GetAllPayeesReturnsCorrectCount() {
+            budget = new Budget(repo);
+            IQueryable<Payee> allPayees;
+
+            allPayees = budget.GetPayees();
+
+            Assert.AreEqual(payeeCount, allPayees.Count(), "The wrong number of Payees was returned");
+        }
+
+        [DataTestMethod]
+        [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
+        public void GetPayeesReturnsCorrectPayees(int id) {
+            budget = new Budget(repo);
+            Payee payee;
+            IQueryable<Payee> allPayees;
+            string expectedName = payeeRef[id];
+
+            allPayees = budget.GetPayees();
+            payee = allPayees.Where(p => p.ID == id).First();
+
+            Assert.AreEqual(expectedName, payee.Name, $"Id = {id} should return '{expectedName}'");
+        }
+
+        [TestMethod]
+        public void AddAPayee() {
+            budget = new Budget(repo);
+            int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+            BudgetCategory category = budget.GetCategories().First();
+            Payee payee = new Payee {
+                ID = testID,
+                Name = "A new Payee",
+                BeginEffectiveDate = new DateTime(2017, 3, 25),
+                EndEffectiveDate = null,
+                BudgetCategoryID = category.ID,
+                Category = category
+            };
+        }
+
+        #endregion
     }
 }
