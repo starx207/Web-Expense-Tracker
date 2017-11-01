@@ -27,6 +27,10 @@ namespace ExpenseTracker.Data.Repository
             return repo.Payees();
         }
 
+        public void AddPayee(Payee payeeToAdd) {
+            repo.AddPayee(payeeToAdd);
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
         }

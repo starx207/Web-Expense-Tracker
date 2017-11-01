@@ -9,6 +9,7 @@ namespace ExpenseTracker.Data.Repository
         IQueryable<BudgetCategory> GetCategories();
         IQueryable<Payee> GetPayees();
         void AddBudgetCategory(BudgetCategory categoryToAdd);
+        void AddPayee(Payee payeeToAdd);
         void RemoveBudgetCategory(BudgetCategory categoryToRemove);
         Task<int> SaveChangesAsync();
     }

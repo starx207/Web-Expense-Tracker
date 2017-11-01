@@ -33,6 +33,10 @@ namespace ExpenseTracker.Tests.Mock
             throw new NotImplementedException("GetPayees() is not implemented for the MockBudget");
         }
 
+        public void AddPayee(Payee payeeToAdd) {
+            throw new NotImplementedException("AddPayee() is not implemented for the MockBudget");
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await Task.FromResult(1);
         }
