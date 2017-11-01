@@ -190,6 +190,27 @@ namespace ExpenseTracker.Tests
             }
         }
 
+        [TestMethod]
+        public void DeleteAPayee() {
+            budget = new Budget(repo);
+            Payee payeeToRemove = budget.GetPayees().First();
+            int testID = payeeToRemove.ID;
+            int newCount;
+
+            budget.RemovePayee(payeeToRemove);
+            newCount = budget.GetPayees().Count();
+
+            Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
+
+            Payee retrievedPayee;
+            try {
+                retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+                Assert.Fail($"Payee with id = {testID} should have been removed");
+            } catch {
+                Assert.IsTrue(true); // If exception occurrs, the payee with the specified ID was removed
+            }
+        }
+
         #endregion
     }
 }
