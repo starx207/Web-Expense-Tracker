@@ -164,15 +164,30 @@ namespace ExpenseTracker.Tests
         public void AddAPayee() {
             budget = new Budget(repo);
             int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+            string payeeName = "Sweetwater";
             BudgetCategory category = budget.GetCategories().First();
             Payee payee = new Payee {
                 ID = testID,
-                Name = "A new Payee",
+                Name = payeeName,
                 BeginEffectiveDate = new DateTime(2017, 3, 25),
                 EndEffectiveDate = null,
                 BudgetCategoryID = category.ID,
                 Category = category
             };
+            int newCount;
+
+            budget.AddPayee(payee);
+            newCount = budget.GetPayees().Count();
+
+            Assert.AreEqual(payeeCount + 1, newCount, "No Payee was added");
+
+            Payee retrievedPayee;
+            try {
+                retrievedPayee = budget.GetPayees().Where(p => p.Name == payeeName).First();
+                Assert.AreEqual(testID, retrievedPayee.ID, $"'{payeeName}' should have ID = {testID}");
+            } catch {
+                Assert.Fail($"No payee named '{payeeName}' was found");
+            }
         }
 
         #endregion
