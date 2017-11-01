@@ -37,6 +37,10 @@ namespace ExpenseTracker.Tests.Mock
             throw new NotImplementedException("AddPayee() is not implemented for the MockBudget");
         }
 
+        public void RemovePayee(Payee payeeToRemove) {
+            throw new NotImplementedException("RemovePayee() is not implemented for MockBudget");
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await Task.FromResult(1);
         }
