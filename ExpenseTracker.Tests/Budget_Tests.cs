@@ -125,12 +125,9 @@ namespace ExpenseTracker.Tests
             Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
 
             BudgetCategory removedCategory;
-            try {
-                removedCategory = budget.GetCategories().Where(c => c.ID == testID).First();
-                Assert.Fail($"'{removedCategory.Name}' should have been removed");
-            } catch {
-                Assert.IsTrue(true); // if an error occurs, that means the testID no longer exists
-            }
+            Assert.ThrowsException<InvalidOperationException>(() =>
+                removedCategory = budget.GetCategories().Where(c => c.ID == testID).First()
+            , $"Category with id = {testID} should have been removed");
         }
         #endregion
     
@@ -203,12 +200,9 @@ namespace ExpenseTracker.Tests
             Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
 
             Payee retrievedPayee;
-            try {
-                retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
-                Assert.Fail($"Payee with id = {testID} should have been removed");
-            } catch {
-                Assert.IsTrue(true); // If exception occurrs, the payee with the specified ID was removed
-            }
+            Assert.ThrowsException<InvalidOperationException>(() =>
+                retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First()
+            , $"Payee with id = {testID} should have been removed");
         }
 
         #endregion
