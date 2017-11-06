@@ -35,6 +35,10 @@ namespace ExpenseTracker.Data.Repository
             repo.DeletePayee(payeeToRemove);
         }
 
+        public void UpdatePayee(Payee editedPayee) {
+            repo.EditPayee(editedPayee);
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
         }

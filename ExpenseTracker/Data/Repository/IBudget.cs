@@ -12,6 +12,7 @@ namespace ExpenseTracker.Data.Repository
         void AddPayee(Payee payeeToAdd);
         void RemoveBudgetCategory(BudgetCategory categoryToRemove);
         void RemovePayee(Payee payeeToRemove);
+        void UpdatePayee(Payee editedPayee);
         Task<int> SaveChangesAsync();
     }
 }
