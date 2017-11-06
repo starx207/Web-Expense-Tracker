@@ -205,6 +205,40 @@ namespace ExpenseTracker.Tests
             , $"Payee with id = {testID} should have been removed");
         }
 
+        [TestMethod]
+        public void EditAPayee() {
+            budget = new Budget(repo);
+            Payee payeeToEdit = budget.GetPayees().First();
+            int testID = payeeToEdit.ID;
+            string originalName = payeeToEdit.Name;
+            DateTime orignalBegin = payeeToEdit.BeginEffectiveDate;
+            DateTime? originalEnd = payeeToEdit.EndEffectiveDate;
+            BudgetCategory originalCategory = payeeToEdit.Category;
+            int? originalCategoryID = payeeToEdit.BudgetCategoryID;
+
+            string newName = originalName += " plus something extra";
+
+            payeeToEdit.Name = newName;
+            budget.UpdatePayee(payeeToEdit);
+
+            Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+
+            Assert.AreEqual(newName, editedPayee.Name, $"Payee name was not updated");
+
+            BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedPayee.BudgetCategoryID).First();
+
+            testID = editedPayee.ID;
+            editedPayee.Category = newCategory;
+            editedPayee.BudgetCategoryID = newCategory.ID;
+
+            budget.UpdatePayee(editedPayee);
+
+            payeeToEdit = budget.GetPayees().Where(p => p.ID == testID).First();
+
+            Assert.AreEqual(newCategory.Name, payeeToEdit.Category.Name, "The payee was not correctly reassigned to the new category");
+            Assert.AreEqual(newCategory.ID, payeeToEdit.BudgetCategoryID, "The payee was not correctly reassinged to the new category");
+        }
+
         #endregion
     }
 }
