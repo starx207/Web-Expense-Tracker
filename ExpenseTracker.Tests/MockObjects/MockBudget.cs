@@ -10,8 +10,11 @@ namespace ExpenseTracker.Tests.Mock
     internal class MockBudget : IBudget
     {
         private TestAsyncEnumerable<BudgetCategory> _categories;
-        public MockBudget(TestAsyncEnumerable<BudgetCategory> addCategories) {
+        private TestAsyncEnumerable<Payee> _payees;
+        public MockBudget(TestAsyncEnumerable<BudgetCategory> addCategories,
+                          TestAsyncEnumerable<Payee> addPayees) {
             _categories = addCategories;
+            _payees = addPayees;
         }
         public IQueryable<BudgetCategory> GetCategories() {
             return _categories.AsQueryable();
@@ -30,19 +33,28 @@ namespace ExpenseTracker.Tests.Mock
         }
 
         public IQueryable<Payee> GetPayees() {
-            throw new NotImplementedException("GetPayees() is not implemented for the MockBudget");
+            return _payees.AsQueryable();
         }
 
         public void AddPayee(Payee payeeToAdd) {
-            throw new NotImplementedException("AddPayee() is not implemented for the MockBudget");
+            IEnumerable<Payee> newPayees = _payees.AsEnumerable().Append(payeeToAdd);
+            _payees = new TestAsyncEnumerable<Payee>(newPayees);
         }
 
         public void RemovePayee(Payee payeeToRemove) {
-            throw new NotImplementedException("RemovePayee() is not implemented for MockBudget");
+            Payee removePayee = _payees.AsQueryable().Where(p => p.ID == payeeToRemove.ID).First();
+            List<Payee> newPayees = _payees.AsEnumerable().ToList();
+            newPayees.Remove(removePayee);
+            _payees = new TestAsyncEnumerable<Payee>(newPayees);
         }
 
         public void UpdatePayee(Payee editedPayee) {
-            throw new NotImplementedException("UpdatePayee() is not implemented for MockBudget");
+            Payee payeeToEdit = _payees.AsQueryable().Where(p => p.ID == editedPayee.ID).First();
+            List<Payee> newPayees = _payees.AsEnumerable().ToList();
+            newPayees.Remove(payeeToEdit);
+            newPayees.Add(editedPayee);
+
+            _payees = new TestAsyncEnumerable<Payee>(newPayees);
         }
 
         public async Task<int> SaveChangesAsync() {
