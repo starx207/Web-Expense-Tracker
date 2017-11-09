@@ -7,8 +7,8 @@ namespace ExpenseTracker.Data.Repository
 {
     public class Budget : IBudget
     {
-        private readonly IBudgetAccess repo;
-        public Budget(IBudgetAccess repository) { 
+        private readonly IDataAccess repo;
+        public Budget(IDataAccess repository) { 
             repo = repository;
         }
 

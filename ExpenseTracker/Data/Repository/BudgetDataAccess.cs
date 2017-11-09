@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
-    public class BudgetAccess : IBudgetAccess
+    public class BudgetDataAccess : IDataAccess
     {
         private readonly BudgetContext _context;
 
-        public BudgetAccess(BudgetContext context) {
+        public BudgetDataAccess(BudgetContext context) {
             _context = context;
         }
 

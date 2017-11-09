@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Tests.Mock
 {
-    public class MockBudgetAccess : IBudgetAccess
+    public class MockDataAccess : IDataAccess
     {
         private List<Transaction> transactions;
         private List<Payee> payees;
         private List<BudgetCategory> categories;
 
-        public MockBudgetAccess() {
+        public MockDataAccess() {
             transactions = new List<Transaction>();
             payees = new List<Payee>();
             categories = new List<BudgetCategory>();
         }
 
-        public MockBudgetAccess(IEnumerable<Transaction> _transactions, IEnumerable<Payee> _payees, IEnumerable<BudgetCategory> _categories) {
+        public MockDataAccess(IEnumerable<Transaction> _transactions, IEnumerable<Payee> _payees, IEnumerable<BudgetCategory> _categories) {
             transactions = _transactions.ToList();
             payees = _payees.ToList();
             categories = _categories.ToList();

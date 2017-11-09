@@ -11,7 +11,7 @@ namespace ExpenseTracker.Tests
     [TestClass]
     public class Budget_Tests
     {
-        private IBudgetAccess repo;
+        private IDataAccess repo;
         private IBudget budget;
         private Dictionary<int, string> categoryRef;
         private Dictionary<int, string> payeeRef;
@@ -43,7 +43,7 @@ namespace ExpenseTracker.Tests
             List<Transaction> transactions = new List<Transaction>();
 
             // Iniitlize the IBudgetAccess repo with in-memory data
-            repo = new MockBudgetAccess(transactions, payees, categories);
+            repo = new MockDataAccess(transactions, payees, categories);
         }
 
         [TestMethod]

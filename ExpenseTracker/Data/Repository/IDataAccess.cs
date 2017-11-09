@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data.Repository
 {
-    public interface IBudgetAccess
+    public interface IDataAccess
     {
         IQueryable<Transaction> Transactions();
         IQueryable<Payee> Payees();
