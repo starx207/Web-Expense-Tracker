@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ExpenseTracker.Tests
+namespace ExpenseTracker.Tests.Models
 {
     [TestClass]
     public class BudgetCategoryValidation_Tests
