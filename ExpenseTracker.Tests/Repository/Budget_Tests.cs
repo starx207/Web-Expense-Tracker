@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExpenseTracker.Tests
+namespace ExpenseTracker.Tests.Repository
 {
     [TestClass]
     public class Budget_Tests
