@@ -83,5 +83,54 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
             }
         #endregion
+
+        #region Create Tests
+            [TestMethod]
+            public void CreateGETReturnsView() {
+                IActionResult actionResult = controller.Create();
+                var result = actionResult as ViewResult;
+
+                Assert.AreEqual("Create", result.ViewName, $"Create method returned '{result.ViewName}' instead of 'Create'");
+            }
+
+            [TestMethod]
+            public async Task CreatePOSTWithAValidModelState() {
+                int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                Payee newPayee = new Payee {
+                    ID = testID,
+                    Name = "New Test Payee",
+                    BeginEffectiveDate = new DateTime(2016, 09, 01)
+                };
+
+                IActionResult actionResult = await controller.Create(newPayee);
+                var result = actionResult as RedirectToActionResult;
+                
+                Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
+
+                Payee createdPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+                Assert.AreEqual(newPayee.Name, createdPayee.Name, "New payee was not properly added");
+            }
+
+            [TestMethod]
+            public async Task CreatePOSTWithInvalidModelState() {
+                int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                Payee newPayee = new Payee {
+                    ID = testID,
+                    Name = "New Test Payee",
+                    BeginEffectiveDate = new DateTime(2016, 09, 01)
+                };
+
+                controller.ModelState.AddModelError("test", "test");
+
+                IActionResult actionResult = await controller.Create(newPayee);
+                var viewResult = actionResult as ViewResult;
+
+                Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
+
+                Payee model = (Payee)viewResult.Model;
+
+                Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
+            }
+        #endregion
     }
 }
