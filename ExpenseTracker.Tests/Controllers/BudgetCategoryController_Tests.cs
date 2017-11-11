@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Tests
+namespace ExpenseTracker.Tests.Controllers
 {
     [TestClass]
     public class BudgetCategoryController_Tests
