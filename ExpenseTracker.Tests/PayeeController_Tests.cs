@@ -32,5 +32,18 @@ namespace ExpenseTracker.Tests
 
             controller = new PayeeController(budget);
         }
+
+
+
+        #region Index Tests
+            [TestMethod]
+            public async Task IndexGETReturnsView() {
+                IActionResult actionResult = await controller.Index();
+                var result = actionResult as ViewResult;
+
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
+            }    
+        #endregion
     }
 }
