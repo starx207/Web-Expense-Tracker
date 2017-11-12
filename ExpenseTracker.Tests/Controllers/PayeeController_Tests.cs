@@ -3,6 +3,8 @@ using ExpenseTracker.Data.Repository;
 using ExpenseTracker.Models;
 using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,7 @@ namespace ExpenseTracker.Tests.Controllers
         private IBudget budget;
         private Dictionary<int, string> payeeReference;
         private PayeeController controller;
+        private readonly string categorySelectListKey = "CategoryList";
 
         [TestInitialize]
         public void InitializeTestData() {
@@ -195,6 +198,82 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
 
                 Assert.AreEqual(preCount, budget.GetPayees().Count(), "No payee should have been removed");
+            }
+        #endregion
+
+        #region Edit Method Tests
+            [TestMethod]
+            public async Task EditGETReturnsView() {
+                int testID = budget.GetPayees().First().ID;
+
+                IActionResult actionResult = await controller.Edit(testID);
+                var result = actionResult as ViewResult;
+
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Edit", result.ViewName, $"Edit method returned '{result.ViewName}' instead of 'Edit'");
+            }
+
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
+            public async Task EditGETReturnsCorrectPayee(int id) {
+                IActionResult actionResult = await controller.Edit(id);
+
+                if (!payeeReference.ContainsKey(id)) {
+                    Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
+                } else {
+                    string payeeName = payeeReference[id];
+                    var result = actionResult as ViewResult;
+                    Payee model = (Payee)result.Model;
+
+                    Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
+                }
+            }
+
+            [TestMethod]
+            public async Task EditGETReturnsNotFoundForNULLId() {
+                IActionResult actionResult = await controller.Edit(null);
+
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "404 Not Found should be returned for a NULL id");
+            }
+
+            [TestMethod]
+            public async Task EditGETPopulatesViewDataWithCategories() {
+                int testID = budget.GetPayees().First().ID;
+                IActionResult actionResult = await controller.Edit(testID);
+                var result = actionResult as ViewResult;
+
+                // Check that ViewData is not null
+                ViewDataDictionary viewData = result.ViewData;
+                Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
+
+                // Check that ViewData is a SelectList with correct number of Items
+                SelectList list = (SelectList)viewData[categorySelectListKey];
+                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
+
+                // Check that all BudgetCategories are included in the SelectList
+                string errorMsg = "The following BudgetCategories are missing: ";
+                int missingCategories = 0;
+                foreach (var Category in budget.GetCategories()) {
+                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
+                        missingCategories += 1;
+                        errorMsg += Category.Name + ", ";
+                    }
+                }
+                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
+
+                Assert.AreEqual(0, missingCategories, errorMsg);
+            }
+
+            [TestMethod]
+            public async Task EditGETBudgetCategoriesHasCorrectCategoryPreSelected() {
+                Payee testPayee = budget.GetPayees().First();
+                IActionResult actionResult = await controller.Edit(testPayee.ID);
+                var result = actionResult as ViewResult;
+                SelectList list = (SelectList)result.ViewData[categorySelectListKey];
+
+                bool isSelected = list.Where(i => i.Value == testPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
+
+                Assert.IsTrue(isSelected, $"The category = '{testPayee.Category.Name}' should be pre-selected for payee = '{testPayee.Name}'");
             }
         #endregion
     }
