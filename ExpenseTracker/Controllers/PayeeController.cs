@@ -70,7 +70,7 @@ namespace ExpenseTracker.Controllers
             {
                 return NotFound();
             }
-            ViewData["BudgetCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", payee.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", payee.BudgetCategoryID);
             return View(nameof(Edit), payee);
         }
 
