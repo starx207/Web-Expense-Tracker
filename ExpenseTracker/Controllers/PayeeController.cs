@@ -29,14 +29,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var payee = await _context.GetPayees()
-                .Include(p => p.Category)
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var payee = await GetPayeeById(id, true);
             if (payee == null)
             {
                 return NotFound();
@@ -72,12 +65,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var payee = await _context.GetPayees().SingleOrDefaultAsync(m => m.ID == id);
+            var payee = await GetPayeeById(id);
             if (payee == null)
             {
                 return NotFound();
@@ -125,14 +113,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var payee = await _context.GetPayees()
-                .Include(p => p.Category)
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var payee = await GetPayeeById(id, true);
             if (payee == null)
             {
                 return NotFound();
@@ -146,15 +127,29 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var payee = await _context.GetPayees().SingleOrDefaultAsync(m => m.ID == id);
-            _context.RemovePayee(payee);
-            await _context.SaveChangesAsync();
+            var payee = await GetPayeeById(id);
+            if (payee != null) {
+                _context.RemovePayee(payee);
+                await _context.SaveChangesAsync();
+            }
             return RedirectToAction(nameof(Index));
         }
 
         private bool PayeeExists(int id)
         {
             return _context.GetPayees().Any(e => e.ID == id);
+        }
+
+        private async Task<Payee> GetPayeeById(int? id, bool includeCategory = false) {
+            if (id == null) { return null; }
+
+            var payee = _context.GetPayees().Where(p => p.ID == id);
+            
+            if (includeCategory) {
+                payee = payee.Include(p => p.Category);
+            }
+
+            return await payee.SingleOrDefaultAsync();
         }
     }
 }
