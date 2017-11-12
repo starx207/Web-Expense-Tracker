@@ -61,7 +61,7 @@ namespace ExpenseTracker.Tests.Controllers
 
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-            public async Task DetailsGETReturnsCorrectBudgetCategory(int id) {
+            public async Task DetailsGETReturnsCorrectPayee(int id) {
                 IActionResult actionResult = await controller.Details(id);
 
                 if (!payeeReference.ContainsKey(id)) {
@@ -130,6 +130,71 @@ namespace ExpenseTracker.Tests.Controllers
                 Payee model = (Payee)viewResult.Model;
 
                 Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
+            }
+        #endregion
+
+
+        #region "Delete Method Tests"
+            [TestMethod]
+            public async Task DeleteGETReturnsView() {
+                int id = budget.GetPayees().Select(p => p.ID).First();
+
+                IActionResult actionResult = await controller.Delete(id);
+                var result = actionResult as ViewResult;
+                
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Delete", result.ViewName, $"Delete method returned '{result.ViewName}' instead of 'Delete'");
+            }
+
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
+            public async Task DeleteGETReturnsCorrectPayee(int id) {
+                IActionResult actionResult = await controller.Delete(id);
+
+                if (!payeeReference.ContainsKey(id)) {
+                    Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
+                } else {
+                    string payeeName = payeeReference[id];
+
+                    var result = actionResult as ViewResult;
+                    Payee model = (Payee)result.ViewData.Model;
+
+                    Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
+                }
+            }
+
+            [TestMethod]
+            public async Task DeleteGETReturnsNotFoundForNullIndex() {
+                IActionResult actionResult = await controller.Delete(null);
+
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
+            }
+
+            [TestMethod]
+            public async Task DeletePOSTRemoveExistingPayee() {
+                int testID = budget.GetPayees().Select(p => p.ID).First();
+
+                IActionResult actionResult = await controller.DeleteConfirmed(testID);
+                var result = actionResult as RedirectToActionResult;
+
+                Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+
+                Payee payeeShouldntBeThere = budget.GetPayees().Where(p => p.ID == testID).SingleOrDefault();
+
+                Assert.IsNull(payeeShouldntBeThere, $"Payee with id = {testID} wasn't removed");
+            }
+
+            [TestMethod]
+            public async Task DeletePOSTRemoveNonExistantCategory() {
+                int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 10;
+                int preCount = budget.GetPayees().Count();
+
+                IActionResult actionResult = await controller.DeleteConfirmed(testID);
+                var result = actionResult as RedirectToActionResult;
+
+                Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+
+                Assert.AreEqual(preCount, budget.GetPayees().Count(), "No payee should have been removed");
             }
         #endregion
     }
