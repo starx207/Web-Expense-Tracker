@@ -97,6 +97,33 @@ namespace ExpenseTracker.Tests.Controllers
             }
 
             [TestMethod]
+            public void CreateGETCreatesSelectListInViewData() {
+                IActionResult actionResult = controller.Create();
+                var result = actionResult as ViewResult;
+
+                // Check that ViewData is not null
+                ViewDataDictionary viewData = result.ViewData;
+                Assert.IsNotNull(viewData[categorySelectListKey], $"Create View expects data for ViewData['{categorySelectListKey}']");
+
+                // Check that ViewData is a SelectList with correct number of Items
+                SelectList list = (SelectList)viewData[categorySelectListKey];
+                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
+
+                // Check that all BudgetCategories are included in the SelectList
+                string errorMsg = "The following BudgetCategories are missing: ";
+                int missingCategories = 0;
+                foreach (var Category in budget.GetCategories()) {
+                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
+                        missingCategories += 1;
+                        errorMsg += Category.Name + ", ";
+                    }
+                }
+                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
+
+                Assert.AreEqual(0, missingCategories, errorMsg);
+            }
+
+            [TestMethod]
             public async Task CreatePOSTWithAValidModelState() {
                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
                 Payee newPayee = new Payee {
