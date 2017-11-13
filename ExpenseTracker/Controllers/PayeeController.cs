@@ -41,7 +41,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Create
         public IActionResult Create()
         {
-            ViewData["BudgetCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name");
+            CreateCategorySelectList();
             return View(nameof(Create));
         }
 
@@ -58,7 +58,7 @@ namespace ExpenseTracker.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BudgetCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", payee.BudgetCategoryID);
+            CreateCategorySelectList(payee);
             return View(nameof(Create), payee);
         }
 
@@ -70,7 +70,7 @@ namespace ExpenseTracker.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", payee.BudgetCategoryID);
+            CreateCategorySelectList(payee);
             return View(nameof(Edit), payee);
         }
 
@@ -106,7 +106,7 @@ namespace ExpenseTracker.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BudgetCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", payee.BudgetCategoryID);
+            CreateCategorySelectList(payee);
             return View(nameof(Edit), payee);
         }
 
@@ -150,6 +150,10 @@ namespace ExpenseTracker.Controllers
             }
 
             return await payee.SingleOrDefaultAsync();
+        }
+
+        private void CreateCategorySelectList(Payee payeeToSelect = null) {
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }
