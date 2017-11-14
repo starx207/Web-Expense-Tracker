@@ -161,6 +161,47 @@ namespace ExpenseTracker.Tests.Controllers
 
                 Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
             }
+
+            public async Task CreatePOSTWithInvalidModelStatePopulatesCategorySelectWithCorrectDefault() {
+                int testID = budget.GetPayees().OrderByDescending(p => p.ID).First().ID + 1;
+                BudgetCategory testCategory = budget.GetCategories().First();
+                Payee newPayee = new Payee {
+                    ID = testID,
+                    Name = "New Test Payee",
+                    BeginEffectiveDate = new DateTime(2017,12,12),
+                    Category = testCategory,
+                    BudgetCategoryID = testCategory.ID
+                };
+
+                controller.ModelState.AddModelError("test", "test");
+
+                IActionResult actionResult = await controller.Create(newPayee);
+                var result = actionResult as ViewResult;
+                // Check that ViewData is not null
+                ViewDataDictionary viewData = result.ViewData;
+                Assert.IsNotNull(viewData[categorySelectListKey], $"Create View expects data for ViewData['{categorySelectListKey}']");
+
+                // Check that ViewData is a SelectList with correct number of Items
+                SelectList list = (SelectList)viewData[categorySelectListKey];
+                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
+
+                // Check that all BudgetCategories are included in the SelectList
+                string errorMsg = "The following BudgetCategories are missing: ";
+                int missingCategories = 0;
+                foreach (var Category in budget.GetCategories()) {
+                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
+                        missingCategories += 1;
+                        errorMsg += Category.Name + ", ";
+                    }
+                }
+                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
+
+                Assert.AreEqual(0, missingCategories, errorMsg);
+
+                bool isSelected = list.Where(i => i.Value == newPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
+
+                Assert.IsTrue(isSelected, $"The category = '{newPayee.Category.Name}' should be pre-selected for payee = '{newPayee.Name}'");
+            }
         #endregion
 
 
