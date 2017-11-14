@@ -36,8 +36,6 @@ namespace ExpenseTracker.Tests.Controllers
             controller = new PayeeController(budget);
         }
 
-
-
         #region Index Tests
             [TestMethod]
             public async Task IndexGETReturnsView() {
@@ -48,7 +46,6 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
             }    
         #endregion
-
 
         #region Details Tests
             [TestMethod]
@@ -203,7 +200,6 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.IsTrue(isSelected, $"The category = '{newPayee.Category.Name}' should be pre-selected for payee = '{newPayee.Name}'");
             }
         #endregion
-
 
         #region "Delete Method Tests"
             [TestMethod]
