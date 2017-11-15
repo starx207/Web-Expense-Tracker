@@ -339,6 +339,77 @@ namespace ExpenseTracker.Tests.Controllers
 
                 Assert.IsTrue(isSelected, $"The category = '{testPayee.Category.Name}' should be pre-selected for payee = '{testPayee.Name}'");
             }
+
+            [TestMethod]
+            public async Task EditPOSTWithValidModelStateRedirectsToIndex() {
+                Payee editedPayee = budget.GetPayees().First();
+                editedPayee.Name += "_modified";
+                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+                var result = actionResult as RedirectToActionResult;
+
+                Assert.IsNotNull(result, "Edit POST did not return a RedirectToActionResult");
+                Assert.AreEqual("Index", result.ActionName, $"Edit POST should redirect to 'Index', not {result.ActionName}");
+            }
+
+            [TestMethod]
+            public async Task EditPOSTWithMismatchedIDReturnsNotFound() {
+                Payee editedPayee = budget.GetPayees().First();
+                editedPayee.Name += "_modified";
+                IActionResult actionResult = await controller.Edit(editedPayee.ID + 1, editedPayee);
+
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "If the ID doesn't match the ID of the edited Payee, Not Found should be called");
+            }
+
+            [TestMethod]
+            public async Task EditPOSTWithInvalidModelStateReturnsToEditView() {
+                Payee editedPayee = budget.GetPayees().First();
+                string newName = editedPayee.Name + "_modified";
+                editedPayee.Name = newName;
+
+                controller.ModelState.AddModelError("test", "test");
+                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+
+                var result = actionResult as ViewResult;
+                Assert.IsNotNull(result, "Edit POST with invalid model state should return a ViewResult");
+                Assert.AreEqual("Edit", result.ViewName, $"Edit POST with invalid model state should return to 'Edit' view, not '{result.ViewName}'");
+
+                Payee model = (Payee)result.Model;
+
+                Assert.AreEqual(editedPayee.ID, model.ID, "The wrong payee was passed back to the View");
+
+                Assert.AreEqual(newName, model.Name, "The updated values were not preserved when returning to the View");
+            }
+
+            [TestMethod]
+            public async Task EditPOSTWithInvalidModelStatePopulatesCategorySelect() {
+                Payee editedPayee = budget.GetPayees().First();
+                editedPayee.Name += "_modified";
+
+                controller.ModelState.AddModelError("test", "test");
+                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+                var result = actionResult as ViewResult;
+
+                // Check that ViewData is not null
+                ViewDataDictionary viewData = result.ViewData;
+                Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
+
+                // Check that ViewData is a SelectList with correct number of Items
+                SelectList list = (SelectList)viewData[categorySelectListKey];
+                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
+
+                // Check that all BudgetCategories are included in the SelectList
+                string errorMsg = "The following BudgetCategories are missing: ";
+                int missingCategories = 0;
+                foreach (var Category in budget.GetCategories()) {
+                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
+                        missingCategories += 1;
+                        errorMsg += Category.Name + ", ";
+                    }
+                }
+                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
+
+                Assert.AreEqual(0, missingCategories, errorMsg);
+            }
         #endregion
     }
 }
