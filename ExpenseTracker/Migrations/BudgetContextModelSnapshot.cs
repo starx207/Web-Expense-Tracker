@@ -51,7 +51,7 @@ namespace ExpenseTracker.Migrations
 
                     b.Property<int?>("BudgetCategoryID");
 
-                    b.Property<DateTime>("EndEffectiveDate");
+                    b.Property<DateTime?>("EndEffectiveDate");
 
                     b.Property<string>("Name")
                         .IsRequired()
