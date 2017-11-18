@@ -4,21 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ExpenseTracker.Models
 {
-    public class Payee
+    public class Payee : DbCommon
     {
-        [Key]
-        public int ID { get; set; }
-
         [StringLength(50)]
         [Required]
         public string Name { get; set; }
-
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime BeginEffectiveDate { get; set; }
-
-        [DataType(DataType.Date)]
-        public DateTime? EndEffectiveDate { get; set; }
 
         public int? BudgetCategoryID { get; set; }
 

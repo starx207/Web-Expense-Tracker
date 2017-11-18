@@ -8,11 +8,8 @@ namespace ExpenseTracker.Models
         Income, Expense
     }
 
-    public class BudgetCategory
+    public class BudgetCategory : DbCommon
     {
-        [Key]
-        public int ID { get; set; }
-
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
@@ -21,13 +18,6 @@ namespace ExpenseTracker.Models
         [DisplayFormat(DataFormatString = "{0:$#,##0.00}", ApplyFormatInEditMode = false)]
         [Required]
         public double Amount { get; set; }
-
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime BeginEffectiveDate { get; set; }
-
-        [DataType(DataType.Date)]
-        public DateTime? EndEffectiveDate { get; set; }
 
         [Required]
         public BudgetType Type { get; set; }
