@@ -12,8 +12,8 @@ using System;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20171021143002_CreateInitial")]
-    partial class CreateInitial
+    [Migration("20171118205201_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,7 +52,7 @@ namespace ExpenseTracker.Migrations
 
                     b.Property<int?>("BudgetCategoryID");
 
-                    b.Property<DateTime>("EndEffectiveDate");
+                    b.Property<DateTime?>("EndEffectiveDate");
 
                     b.Property<string>("Name")
                         .IsRequired()

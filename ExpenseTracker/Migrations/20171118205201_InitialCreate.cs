@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ExpenseTracker.Migrations
 {
-    public partial class CreateInitial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -33,7 +33,7 @@ namespace ExpenseTracker.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     BeginEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     BudgetCategoryID = table.Column<int>(type: "INTEGER", nullable: true),
-                    EndEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
