@@ -5,6 +5,7 @@ using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -341,14 +342,20 @@ namespace ExpenseTracker.Tests.Controllers
             }
 
             [TestMethod]
-            public async Task EditPOSTWithValidModelStateRedirectsToIndex() {
-                Payee editedPayee = budget.GetPayees().First();
-                editedPayee.Name += "_modified";
-                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+            public async Task EditPOSTWithValidModelState() {
+                Payee payeeToEdit = budget.GetPayees().First();
+                int testID = payeeToEdit.ID;
+                string newName = payeeToEdit.Name + "_modified";
+                payeeToEdit.Name = newName;
+                IActionResult actionResult = await controller.Edit(payeeToEdit.ID, payeeToEdit);
                 var result = actionResult as RedirectToActionResult;
 
                 Assert.IsNotNull(result, "Edit POST did not return a RedirectToActionResult");
                 Assert.AreEqual("Index", result.ActionName, $"Edit POST should redirect to 'Index', not {result.ActionName}");
+
+                Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+
+                Assert.AreEqual(newName, editedPayee.Name, "The changes for the payee were not saved");
             }
 
             [TestMethod]
@@ -410,6 +417,26 @@ namespace ExpenseTracker.Tests.Controllers
 
                 Assert.AreEqual(0, missingCategories, errorMsg);
             }
+
+            [TestMethod]
+            public async Task EditPOSTWithInvalidModelStatePreservesSelectedCategory() {
+                Payee editedPayee = budget.GetPayees().Where(p => p.BudgetCategoryID != null).First();
+                int originalCategoryID = (int)editedPayee.BudgetCategoryID;
+                BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != originalCategoryID).First();
+
+                editedPayee.Category = newCategory;
+                editedPayee.BudgetCategoryID = newCategory.ID;
+                controller.ModelState.AddModelError("test", "test");
+                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+                var result = actionResult as ViewResult;
+
+                SelectList list = (SelectList)result.ViewData[categorySelectListKey];
+                bool isSelected = list.Where(i => i.Value == newCategory.ID.ToString()).FirstOrDefault().Selected;
+
+                Assert.IsTrue(isSelected, $"The budget category '{newCategory.Name}' was not pre-selected when returning to View");
+            }
+
+            // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
         #endregion
     }
 }
