@@ -15,5 +15,7 @@ namespace ExpenseTracker.Models
         public BudgetCategory Category { get; set; }
 
         public ICollection<Transaction> Transactions { get; set; }
+
+        public ICollection<Alias> Aliases { get; set; }
     }
 }

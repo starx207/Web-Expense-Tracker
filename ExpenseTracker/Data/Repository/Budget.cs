@@ -39,6 +39,22 @@ namespace ExpenseTracker.Data.Repository
             repo.EditPayee(editedPayee);
         }
 
+        public IQueryable<Alias> GetAliases() {
+            return repo.Aliases();
+        }
+
+        public void AddAlias(Alias aliasToAdd) {
+            repo.AddAlias(aliasToAdd);
+        }
+
+        public void RemoveAlias(Alias aliasToRemove) {
+            repo.DeleteAlias(aliasToRemove);
+        }
+
+        public void UpdateAlias(Alias editedAlias) {
+            repo.EditAlias(editedAlias);
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
         }

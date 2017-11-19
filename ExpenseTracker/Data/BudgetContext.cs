@@ -10,5 +10,6 @@ namespace ExpenseTracker.Data
         public DbSet<BudgetCategory> BudgetCategories { get; set; }
         public DbSet<Payee> Payees { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<Alias> Aliases { get; set; }
     }
 }

@@ -27,6 +27,11 @@ namespace ExpenseTracker.Data.Repository
             IQueryable<BudgetCategory> categories = _context.BudgetCategories.AsQueryable();
             return categories;
         }
+
+        public IQueryable<Alias> Aliases() {
+            IQueryable<Alias> aliases = _context.Aliases.AsQueryable();
+            return aliases;
+        }
         #endregion
 
         #region "DELETE methods"
@@ -40,6 +45,10 @@ namespace ExpenseTracker.Data.Repository
 
         public void DeleteBudgetCategory(BudgetCategory categoryToDelete) {
             _context.BudgetCategories.Remove(categoryToDelete);
+        }
+
+        public void DeleteAlias(Alias aliasToDelete) {
+            _context.Aliases.Remove(aliasToDelete);
         }
         #endregion
 
@@ -55,6 +64,10 @@ namespace ExpenseTracker.Data.Repository
         public void AddBudgetCategory(BudgetCategory categoryToAdd) {
             _context.BudgetCategories.Add(categoryToAdd);
         }
+
+        public void AddAlias(Alias aliasToAdd) {
+            _context.Aliases.Add(aliasToAdd);
+        }
         #endregion
 
         #region "EDIT methods"
@@ -68,6 +81,10 @@ namespace ExpenseTracker.Data.Repository
 
         public void EditBudgetCategory(BudgetCategory categoryToEdit) {
             _context.BudgetCategories.Update(categoryToEdit);
+        }
+
+        public void EditAlias(Alias aliasToEdit) {
+            _context.Aliases.Update(aliasToEdit);
         }
         #endregion
 

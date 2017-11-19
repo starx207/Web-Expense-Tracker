@@ -34,6 +34,9 @@ namespace ExpenseTracker.Tests.Mock
         public IQueryable<BudgetCategory> BudgetCategories() {
             return categories.AsQueryable();
         }
+        public IQueryable<Alias> Aliases() {
+            throw new NotImplementedException();
+        }
         public void DeleteTransaction(Transaction transactionToDelete) {
             transactions.Remove(transactionToDelete);
         }
@@ -43,6 +46,9 @@ namespace ExpenseTracker.Tests.Mock
         public void DeleteBudgetCategory(BudgetCategory categoryToDelete) {
             categories.Remove(categoryToDelete);
         }
+        public void DeleteAlias(Alias aliasToDelete) {
+            throw new NotImplementedException();
+        }
         public void AddTransaction(Transaction transactionToAdd) {
             transactions.Add(transactionToAdd);
         }
@@ -51,6 +57,9 @@ namespace ExpenseTracker.Tests.Mock
         }
         public void AddBudgetCategory(BudgetCategory categoryToAdd) {
             categories.Add(categoryToAdd);
+        }
+        public void AddAlias(Alias aliasToAdd) {
+            throw new NotImplementedException();
         }
         public void EditTransaction(Transaction transactionToEdit) {
             Transaction transactionToRemove = null;
@@ -87,6 +96,9 @@ namespace ExpenseTracker.Tests.Mock
                 categories.Remove(categoryToRemove);
                 categories.Add(categoryToEdit);
             }
+        }
+        public void EditAlias(Alias aliasToEdit) {
+            throw new NotImplementedException();
         }
 
         public async Task<int> SaveChangesAsync() {

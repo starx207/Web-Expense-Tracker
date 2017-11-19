@@ -57,6 +57,22 @@ namespace ExpenseTracker.Tests.Mock
             _payees = new TestAsyncEnumerable<Payee>(newPayees);
         }
 
+        public IQueryable<Alias> GetAliases() {
+            throw new NotImplementedException();
+        }
+
+        public void AddAlias(Alias aliasToAdd) {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAlias(Alias aliasToRemove) {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateAlias(Alias editedAlias) {
+            throw new NotImplementedException();
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await Task.FromResult(1);
         }
