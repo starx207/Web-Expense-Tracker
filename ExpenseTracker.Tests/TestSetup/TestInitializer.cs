@@ -87,10 +87,43 @@ namespace ExpenseTracker.Tests
                     EndEffectiveDate = null,
                     BudgetCategoryID = null,
                     Category = null
+                },
+                new Payee {
+                    ID = 6,
+                    Name = "Payee with Aliases",
+                    BeginEffectiveDate = new DateTime(2017, 1, 1),
+                    BudgetCategoryID = 2,
+                    Category = categories.Where(c => c.ID == 2).FirstOrDefault()
                 }
             };
 
             return payees;
+        }
+
+        public static List<Alias> CreateTestAliases(IQueryable<Payee> payees) {
+            Payee payeeWithAliases = payees.Where(p => p.Name == "Payee with Aliases").FirstOrDefault();
+            List<Alias> aliases = new List<Alias> {
+                new Alias {
+                    ID = 1,
+                    Name = "WalMart 223235 WAL",
+                    PayeeID = payeeWithAliases.ID,
+                    AliasForPayee = payeeWithAliases
+                },
+                new Alias {
+                    ID = 2,
+                    Name = "WalMart 37917",
+                    PayeeID = payeeWithAliases.ID,
+                    AliasForPayee = payeeWithAliases
+                },
+                new Alias {
+                    ID = 3,
+                    Name = "Murphy USA",
+                    PayeeID = payeeWithAliases.ID,
+                    AliasForPayee = payeeWithAliases
+                }
+            };
+
+            return aliases;
         }
     }
 }

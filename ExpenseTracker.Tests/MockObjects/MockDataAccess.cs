@@ -12,17 +12,23 @@ namespace ExpenseTracker.Tests.Mock
         private List<Transaction> transactions;
         private List<Payee> payees;
         private List<BudgetCategory> categories;
+        private List<Alias> aliases;
 
         public MockDataAccess() {
             transactions = new List<Transaction>();
             payees = new List<Payee>();
             categories = new List<BudgetCategory>();
+            aliases = new List<Alias>();
         }
 
-        public MockDataAccess(IEnumerable<Transaction> _transactions, IEnumerable<Payee> _payees, IEnumerable<BudgetCategory> _categories) {
+        public MockDataAccess(IEnumerable<Transaction> _transactions, 
+                              IEnumerable<Payee> _payees, 
+                              IEnumerable<BudgetCategory> _categories,
+                              IEnumerable<Alias> _aliases) {
             transactions = _transactions.ToList();
             payees = _payees.ToList();
             categories = _categories.ToList();
+            aliases = _aliases.ToList();
         }
 
         public IQueryable<Transaction> Transactions() {
@@ -35,7 +41,7 @@ namespace ExpenseTracker.Tests.Mock
             return categories.AsQueryable();
         }
         public IQueryable<Alias> Aliases() {
-            throw new NotImplementedException();
+            return aliases.AsQueryable();
         }
         public void DeleteTransaction(Transaction transactionToDelete) {
             transactions.Remove(transactionToDelete);
@@ -47,7 +53,7 @@ namespace ExpenseTracker.Tests.Mock
             categories.Remove(categoryToDelete);
         }
         public void DeleteAlias(Alias aliasToDelete) {
-            throw new NotImplementedException();
+            aliases.Remove(aliasToDelete);
         }
         public void AddTransaction(Transaction transactionToAdd) {
             transactions.Add(transactionToAdd);
@@ -59,7 +65,7 @@ namespace ExpenseTracker.Tests.Mock
             categories.Add(categoryToAdd);
         }
         public void AddAlias(Alias aliasToAdd) {
-            throw new NotImplementedException();
+            aliases.Add(aliasToAdd);
         }
         public void EditTransaction(Transaction transactionToEdit) {
             Transaction transactionToRemove = null;
@@ -98,7 +104,16 @@ namespace ExpenseTracker.Tests.Mock
             }
         }
         public void EditAlias(Alias aliasToEdit) {
-            throw new NotImplementedException();
+            Alias aliasToRemove = null;
+            foreach (var alias in aliases) {
+                if (alias.ID == aliasToEdit.ID) {
+                    aliasToRemove = alias;
+                }
+            }
+            if (aliasToRemove != null) {
+                aliases.Remove(aliasToRemove);
+                aliases.Add(aliasToEdit);
+            }
         }
 
         public async Task<int> SaveChangesAsync() {

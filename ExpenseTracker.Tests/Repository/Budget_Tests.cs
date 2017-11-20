@@ -15,7 +15,8 @@ namespace ExpenseTracker.Tests.Repository
         private IBudget budget;
         private Dictionary<int, string> categoryRef;
         private Dictionary<int, string> payeeRef;
-        private int categoryCount, payeeCount;
+        private Dictionary<int, string> aliasRef;
+        private int categoryCount, payeeCount, aliasCount;
 
         [TestInitialize]
         public void InitializeTestData() {
@@ -39,11 +40,19 @@ namespace ExpenseTracker.Tests.Repository
             // Record the number of payees at the start of the test
             payeeCount = payees.Count;
 
+            // Create in-memory Aliases
+            List<Alias> aliases = TestInitializer.CreateTestAliases(payees.AsQueryable());
+            aliasRef = new Dictionary<int, string>();
+            foreach (var alias in aliases) {
+                aliasRef.Add(alias.ID, alias.Name);
+            }
+            aliasCount = aliases.Count;
+
             // Create in-memory Transactions
             List<Transaction> transactions = new List<Transaction>();
 
             // Iniitlize the IBudgetAccess repo with in-memory data
-            repo = new MockDataAccess(transactions, payees, categories);
+            repo = new MockDataAccess(transactions, payees, categories, aliases);
         }
 
         [TestMethod]
@@ -59,186 +68,281 @@ namespace ExpenseTracker.Tests.Repository
         }
 
         #region "BudgetCategory Tests"
-        [TestMethod]
-        public void GetAllBudgetCategoriesReturnsCorrectCount() {
-            budget = new Budget(repo);
-            IQueryable<BudgetCategory> allCategories;
+            [TestMethod]
+            public void GetAllBudgetCategoriesReturnsCorrectCount() {
+                budget = new Budget(repo);
+                IQueryable<BudgetCategory> allCategories;
 
-            allCategories = budget.GetCategories();
+                allCategories = budget.GetCategories();
 
-            Assert.AreEqual(categoryCount, allCategories.Count(), "GetCategories() returned wrong number of BudgetCategories");
-        }
-
-        [DataTestMethod]
-        [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
-        public void GetAllBudgetCategoriesReturnsCorrectCategories(int id) {
-            budget = new Budget(repo);
-            BudgetCategory category;
-            IQueryable<BudgetCategory> allCategories;
-            string expectedName = categoryRef[id];
-
-            allCategories = budget.GetCategories();
-            category = allCategories.Where(c => c.ID == id).First();
-
-            Assert.AreEqual(expectedName, category.Name, $"BudgetCategory with ID = {id} should have Name = {expectedName}");
-        }
-
-        [TestMethod]
-        public void AddANewBudgetCategory() {
-            budget = new Budget(repo);
-            int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
-            string testName = "Insurance";
-            BudgetCategory newCategory = new BudgetCategory {
-                ID = testID,
-                Name = testName,
-                Amount = 280.94,
-                BeginEffectiveDate = new DateTime(2016, 09, 01),
-                EndEffectiveDate = null,
-                Type = BudgetType.Expense
-            };
-            int newCount;
-
-            budget.AddBudgetCategory(newCategory);
-            newCount = budget.GetCategories().Count();
-
-            Assert.IsTrue(newCount == categoryCount + 1, "No category was added");
-
-            BudgetCategory retrievedCategory;
-            try {
-                retrievedCategory = budget.GetCategories().Where(c => c.Name == testName).First();
-                Assert.AreEqual(testID, retrievedCategory.ID, $"'{testName}' should have ID = {testID}");
-            } catch {
-                Assert.Fail($"No '{testName}' category was found");
+                Assert.AreEqual(categoryCount, allCategories.Count(), "GetCategories() returned wrong number of BudgetCategories");
             }
-        }
 
-        [TestMethod]
-        public void RemoveABudgetCategory() {
-            budget = new Budget(repo);
-            int testID = repo.BudgetCategories().Select(c => c.ID).First();
-            BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
-            int newCount;
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
+            public void GetAllBudgetCategoriesReturnsCorrectCategories(int id) {
+                budget = new Budget(repo);
+                BudgetCategory category;
+                IQueryable<BudgetCategory> allCategories;
+                string expectedName = categoryRef[id];
 
-            budget.RemoveBudgetCategory(remove);
-            newCount = budget.GetCategories().Count();
+                allCategories = budget.GetCategories();
+                category = allCategories.Where(c => c.ID == id).First();
 
-            Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
+                Assert.AreEqual(expectedName, category.Name, $"BudgetCategory with ID = {id} should have Name = {expectedName}");
+            }
 
-            BudgetCategory removedCategory;
-            Assert.ThrowsException<InvalidOperationException>(() =>
-                removedCategory = budget.GetCategories().Where(c => c.ID == testID).First()
-            , $"Category with id = {testID} should have been removed");
-        }
+            [TestMethod]
+            public void AddANewBudgetCategory() {
+                budget = new Budget(repo);
+                int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
+                string testName = "Insurance";
+                BudgetCategory newCategory = new BudgetCategory {
+                    ID = testID,
+                    Name = testName,
+                    Amount = 280.94,
+                    BeginEffectiveDate = new DateTime(2016, 09, 01),
+                    EndEffectiveDate = null,
+                    Type = BudgetType.Expense
+                };
+                int newCount;
+
+                budget.AddBudgetCategory(newCategory);
+                newCount = budget.GetCategories().Count();
+
+                Assert.IsTrue(newCount == categoryCount + 1, "No category was added");
+
+                BudgetCategory retrievedCategory;
+                try {
+                    retrievedCategory = budget.GetCategories().Where(c => c.Name == testName).First();
+                    Assert.AreEqual(testID, retrievedCategory.ID, $"'{testName}' should have ID = {testID}");
+                } catch {
+                    Assert.Fail($"No '{testName}' category was found");
+                }
+            }
+
+            [TestMethod]
+            public void RemoveABudgetCategory() {
+                budget = new Budget(repo);
+                int testID = repo.BudgetCategories().Select(c => c.ID).First();
+                BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
+                int newCount;
+
+                budget.RemoveBudgetCategory(remove);
+                newCount = budget.GetCategories().Count();
+
+                Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
+
+                BudgetCategory removedCategory;
+                Assert.ThrowsException<InvalidOperationException>(() =>
+                    removedCategory = budget.GetCategories().Where(c => c.ID == testID).First()
+                , $"Category with id = {testID} should have been removed");
+            }
         #endregion
     
         #region "Payee Tests"
 
-        [TestMethod]
-        public void GetAllPayeesReturnsCorrectCount() {
-            budget = new Budget(repo);
-            IQueryable<Payee> allPayees;
+            [TestMethod]
+            public void GetAllPayeesReturnsCorrectCount() {
+                budget = new Budget(repo);
+                IQueryable<Payee> allPayees;
 
-            allPayees = budget.GetPayees();
+                allPayees = budget.GetPayees();
 
-            Assert.AreEqual(payeeCount, allPayees.Count(), "The wrong number of Payees was returned");
-        }
-
-        [DataTestMethod]
-        [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
-        public void GetPayeesReturnsCorrectPayees(int id) {
-            budget = new Budget(repo);
-            Payee payee;
-            IQueryable<Payee> allPayees;
-            string expectedName = payeeRef[id];
-
-            allPayees = budget.GetPayees();
-            payee = allPayees.Where(p => p.ID == id).First();
-
-            Assert.AreEqual(expectedName, payee.Name, $"Id = {id} should return '{expectedName}'");
-        }
-
-        [TestMethod]
-        public void AddAPayee() {
-            budget = new Budget(repo);
-            int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
-            string payeeName = "Sweetwater";
-            BudgetCategory category = budget.GetCategories().First();
-            Payee payee = new Payee {
-                ID = testID,
-                Name = payeeName,
-                BeginEffectiveDate = new DateTime(2017, 3, 25),
-                EndEffectiveDate = null,
-                BudgetCategoryID = category.ID,
-                Category = category
-            };
-            int newCount;
-
-            budget.AddPayee(payee);
-            newCount = budget.GetPayees().Count();
-
-            Assert.AreEqual(payeeCount + 1, newCount, "No Payee was added");
-
-            Payee retrievedPayee;
-            try {
-                retrievedPayee = budget.GetPayees().Where(p => p.Name == payeeName).First();
-                Assert.AreEqual(testID, retrievedPayee.ID, $"'{payeeName}' should have ID = {testID}");
-            } catch {
-                Assert.Fail($"No payee named '{payeeName}' was found");
+                Assert.AreEqual(payeeCount, allPayees.Count(), "The wrong number of Payees was returned");
             }
-        }
 
-        [TestMethod]
-        public void DeleteAPayee() {
-            budget = new Budget(repo);
-            Payee payeeToRemove = budget.GetPayees().First();
-            int testID = payeeToRemove.ID;
-            int newCount;
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
+            public void GetPayeesReturnsCorrectPayees(int id) {
+                budget = new Budget(repo);
+                Payee payee;
+                IQueryable<Payee> allPayees;
+                string expectedName = payeeRef[id];
 
-            budget.RemovePayee(payeeToRemove);
-            newCount = budget.GetPayees().Count();
+                allPayees = budget.GetPayees();
+                payee = allPayees.Where(p => p.ID == id).First();
 
-            Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
+                Assert.AreEqual(expectedName, payee.Name, $"Id = {id} should return '{expectedName}'");
+            }
 
-            Payee retrievedPayee;
-            Assert.ThrowsException<InvalidOperationException>(() =>
-                retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First()
-            , $"Payee with id = {testID} should have been removed");
-        }
+            [TestMethod]
+            public void AddAPayee() {
+                budget = new Budget(repo);
+                int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                string payeeName = "Sweetwater";
+                BudgetCategory category = budget.GetCategories().First();
+                Payee payee = new Payee {
+                    ID = testID,
+                    Name = payeeName,
+                    BeginEffectiveDate = new DateTime(2017, 3, 25),
+                    EndEffectiveDate = null,
+                    BudgetCategoryID = category.ID,
+                    Category = category
+                };
+                int newCount;
 
-        [TestMethod]
-        public void EditAPayee() {
-            budget = new Budget(repo);
-            Payee payeeToEdit = budget.GetPayees().First();
-            int testID = payeeToEdit.ID;
-            string originalName = payeeToEdit.Name;
-            DateTime orignalBegin = payeeToEdit.BeginEffectiveDate;
-            DateTime? originalEnd = payeeToEdit.EndEffectiveDate;
-            BudgetCategory originalCategory = payeeToEdit.Category;
-            int? originalCategoryID = payeeToEdit.BudgetCategoryID;
+                budget.AddPayee(payee);
+                newCount = budget.GetPayees().Count();
 
-            string newName = originalName += " plus something extra";
+                Assert.AreEqual(payeeCount + 1, newCount, "No Payee was added");
 
-            payeeToEdit.Name = newName;
-            budget.UpdatePayee(payeeToEdit);
+                Payee retrievedPayee;
+                try {
+                    retrievedPayee = budget.GetPayees().Where(p => p.Name == payeeName).First();
+                    Assert.AreEqual(testID, retrievedPayee.ID, $"'{payeeName}' should have ID = {testID}");
+                } catch {
+                    Assert.Fail($"No payee named '{payeeName}' was found");
+                }
+            }
 
-            Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+            [TestMethod]
+            public void DeleteAPayee() {
+                budget = new Budget(repo);
+                Payee payeeToRemove = budget.GetPayees().First();
+                int testID = payeeToRemove.ID;
+                int newCount;
 
-            Assert.AreEqual(newName, editedPayee.Name, $"Payee name was not updated");
+                budget.RemovePayee(payeeToRemove);
+                newCount = budget.GetPayees().Count();
 
-            BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedPayee.BudgetCategoryID).First();
+                Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
 
-            testID = editedPayee.ID;
-            editedPayee.Category = newCategory;
-            editedPayee.BudgetCategoryID = newCategory.ID;
+                Payee retrievedPayee;
+                Assert.ThrowsException<InvalidOperationException>(() =>
+                    retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First()
+                , $"Payee with id = {testID} should have been removed");
+            }
 
-            budget.UpdatePayee(editedPayee);
+            [TestMethod]
+            public void EditAPayee() {
+                budget = new Budget(repo);
+                Payee payeeToEdit = budget.GetPayees().First();
+                int testID = payeeToEdit.ID;
+                string originalName = payeeToEdit.Name;
 
-            payeeToEdit = budget.GetPayees().Where(p => p.ID == testID).First();
+                string newName = originalName += " plus something extra";
 
-            Assert.AreEqual(newCategory.Name, payeeToEdit.Category.Name, "The payee was not correctly reassigned to the new category");
-            Assert.AreEqual(newCategory.ID, payeeToEdit.BudgetCategoryID, "The payee was not correctly reassinged to the new category");
-        }
+                payeeToEdit.Name = newName;
+                budget.UpdatePayee(payeeToEdit);
 
+                Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+
+                Assert.AreEqual(newName, editedPayee.Name, $"Payee name was not updated");
+
+                BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedPayee.BudgetCategoryID).First();
+
+                testID = editedPayee.ID;
+                editedPayee.Category = newCategory;
+                editedPayee.BudgetCategoryID = newCategory.ID;
+
+                budget.UpdatePayee(editedPayee);
+
+                payeeToEdit = budget.GetPayees().Where(p => p.ID == testID).First();
+
+                Assert.AreEqual(newCategory.Name, payeeToEdit.Category.Name, "The payee was not correctly reassigned to the new category");
+                Assert.AreEqual(newCategory.ID, payeeToEdit.BudgetCategoryID, "The payee was not correctly reassinged to the new category");
+            }
+
+        #endregion
+
+        #region Alias Tests
+            [TestMethod]
+            public void GetAliasesReturnsCorrectCount() {
+                budget = new Budget(repo);
+                IQueryable<Alias> allAliases;
+
+                allAliases = budget.GetAliases();
+
+                Assert.AreEqual(aliasCount, allAliases.Count(), "The wrong number of Aliases was returned");
+            }
+
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3)]
+            public void GetAliasesReturnsCorrectAliases(int id) {
+                budget = new Budget(repo);
+                Alias alias;
+                IQueryable<Alias> allAliases;
+                string expectedName = aliasRef[id];
+
+                allAliases = budget.GetAliases();
+                alias = allAliases.Where(a => a.ID == id).First();
+
+                Assert.AreEqual(expectedName, alias.Name, $"Id = {id}, should return '{expectedName}'");
+            }
+
+            [TestMethod]
+            public void AddAnAlias() {
+                budget = new Budget(repo);
+                int testID = budget.GetAliases().OrderByDescending(a => a.ID).First().ID + 1;
+                string aliasName = "Yet Another Walmart Alias";
+                Payee payee = budget.GetPayees().First();
+                Alias newAlias = new Alias {
+                    ID = testID,
+                    Name = aliasName,
+                    PayeeID = payee.ID,
+                    AliasForPayee = payee
+                };
+                int newCount;
+
+                budget.AddAlias(newAlias);
+                newCount = budget.GetAliases().Count();
+
+                Assert.AreEqual(aliasCount + 1, newCount, "No Alias was added");
+
+                Alias retrievedAlias;
+                try {
+                    retrievedAlias = budget.GetAliases().Where(a => a.Name == aliasName).First();
+                    Assert.AreEqual(testID, retrievedAlias.ID, $"'{aliasName}' should have Id = {testID}");
+                } catch {
+                    Assert.Fail($"No alias with name = '{aliasName}' was found");
+                }
+            }
+
+            [TestMethod]
+            public void DeleteAnAlias() {
+                budget = new Budget(repo);
+                Alias aliasToRemove = budget.GetAliases().First();
+                int testID = aliasToRemove.ID;
+                int newCount;
+
+                budget.RemoveAlias(aliasToRemove);
+                newCount = budget.GetAliases().Count();
+
+                Assert.AreEqual(aliasCount - 1, newCount, "No alias was removed");
+
+                Alias retrievedAlias;
+                Assert.ThrowsException<InvalidOperationException>(() =>
+                    retrievedAlias = budget.GetAliases().Where(a => a.ID == testID).First()
+                , $"Alias with Id = {testID} should have been removed");
+            }
+
+            [TestMethod]
+            public void EditAnAlias() {
+                budget = new Budget(repo);
+                Alias aliasToEdit = budget.GetAliases().First();
+                int testID = aliasToEdit.ID;
+                string originalName = aliasToEdit.Name;
+                int originalPayeeID = aliasToEdit.PayeeID;
+                
+                string newName = originalName + "_modified";
+                Payee newPayee = budget.GetPayees().Where(p => p.ID != originalPayeeID).First();
+
+                aliasToEdit.Name = newName;
+                budget.UpdateAlias(aliasToEdit);
+
+                Alias editedAlias = budget.GetAliases().Where(a => a.ID == testID).First();
+
+                Assert.AreEqual(newName, editedAlias.Name, "Alias name was not updated");
+
+                editedAlias.PayeeID = newPayee.ID;
+                editedAlias.AliasForPayee = newPayee;
+                budget.UpdateAlias(editedAlias);
+
+                aliasToEdit = budget.GetAliases().Where(a => a.ID == testID).First();
+
+                Assert.AreEqual(newPayee.ID, aliasToEdit.PayeeID, "The alias was not correctly reassigned to a new payee");
+            }
         #endregion
     }
 }
