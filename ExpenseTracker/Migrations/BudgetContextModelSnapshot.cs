@@ -35,7 +35,7 @@ namespace ExpenseTracker.Migrations
 
                     b.HasIndex("PayeeID");
 
-                    b.ToTable("Alias");
+                    b.ToTable("Aliases");
                 });
 
             modelBuilder.Entity("ExpenseTracker.Models.BudgetCategory", b =>
