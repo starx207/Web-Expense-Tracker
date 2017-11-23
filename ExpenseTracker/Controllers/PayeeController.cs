@@ -22,7 +22,9 @@ namespace ExpenseTracker.Controllers
         // GET: Payee
         public async Task<IActionResult> Index()
         {
-            var budgetContext = _context.GetPayees().Include(p => p.Category);
+            var budgetContext = _context.GetPayees()
+                .Include(p => p.Category)
+                .Include(p => p.Aliases);
             return View(nameof(Index), await budgetContext.ToListAsync());
         }
 

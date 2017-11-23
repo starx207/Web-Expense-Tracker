@@ -48,6 +48,21 @@
                 <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
             </td>
         </tr>
+        @if (item.Aliases != null && item.Aliases.Count() > 0) {
+            <tr>
+                <td colspan="6">
+                    <table class="table">
+                        @foreach (var alias in item.Aliases) {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => alias.Name)
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </td>
+            </tr>
+        }
 }
     </tbody>
 </table>
