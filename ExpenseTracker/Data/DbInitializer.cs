@@ -272,6 +272,28 @@ namespace ExpenseTracker.Data
             }
             
             context.SaveChangesAsync();
+
+            // Create Aliases
+            List<Alias> aliases = new List<Alias> {
+                new Alias {
+                    Name = "Dave & Louise",
+                    PayeeID = payees.Where(p => p.Name == "Dave and Louise").First().ID
+                },
+                new Alias {
+                    Name = "Louise and Dave",
+                    PayeeID = payees.Where(p => p.Name == "Dave and Louise").First().ID
+                },
+                new Alias {
+                    Name = "Louise & Dave",
+                    PayeeID = payees.Where(p => p.Name == "Dave and Louise").First().ID
+                }
+            };
+
+            foreach (var a in aliases) {
+                context.AddAlias(a);
+            }
+
+            context.SaveChangesAsync();
         }
     }
 }
