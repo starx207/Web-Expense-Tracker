@@ -48,6 +48,26 @@ namespace ExpenseTracker.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Aliases",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    PayeeID = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Aliases", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Aliases_Payees_PayeeID",
+                        column: x => x.PayeeID,
+                        principalTable: "Payees",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Transactions",
                 columns: table => new
                 {
@@ -75,6 +95,11 @@ namespace ExpenseTracker.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Aliases_PayeeID",
+                table: "Aliases",
+                column: "PayeeID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payees_BudgetCategoryID",
                 table: "Payees",
                 column: "BudgetCategoryID");
@@ -92,6 +117,9 @@ namespace ExpenseTracker.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Aliases");
+
             migrationBuilder.DropTable(
                 name: "Transactions");
 
