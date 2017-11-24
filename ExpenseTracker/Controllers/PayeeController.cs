@@ -24,7 +24,8 @@ namespace ExpenseTracker.Controllers
         {
             var budgetContext = _context.GetPayees()
                 .Include(p => p.Category)
-                .Include(p => p.Aliases);
+                .Include(p => p.Aliases)
+                .OrderBy(p => p.Name);
             return View(nameof(Index), await budgetContext.ToListAsync());
         }
 
@@ -155,7 +156,7 @@ namespace ExpenseTracker.Controllers
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories().OrderBy(c => c.Name), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }
