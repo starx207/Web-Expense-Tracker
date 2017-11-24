@@ -12,9 +12,10 @@ namespace ExpenseTracker.Models
         public string Name { get; set; }
 
         [Required]
+        [Display(Name = "Payee")]
         public int PayeeID { get; set; }
 
-        [Required]
+        [Display(Name = "Payee")]
         public Payee AliasForPayee { get; set; }
     }
 }
