@@ -176,7 +176,7 @@ namespace ExpenseTracker.Data
             // Populate Payees
             List<Payee> payees = new List<Payee> {
                 new Payee {
-                    Name = "Appraisal Research", //"Appraisal Re6366 APP RESEAR",
+                    Name = "Appraisal Research",
                     BeginEffectiveDate = DateTime.Parse("6/20/2016"),
                     BudgetCategoryID = categories.Where(c => c.Name == "ARC Income").FirstOrDefault().ID,
                     Category = categories.Where(c => c.Name == "ARC Income").FirstOrDefault()
@@ -242,28 +242,34 @@ namespace ExpenseTracker.Data
                     Category = categories.Where(c => c.Name == "Electric Bill").FirstOrDefault()
                 },
                 new Payee {
-                    Name = "FedLoan Servicing", //"FEDLOANSERVICING STDNT LOAN",
+                    Name = "FedLoan Servicing",
                     BeginEffectiveDate = DateTime.Parse("10/1/2016"),
                     BudgetCategoryID = categories.Where(c => c.Name == "Student Loans").FirstOrDefault().ID,
                     Category = categories.Where(c => c.Name == "Student Loans").FirstOrDefault()
                 },
                 new Payee {
-                    Name = "Progressive Insurance", //"PROGRESSIVE *INSURANCE",
+                    Name = "Progressive Insurance",
                     BeginEffectiveDate = DateTime.Parse("8/1/2017"),
                     BudgetCategoryID = categories.Where(c => c.Name == "Insurance").FirstOrDefault().ID,
                     Category = categories.Where(c => c.Name == "Insurance").FirstOrDefault()
                 },
                 new Payee {
-                    Name = "Straight Talk", //"STRAIGHTTALK*AIRTIME",
+                    Name = "Straight Talk",
                     BeginEffectiveDate = DateTime.Parse("10/1/2016"),
                     BudgetCategoryID = categories.Where(c => c.Name == "Phone").FirstOrDefault().ID,
                     Category = categories.Where(c => c.Name == "Phone").FirstOrDefault()
                 },
                 new Payee {
-                    Name = "Brookside", //"Brookside Evange WEB PMTS",
+                    Name = "Brookside",
                     BeginEffectiveDate = DateTime.Parse("10/1/2016"),
                     BudgetCategoryID = categories.Where(c => c.Name == "Tithe").FirstOrDefault().ID,
                     Category = categories.Where(c => c.Name == "Tithe").FirstOrDefault()
+                },
+                new Payee {
+                    Name = "Meijer",
+                    BeginEffectiveDate = DateTime.Parse("10/1/2016"),
+                    BudgetCategoryID = categories.Where(c => c.Name == "Groceries").FirstOrDefault().ID,
+                    Category = categories.Where(c => c.Name == "Groceries").FirstOrDefault()
                 }
             };
 
@@ -286,6 +292,34 @@ namespace ExpenseTracker.Data
                 new Alias {
                     Name = "Louise & Dave",
                     PayeeID = payees.Where(p => p.Name == "Dave and Louise").First().ID
+                },
+                new Alias {
+                    Name = "MEIJER # 051",
+                    PayeeID = payees.Where(p => p.Name == "Meijer").First().ID
+                },
+                new Alias {
+                    Name = "MEIJER # 156",
+                    PayeeID = payees.Where(p => p.Name == "Meijer").First().ID
+                },
+                new Alias {
+                    Name = "Appraisal Re6366 APP RESEAR",
+                    PayeeID = payees.Where(p => p.Name == "Appraisal Research").First().ID
+                },
+                new Alias {
+                    Name = "FEDLOANSERVICING STDNT LOAN",
+                    PayeeID = payees.Where(p => p.Name == "FedLoan Servicing").First().ID
+                },
+                new Alias {
+                    Name = "PROGRESSIVE *INSURANCE",
+                    PayeeID = payees.Where(p => p.Name == "Progressive Insurance").First().ID
+                },
+                new Alias {
+                    Name = "STRAIGHTTALK*AIRTIME",
+                    PayeeID = payees.Where(p => p.Name == "Straight Talk").First().ID
+                },
+                new Alias {
+                    Name = "Brookside Evange WEB PMTS",
+                    PayeeID = payees.Where(p => p.Name == "Brookside").First().ID
                 }
             };
 
