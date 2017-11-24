@@ -12,7 +12,7 @@ using System;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20171123141501_InitialCreate")]
+    [Migration("20171124152434_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
