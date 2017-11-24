@@ -33,3 +33,36 @@
         display: none;
     }
 }
+
+.expandHack {
+    display: none;
+}
+
+.expandDropdown {
+    position: relative;
+    background-color: #666;
+    width: 7px;
+    height: 7px;
+    margin-top: 5px;
+    transform: rotate(-45deg);
+    transition: transform 0.1s;
+    cursor: pointer;
+}
+
+.expandDropdown > div {
+    position: relative;
+    top: -2px;
+    left: -5px;
+    width: 10px;
+    height: 7px;
+    background-color: white;
+    transform: rotate(-45deg);
+}
+
+.expandHack:checked + .expandDropdown {
+    transform: rotate(45deg);
+}
+
+.aliasTable {
+    display: none;
+}
