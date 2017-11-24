@@ -4,6 +4,6 @@ $(document).ready(function() {
 
     $(".expandDropdown").click(function() {
         var id = $(this).attr("for");
-        $("#detail" + id).toggle(100);
+        $("#detail" + id).toggle(250);
     });
 });
