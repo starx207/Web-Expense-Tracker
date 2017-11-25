@@ -9,11 +9,11 @@ namespace ExpenseTracker.Tests.Models
     [TestClass]
     public class BudgetCategoryValidation_Tests
     {
-        private BudgetCategory category;
+        private BudgetCategory _model;
 
         [TestInitialize]
         public void CreateValidBudgetCategory() {
-            category = new BudgetCategory {
+            _model = new BudgetCategory {
                 ID = 1,
                 Name = "Valid category name",
                 Amount = 200,
@@ -25,9 +25,9 @@ namespace ExpenseTracker.Tests.Models
 
         [TestMethod]
         public void NamePropertyRequired() {
-            category.Name = null;
+            _model.Name = null;
 
-            bool isModelStateValid = ValidateModel(category);
+            bool isModelStateValid = ValidateModel(_model);
 
             Assert.IsFalse(isModelStateValid, "Budget Category Name should not be nullable");
         }
@@ -37,9 +37,9 @@ namespace ExpenseTracker.Tests.Models
         [DataRow("")]
         [DataRow("   ")]
         public void NamePropertyValidated(string name) {
-            category.Name = name;
+            _model.Name = name;
             string errorMsg = "";
-            bool isModelStateValid = ValidateModel(category);
+            bool isModelStateValid = ValidateModel(_model);
 
             if (name.Length > 100) {
                 errorMsg = "Budget Category name cannot be greater than 100 characters";
