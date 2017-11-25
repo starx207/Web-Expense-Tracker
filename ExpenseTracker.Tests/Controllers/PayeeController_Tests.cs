@@ -27,7 +27,8 @@ namespace ExpenseTracker.Tests.Controllers
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
-                                    new TestAsyncEnumerable<Payee>(payees));
+                                    new TestAsyncEnumerable<Payee>(payees),
+                                    null);
 
             payeeReference = new Dictionary<int, string>();
             foreach (var payee in budget.GetPayees()) {
@@ -160,6 +161,7 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
             }
 
+            [TestMethod]
             public async Task CreatePOSTWithInvalidModelStatePopulatesCategorySelectWithCorrectDefault() {
                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).First().ID + 1;
                 BudgetCategory testCategory = budget.GetCategories().First();

@@ -11,10 +11,13 @@ namespace ExpenseTracker.Tests.Mock
     {
         private TestAsyncEnumerable<BudgetCategory> _categories;
         private TestAsyncEnumerable<Payee> _payees;
+        private TestAsyncEnumerable<Alias> _aliases;
         public MockBudget(TestAsyncEnumerable<BudgetCategory> addCategories,
-                          TestAsyncEnumerable<Payee> addPayees) {
+                          TestAsyncEnumerable<Payee> addPayees,
+                          TestAsyncEnumerable<Alias> addAliases) {
             _categories = addCategories;
             _payees = addPayees;
+            _aliases = addAliases;
         }
         public IQueryable<BudgetCategory> GetCategories() {
             return _categories.AsQueryable();
@@ -58,19 +61,28 @@ namespace ExpenseTracker.Tests.Mock
         }
 
         public IQueryable<Alias> GetAliases() {
-            throw new NotImplementedException();
+            return _aliases.AsQueryable();
         }
 
         public void AddAlias(Alias aliasToAdd) {
-            throw new NotImplementedException();
+            IEnumerable<Alias> newAliases = _aliases.AsEnumerable().Append(aliasToAdd);
+            _aliases = new TestAsyncEnumerable<Alias>(newAliases);
         }
 
         public void RemoveAlias(Alias aliasToRemove) {
-            throw new NotImplementedException();
+            Alias removeAlias = _aliases.AsQueryable().Where(a => a.ID == aliasToRemove.ID).First();
+            List<Alias> newAliases = _aliases.AsEnumerable().ToList();
+            newAliases.Remove(removeAlias);
+            _aliases = new TestAsyncEnumerable<Alias>(newAliases);
         }
 
         public void UpdateAlias(Alias editedAlias) {
-            throw new NotImplementedException();
+            Alias aliasToEdit = _aliases.AsQueryable().Where(a => a.ID == editedAlias.ID).First();
+            List<Alias> newAliases = _aliases.AsEnumerable().ToList();
+            newAliases.Remove(aliasToEdit);
+            newAliases.Add(editedAlias);
+
+            _aliases = new TestAsyncEnumerable<Alias>(newAliases);
         }
 
         public async Task<int> SaveChangesAsync() {
