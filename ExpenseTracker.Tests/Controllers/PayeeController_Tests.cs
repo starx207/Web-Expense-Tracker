@@ -28,7 +28,7 @@ namespace ExpenseTracker.Tests.Controllers
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
                                     new TestAsyncEnumerable<Payee>(payees),
-                                    null);
+                                    null, null);
 
             payeeReference = new Dictionary<int, string>();
             foreach (var payee in budget.GetPayees()) {

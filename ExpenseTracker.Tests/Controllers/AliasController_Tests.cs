@@ -29,7 +29,7 @@ namespace ExpenseTracker.Tests.Controllers
             List<Alias> aliases = TestInitializer.CreateTestAliases(payees.AsQueryable());
             budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
                                     new TestAsyncEnumerable<Payee>(payees),
-                                    new TestAsyncEnumerable<Alias>(aliases));
+                                    new TestAsyncEnumerable<Alias>(aliases), null);
 
             aliasReference = new Dictionary<int, string>();
             foreach (var alias in budget.GetAliases()) {

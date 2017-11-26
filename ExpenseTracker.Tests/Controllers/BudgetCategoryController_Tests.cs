@@ -22,7 +22,7 @@ namespace ExpenseTracker.Tests.Controllers
         public void InitializeTestData() {
             // Create in-memory BudgetCategories
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
-            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), null, null);
+            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), null, null, null);
 
             categoryReference = new Dictionary<int, string>();
             foreach (var category in budget.GetCategories()) {
