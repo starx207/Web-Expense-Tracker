@@ -16,7 +16,8 @@ namespace ExpenseTracker.Tests.Repository
         private Dictionary<int, string> categoryRef;
         private Dictionary<int, string> payeeRef;
         private Dictionary<int, string> aliasRef;
-        private int categoryCount, payeeCount, aliasCount;
+        private Dictionary<int, double> transactionRef;
+        private int categoryCount, payeeCount, aliasCount, transactionCount;
 
         [TestInitialize]
         public void InitializeTestData() {
@@ -49,7 +50,12 @@ namespace ExpenseTracker.Tests.Repository
             aliasCount = aliases.Count;
 
             // Create in-memory Transactions
-            List<Transaction> transactions = new List<Transaction>();
+            List<Transaction> transactions = TestInitializer.CreateTestTransactions(categories.AsQueryable(), payees.AsQueryable());
+            transactionRef = new Dictionary<int, double>();
+            foreach (var trans in transactions) {
+                transactionRef.Add(trans.ID, trans.Amount);
+            }
+            transactionCount = transactions.Count;
 
             // Iniitlize the IBudgetAccess repo with in-memory data
             repo = new MockDataAccess(transactions, payees, categories, aliases);
@@ -221,7 +227,7 @@ namespace ExpenseTracker.Tests.Repository
                 int testID = payeeToEdit.ID;
                 string originalName = payeeToEdit.Name;
 
-                string newName = originalName += " plus something extra";
+                string newName = originalName + " plus something extra";
 
                 payeeToEdit.Name = newName;
                 budget.UpdatePayee(payeeToEdit);
@@ -342,6 +348,114 @@ namespace ExpenseTracker.Tests.Repository
                 aliasToEdit = budget.GetAliases().Where(a => a.ID == testID).First();
 
                 Assert.AreEqual(newPayee.ID, aliasToEdit.PayeeID, "The alias was not correctly reassigned to a new payee");
+            }
+        #endregion
+
+        #region Transaction Tests
+            [TestMethod]
+            public void GetAllTransactionsReturnsCorrectCount() {
+                budget = new Budget(repo);
+                IQueryable<Transaction> allTransactions;
+
+                allTransactions = budget.GetTransactions();
+
+                Assert.AreEqual(transactionCount, allTransactions.Count(), "The wrong number of Transactions was returned");
+            }
+
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
+            public void GetTransactionsReturnsCorrectTransaction(int id) {
+                budget = new Budget(repo);
+                Transaction transaction;
+                IQueryable<Transaction> allTransactions;
+                double expectedAmount = transactionRef[id];
+
+                allTransactions = budget.GetTransactions();
+                transaction = allTransactions.Where(p => p.ID == id).First();
+
+                Assert.AreEqual(expectedAmount, transaction.Amount, $"Id = {id} should return '{expectedAmount}'");
+            }
+
+            [TestMethod]
+            public void AddATransaction() {
+                budget = new Budget(repo);
+                int testID = budget.GetTransactions().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                double transactionAmount = 123123;
+                BudgetCategory category = budget.GetCategories().First();
+                Payee payee = budget.GetPayees().First();
+                Transaction trans = new Transaction {
+                    ID = testID,
+                    Date = DateTime.Now,
+                    Amount = transactionAmount,
+                    PayeeID = payee.ID,
+                    PayableTo = payee,
+                    OverrideCategoryID = category.ID,
+                    OverrideCategory = category
+                };
+                int newCount;
+
+                budget.AddTransaction(trans);
+                newCount = budget.GetTransactions().Count();
+
+                Assert.AreEqual(transactionCount + 1, newCount, "No Transaction was added");
+
+                Transaction retrievedTransaction;
+                try {
+                    retrievedTransaction = budget.GetTransactions().Where(p => p.ID == testID).First();
+                    Assert.AreEqual(transactionAmount, retrievedTransaction.Amount, $"Transaction with ID = {testID} should have amount = {transactionAmount}");
+                    Assert.AreEqual(payee.ID, retrievedTransaction.PayeeID, $"Transaction with ID = {testID} should have PayeeID = {payee.ID}");
+                    Assert.AreEqual(category.ID, retrievedTransaction.OverrideCategoryID, $"Transaction with ID = {testID} should have OverrideCategoryID = {category.ID}");
+                } catch {
+                    Assert.Fail($"No Transaction with ID = {testID} was found");
+                }
+            }
+
+            [TestMethod]
+            public void DeleteATransaction() {
+                budget = new Budget(repo);
+                Transaction transToRemove = budget.GetTransactions().First();
+                int testID = transToRemove.ID;
+                int newCount;
+
+                budget.RemoveTransaction(transToRemove);
+                newCount = budget.GetTransactions().Count();
+
+                Assert.AreEqual(transactionCount - 1, newCount, "No transaction was removed");
+
+                Transaction retrievedTrans;
+                Assert.ThrowsException<InvalidOperationException>(() =>
+                    retrievedTrans = budget.GetTransactions().Where(p => p.ID == testID).First()
+                , $"Transaction with id = {testID} should have been removed");
+            }
+
+            [TestMethod]
+            public void EditATransaction() {
+                budget = new Budget(repo);
+                Transaction transToEdit = budget.GetTransactions().First();
+                int testID = transToEdit.ID;
+                double originalAmount = transToEdit.Amount;
+
+                double newAmount = originalAmount + 50;
+
+                transToEdit.Amount = newAmount;
+                budget.UpdateTransaction(transToEdit);
+
+                Transaction editedTrans = budget.GetTransactions().Where(p => p.ID == testID).First();
+
+                Assert.AreEqual(newAmount, editedTrans.Amount, $"Transaction amount was not updated");
+
+                BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedTrans.OverrideCategoryID).First();
+
+                testID = editedTrans.ID;
+                editedTrans.OverrideCategory = newCategory;
+                editedTrans.OverrideCategoryID = newCategory.ID;
+
+                budget.UpdateTransaction(editedTrans);
+
+                transToEdit = budget.GetTransactions().Where(p => p.ID == testID).First();
+
+                Assert.AreEqual(newCategory.Name, transToEdit.OverrideCategory.Name, "The transaction was not correctly reassigned to the new category");
+                Assert.AreEqual(newCategory.ID, transToEdit.OverrideCategoryID, "The transaction was not correctly reassinged to the new category");
             }
         #endregion
     }
