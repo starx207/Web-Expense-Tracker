@@ -13,6 +13,11 @@ namespace ExpenseTracker.Models
         [Required]
         public DateTime Date { get; set; }
 
+        [DataType(DataType.Currency)]
+        [DisplayFormat(DataFormatString = "{0:$#,##0.00}", ApplyFormatInEditMode = false)]
+        [Required]
+        public double Amount { get; set; }
+
         [ForeignKey("OverrideCategory")]
         public int? OverrideCategoryID { get; set; }
 
