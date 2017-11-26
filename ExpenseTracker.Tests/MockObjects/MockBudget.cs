@@ -12,12 +12,15 @@ namespace ExpenseTracker.Tests.Mock
         private TestAsyncEnumerable<BudgetCategory> _categories;
         private TestAsyncEnumerable<Payee> _payees;
         private TestAsyncEnumerable<Alias> _aliases;
+        private TestAsyncEnumerable<Transaction> _transactions;
         public MockBudget(TestAsyncEnumerable<BudgetCategory> addCategories,
                           TestAsyncEnumerable<Payee> addPayees,
-                          TestAsyncEnumerable<Alias> addAliases) {
+                          TestAsyncEnumerable<Alias> addAliases,
+                          TestAsyncEnumerable<Transaction> addTransactions) {
             _categories = addCategories;
             _payees = addPayees;
             _aliases = addAliases;
+            _transactions = addTransactions;
         }
         public IQueryable<BudgetCategory> GetCategories() {
             return _categories.AsQueryable();
@@ -83,6 +86,31 @@ namespace ExpenseTracker.Tests.Mock
             newAliases.Add(editedAlias);
 
             _aliases = new TestAsyncEnumerable<Alias>(newAliases);
+        }
+
+        public IQueryable<Transaction> GetTransactions() {
+            return _transactions.AsQueryable();
+        }
+
+        public void AddTransaction(Transaction transactionToAdd) {
+            IEnumerable<Transaction> newTransactions = _transactions.AsEnumerable().Append(transactionToAdd);
+            _transactions = new TestAsyncEnumerable<Transaction>(newTransactions);
+        }
+
+        public void RemoveTransaction(Transaction transactionToRemove) {
+            Transaction removeTransaction = _transactions.AsQueryable().Where(t => t.ID == transactionToRemove.ID).First();
+            List<Transaction> newTransactions = _transactions.AsEnumerable().ToList();
+            newTransactions.Remove(removeTransaction);
+            _transactions = new TestAsyncEnumerable<Transaction>(newTransactions);
+        }
+
+        public void UpdateTransaction(Transaction editedTransaction) {
+            Transaction transactionToEdit = _transactions.AsQueryable().Where(t => t.ID == editedTransaction.ID).First();
+            List<Transaction> newTransactions = _transactions.AsEnumerable().ToList();
+            newTransactions.Remove(transactionToEdit);
+            newTransactions.Add(editedTransaction);
+
+            _transactions = new TestAsyncEnumerable<Transaction>(newTransactions);
         }
 
         public async Task<int> SaveChangesAsync() {

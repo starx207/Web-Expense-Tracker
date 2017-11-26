@@ -55,6 +55,22 @@ namespace ExpenseTracker.Data.Repository
             repo.EditAlias(editedAlias);
         }
 
+        public IQueryable<Transaction> GetTransactions() {
+            return repo.Transactions();
+        }
+
+        public void AddTransaction(Transaction transactionToAdd) {
+            repo.AddTransaction(transactionToAdd);
+        }
+
+        public void RemoveTransaction(Transaction transactionToRemove) {
+            repo.DeleteTransaction(transactionToRemove);
+        }
+
+        public void UpdateTransaction(Transaction editedTransaction) {
+            repo.EditTransaction(editedTransaction);
+        }
+
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
         }
