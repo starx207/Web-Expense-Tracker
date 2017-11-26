@@ -125,5 +125,40 @@ namespace ExpenseTracker.Tests
 
             return aliases;
         }
+
+        public static List<Transaction> CreateTestTransactions(IQueryable<BudgetCategory> categories, IQueryable<Payee> payees) {
+            List<Transaction> transactions = new List<Transaction> {
+                new Transaction {
+                    ID = 1,
+                    Date = DateTime.Parse("7/15/2017"),
+                    Amount = 2000,
+                    PayeeID = 1,
+                    PayableTo = payees.Where(p => p.ID == 1).First()
+                },
+                new Transaction {
+                    ID = 2,
+                    Date = DateTime.Parse("10/06/2017"),
+                    PayeeID = 3,
+                    PayableTo = payees.Where(p => p.ID == 3).First(),
+                    Amount = 150.43
+                },
+                new Transaction {
+                    ID = 3,
+                    Date = DateTime.Parse("11/1/2017"),
+                    Amount = 30
+                },
+                new Transaction {
+                    ID = 4,
+                    Date = DateTime.Parse("6/12/2017"),
+                    PayeeID = 3,
+                    PayableTo = payees.Where(p => p.ID == 3).First(),
+                    Amount = 148.04,
+                    OverrideCategoryID = 3,
+                    OverrideCategory = categories.Where(c => c.ID == 3).First()
+                }
+            };
+
+            return transactions;
+        }
     }
 }
