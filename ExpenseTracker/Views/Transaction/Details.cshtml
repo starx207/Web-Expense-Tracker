@@ -1,0 +1,42 @@
+@model ExpenseTracker.Models.Transaction
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Transaction</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Date)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Date)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Amount)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Amount)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.OverrideCategory)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.OverrideCategory.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.PayableTo)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PayableTo.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.ID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
