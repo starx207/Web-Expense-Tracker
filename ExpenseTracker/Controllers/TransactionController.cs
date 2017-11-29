@@ -24,7 +24,7 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Index()
         {
             var budgetContext = _context.GetTransactions().Include(t => t.OverrideCategory).Include(t => t.PayableTo);
-            return View(await budgetContext.ToListAsync());
+            return View(nameof(Index), await budgetContext.ToListAsync());
         }
 
         // GET: Transaction/Details/5
@@ -44,7 +44,7 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
-            return View(transaction);
+            return View(nameof(Details), transaction);
         }
 
         // GET: Transaction/Create
@@ -52,7 +52,7 @@ namespace ExpenseTracker.Controllers
         {
             ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name");
             ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name");
-            return View();
+            return View(nameof(Create));
         }
 
         // POST: Transaction/Create
@@ -70,7 +70,7 @@ namespace ExpenseTracker.Controllers
             }
             ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
             ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
-            return View(transaction);
+            return View(nameof(Create), transaction);
         }
 
         // GET: Transaction/Edit/5
@@ -88,7 +88,7 @@ namespace ExpenseTracker.Controllers
             }
             ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
             ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
-            return View(transaction);
+            return View(nameof(Edit), transaction);
         }
 
         // POST: Transaction/Edit/5
@@ -125,7 +125,7 @@ namespace ExpenseTracker.Controllers
             }
             ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
             ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
-            return View(transaction);
+            return View(nameof(Edit), transaction);
         }
 
         // GET: Transaction/Delete/5
@@ -145,7 +145,7 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
-            return View(transaction);
+            return View(nameof(Delete), transaction);
         }
 
         // POST: Transaction/Delete/5
