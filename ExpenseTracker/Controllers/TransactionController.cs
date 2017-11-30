@@ -50,8 +50,8 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction/Create
         public IActionResult Create()
         {
-            ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name");
-            ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name");
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name");
+            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name");
             return View(nameof(Create));
         }
 
