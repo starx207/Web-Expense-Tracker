@@ -3,8 +3,6 @@ using ExpenseTracker.Data.Repository;
 using ExpenseTracker.Models;
 using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -15,7 +13,7 @@ using System.Threading.Tasks;
 namespace ExpenseTracker.Tests.Controllers
 {
     [TestClass]
-    public class AliasController_Tests
+    public class AliasController_Tests : TestCommon
     {
         private IBudget budget;
         private Dictionary<int, string> aliasReference;
@@ -54,25 +52,7 @@ namespace ExpenseTracker.Tests.Controllers
                 var result = actionResult as ViewResult;
 
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[payeeSelectListKey], $"Create View expects data for ViewData['{payeeSelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[payeeSelectListKey];
-                Assert.AreEqual(budget.GetPayees().Count(), list.Count(), "SelectList count does not match Payee Count");
-
-                // Check that all Payees are included in the SelectList
-                string errorMsg = "The following Payees are missing: ";
-                int missingPayees = 0;
-                foreach (var Payee in budget.GetPayees()) {
-                    if (list.Where(i => i.Value == Payee.ID.ToString()).FirstOrDefault() == null) {
-                        missingPayees += 1;
-                        errorMsg += Payee.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingPayees, errorMsg);
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(i => i.ID.ToString()));
             }
 
             [TestMethod]
@@ -135,29 +115,7 @@ namespace ExpenseTracker.Tests.Controllers
                 IActionResult actionResult = await controller.Create(newAlias);
                 var result = actionResult as ViewResult;
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[payeeSelectListKey], $"Create View expects data for ViewData['{payeeSelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[payeeSelectListKey];
-                Assert.AreEqual(budget.GetPayees().Count(), list.Count(), "SelectList count does not match Payee Count");
-
-                // Check that all Payees are included in the SelectList
-                string errorMsg = "The following Payees are missing: ";
-                int missingPayees = 0;
-                foreach (var payee in budget.GetPayees()) {
-                    if (list.Where(i => i.Value == payee.ID.ToString()).FirstOrDefault() == null) {
-                        missingPayees += 1;
-                        errorMsg += payee.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingPayees, errorMsg);
-
-                bool isSelected = list.Where(i => i.Value == newAlias.PayeeID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The payee = '{newAlias.AliasForPayee.Name}' should be pre-selected for alias = '{newAlias.Name}'");
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(p => p.ID.ToString()), newAlias.PayeeID.ToString());
             }
         #endregion
 
@@ -264,42 +222,12 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task EditGETPopulatesViewDataWithPayees() {
-                int testID = budget.GetAliases().First().ID;
-                IActionResult actionResult = await controller.Edit(testID);
-                var result = actionResult as ViewResult;
-
-                // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[payeeSelectListKey], $"Edit View expects data for ViewData['{payeeSelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[payeeSelectListKey];
-                Assert.AreEqual(budget.GetPayees().Count(), list.Count(), "SelectList count does not match Payee Count");
-
-                // Check that all Payees are included in the SelectList
-                string errorMsg = "The following Payees are missing: ";
-                int missingPayees = 0;
-                foreach (var payee in budget.GetPayees()) {
-                    if (list.Where(i => i.Value == payee.ID.ToString()).FirstOrDefault() == null) {
-                        missingPayees += 1;
-                        errorMsg += payee.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingPayees, errorMsg);
-            }
-
-            [TestMethod]
-            public async Task EditGETSelectListHasCorrectItemPreSelected() {
                 Alias testAlias = budget.GetAliases().First();
                 IActionResult actionResult = await controller.Edit(testAlias.ID);
                 var result = actionResult as ViewResult;
-                SelectList list = (SelectList)result.ViewData[payeeSelectListKey];
 
-                bool isSelected = list.Where(i => i.Value == testAlias.PayeeID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The payee = '{testAlias.AliasForPayee.Name}' should be pre-selected for alias = '{testAlias.Name}'");
+                // Check that ViewData is not null
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(p => p.ID.ToString()), testAlias.PayeeID.ToString());
             }
 
             [TestMethod]
@@ -352,50 +280,17 @@ namespace ExpenseTracker.Tests.Controllers
             [TestMethod]
             public async Task EditPOSTWithInvalidModelStatePopulatesPayeeSelect() {
                 Alias editedAlias = budget.GetAliases().First();
+                Payee newPayee = budget.GetPayees().Where(p => p.ID != editedAlias.PayeeID).First();
                 editedAlias.Name += "_modified";
+                editedAlias.AliasForPayee = newPayee;
+                editedAlias.PayeeID = newPayee.ID;
 
                 controller.ModelState.AddModelError("test", "test");
                 IActionResult actionResult = await controller.Edit(editedAlias.ID, editedAlias);
                 var result = actionResult as ViewResult;
 
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[payeeSelectListKey], $"Edit View expects data for ViewData['{payeeSelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[payeeSelectListKey];
-                Assert.AreEqual(budget.GetPayees().Count(), list.Count(), "SelectList count does not match Payee Count");
-
-                // Check that all Payees are included in the SelectList
-                string errorMsg = "The following Payees are missing: ";
-                int missingPayees = 0;
-                foreach (var payee in budget.GetPayees()) {
-                    if (list.Where(i => i.Value == payee.ID.ToString()).FirstOrDefault() == null) {
-                        missingPayees += 1;
-                        errorMsg += payee.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingPayees, errorMsg);
-            }
-
-            [TestMethod]
-            public async Task EditPOSTWithInvalidModelStatePreservesSelectedPayee() {
-                Alias editedAlias = budget.GetAliases().First();
-                int originalPayeeID = editedAlias.PayeeID;
-                Payee newPayee = budget.GetPayees().Where(c => c.ID != originalPayeeID).First();
-
-                editedAlias.AliasForPayee = newPayee;
-                editedAlias.PayeeID = newPayee.ID;
-                controller.ModelState.AddModelError("test", "test");
-                IActionResult actionResult = await controller.Edit(editedAlias.ID, editedAlias);
-                var result = actionResult as ViewResult;
-
-                SelectList list = (SelectList)result.ViewData[payeeSelectListKey];
-                bool isSelected = list.Where(i => i.Value == newPayee.ID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The payee '{newPayee.Name}' was not pre-selected when returning to View");
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(p => p.ID.ToString()), newPayee.ID.ToString());
             }
 
             // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST

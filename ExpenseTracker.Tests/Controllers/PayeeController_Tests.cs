@@ -3,8 +3,6 @@ using ExpenseTracker.Data.Repository;
 using ExpenseTracker.Models;
 using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -15,7 +13,7 @@ using System.Threading.Tasks;
 namespace ExpenseTracker.Tests.Controllers
 {
     [TestClass]
-    public class PayeeController_Tests
+    public class PayeeController_Tests : TestCommon
     {
         private IBudget budget;
         private Dictionary<int, string> payeeReference;
@@ -101,25 +99,7 @@ namespace ExpenseTracker.Tests.Controllers
                 var result = actionResult as ViewResult;
 
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[categorySelectListKey], $"Create View expects data for ViewData['{categorySelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[categorySelectListKey];
-                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-                // Check that all BudgetCategories are included in the SelectList
-                string errorMsg = "The following BudgetCategories are missing: ";
-                int missingCategories = 0;
-                foreach (var Category in budget.GetCategories()) {
-                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-                        missingCategories += 1;
-                        errorMsg += Category.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingCategories, errorMsg);
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()));
             }
 
             [TestMethod]
@@ -178,29 +158,10 @@ namespace ExpenseTracker.Tests.Controllers
                 IActionResult actionResult = await controller.Create(newPayee);
                 var result = actionResult as ViewResult;
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[categorySelectListKey], $"Create View expects data for ViewData['{categorySelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[categorySelectListKey];
-                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-                // Check that all BudgetCategories are included in the SelectList
-                string errorMsg = "The following BudgetCategories are missing: ";
-                int missingCategories = 0;
-                foreach (var Category in budget.GetCategories()) {
-                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-                        missingCategories += 1;
-                        errorMsg += Category.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingCategories, errorMsg);
-
-                bool isSelected = list.Where(i => i.Value == newPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The category = '{newPayee.Category.Name}' should be pre-selected for payee = '{newPayee.Name}'");
+                AssertThatViewDataIsSelectList(result.ViewData, 
+                    categorySelectListKey, 
+                    budget.GetCategories().Select(c => c.ID.ToString()), 
+                    newPayee.BudgetCategoryID.ToString());
             }
         #endregion
 
@@ -305,42 +266,12 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task EditGETPopulatesViewDataWithCategories() {
-                int testID = budget.GetPayees().First().ID;
-                IActionResult actionResult = await controller.Edit(testID);
-                var result = actionResult as ViewResult;
-
-                // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[categorySelectListKey];
-                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-                // Check that all BudgetCategories are included in the SelectList
-                string errorMsg = "The following BudgetCategories are missing: ";
-                int missingCategories = 0;
-                foreach (var Category in budget.GetCategories()) {
-                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-                        missingCategories += 1;
-                        errorMsg += Category.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingCategories, errorMsg);
-            }
-
-            [TestMethod]
-            public async Task EditGETBudgetCategoriesHasCorrectCategoryPreSelected() {
                 Payee testPayee = budget.GetPayees().First();
                 IActionResult actionResult = await controller.Edit(testPayee.ID);
                 var result = actionResult as ViewResult;
-                SelectList list = (SelectList)result.ViewData[categorySelectListKey];
 
-                bool isSelected = list.Where(i => i.Value == testPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The category = '{testPayee.Category.Name}' should be pre-selected for payee = '{testPayee.Name}'");
+                // Check that ViewData is not null
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()), testPayee.BudgetCategoryID.ToString());
             }
 
             [TestMethod]
@@ -391,51 +322,18 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task EditPOSTWithInvalidModelStatePopulatesCategorySelect() {
-                Payee editedPayee = budget.GetPayees().First();
+                Payee editedPayee = budget.GetPayees().Where(p => p.BudgetCategoryID != null).First();
+                BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedPayee.BudgetCategoryID).First();
                 editedPayee.Name += "_modified";
+                editedPayee.Category = newCategory;
+                editedPayee.BudgetCategoryID = newCategory.ID;
 
                 controller.ModelState.AddModelError("test", "test");
                 IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
                 var result = actionResult as ViewResult;
 
                 // Check that ViewData is not null
-                ViewDataDictionary viewData = result.ViewData;
-                Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
-
-                // Check that ViewData is a SelectList with correct number of Items
-                SelectList list = (SelectList)viewData[categorySelectListKey];
-                Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-                // Check that all BudgetCategories are included in the SelectList
-                string errorMsg = "The following BudgetCategories are missing: ";
-                int missingCategories = 0;
-                foreach (var Category in budget.GetCategories()) {
-                    if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-                        missingCategories += 1;
-                        errorMsg += Category.Name + ", ";
-                    }
-                }
-                errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-                Assert.AreEqual(0, missingCategories, errorMsg);
-            }
-
-            [TestMethod]
-            public async Task EditPOSTWithInvalidModelStatePreservesSelectedCategory() {
-                Payee editedPayee = budget.GetPayees().Where(p => p.BudgetCategoryID != null).First();
-                int originalCategoryID = (int)editedPayee.BudgetCategoryID;
-                BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != originalCategoryID).First();
-
-                editedPayee.Category = newCategory;
-                editedPayee.BudgetCategoryID = newCategory.ID;
-                controller.ModelState.AddModelError("test", "test");
-                IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
-                var result = actionResult as ViewResult;
-
-                SelectList list = (SelectList)result.ViewData[categorySelectListKey];
-                bool isSelected = list.Where(i => i.Value == newCategory.ID.ToString()).FirstOrDefault().Selected;
-
-                Assert.IsTrue(isSelected, $"The budget category '{newCategory.Name}' was not pre-selected when returning to View");
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()), newCategory.ID.ToString());
             }
 
             // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
