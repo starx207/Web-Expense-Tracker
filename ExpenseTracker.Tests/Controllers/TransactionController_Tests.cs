@@ -306,76 +306,40 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "If the ID doesn't match the ID of the edited Transaction, Not Found should be called");
             }
 
-        //     [TestMethod]
-        //     public async Task EditPOSTWithInvalidModelStateReturnsToEditView() {
-        //         Payee editedPayee = budget.GetPayees().First();
-        //         string newName = editedPayee.Name + "_modified";
-        //         editedPayee.Name = newName;
+            [TestMethod]
+            public async Task EditPOSTWithInvalidModelStateReturnsToEditView() {
+                Transaction editedTrans = budget.GetTransactions().First();
+                double newAmt = editedTrans.Amount + 500000;
+                editedTrans.Amount = newAmt;
 
-        //         controller.ModelState.AddModelError("test", "test");
-        //         IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+                controller.ModelState.AddModelError("test", "test");
+                IActionResult actionResult = await controller.Edit(editedTrans.ID, editedTrans);
 
-        //         var result = actionResult as ViewResult;
-        //         Assert.IsNotNull(result, "Edit POST with invalid model state should return a ViewResult");
-        //         Assert.AreEqual("Edit", result.ViewName, $"Edit POST with invalid model state should return to 'Edit' view, not '{result.ViewName}'");
+                var result = actionResult as ViewResult;
+                Assert.IsNotNull(result, "Edit POST with invalid model state should return a ViewResult");
+                Assert.AreEqual("Edit", result.ViewName, $"Edit POST with invalid model state should return to 'Edit' view, not '{result.ViewName}'");
 
-        //         Payee model = (Payee)result.Model;
+                Transaction model = (Transaction)result.Model;
 
-        //         Assert.AreEqual(editedPayee.ID, model.ID, "The wrong payee was passed back to the View");
+                Assert.AreEqual(editedTrans.ID, model.ID, "The wrong transaction was passed back to the View");
 
-        //         Assert.AreEqual(newName, model.Name, "The updated values were not preserved when returning to the View");
-        //     }
+                Assert.AreEqual(newAmt, model.Amount, "The updated values were not preserved when returning to the View");
+            }
 
-        //     [TestMethod]
-        //     public async Task EditPOSTWithInvalidModelStatePopulatesCategorySelect() {
-        //         Payee editedPayee = budget.GetPayees().First();
-        //         editedPayee.Name += "_modified";
+            [TestMethod]
+            public async Task EditPOSTWithInvalidModelStatePopulatesSelectLists() {
+                Transaction editedTrans = budget.GetTransactions().Where(t => t.OverrideCategoryID != null && t.PayeeID != null).First();
+                editedTrans.Amount += 50000;
 
-        //         controller.ModelState.AddModelError("test", "test");
-        //         IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
-        //         var result = actionResult as ViewResult;
+                controller.ModelState.AddModelError("test", "test");
+                IActionResult actionResult = await controller.Edit(editedTrans.ID, editedTrans);
+                var result = actionResult as ViewResult;
 
-        //         // Check that ViewData is not null
-        //         ViewDataDictionary viewData = result.ViewData;
-        //         Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(x => x.ID.ToString()), editedTrans.OverrideCategoryID.ToString());
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(x => x.ID.ToString()), editedTrans.PayeeID.ToString());
+            }
 
-        //         // Check that ViewData is a SelectList with correct number of Items
-        //         SelectList list = (SelectList)viewData[categorySelectListKey];
-        //         Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-        //         // Check that all BudgetCategories are included in the SelectList
-        //         string errorMsg = "The following BudgetCategories are missing: ";
-        //         int missingCategories = 0;
-        //         foreach (var Category in budget.GetCategories()) {
-        //             if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-        //                 missingCategories += 1;
-        //                 errorMsg += Category.Name + ", ";
-        //             }
-        //         }
-        //         errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-        //         Assert.AreEqual(0, missingCategories, errorMsg);
-        //     }
-
-        //     [TestMethod]
-        //     public async Task EditPOSTWithInvalidModelStatePreservesSelectedCategory() {
-        //         Payee editedPayee = budget.GetPayees().Where(p => p.BudgetCategoryID != null).First();
-        //         int originalCategoryID = (int)editedPayee.BudgetCategoryID;
-        //         BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != originalCategoryID).First();
-
-        //         editedPayee.Category = newCategory;
-        //         editedPayee.BudgetCategoryID = newCategory.ID;
-        //         controller.ModelState.AddModelError("test", "test");
-        //         IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
-        //         var result = actionResult as ViewResult;
-
-        //         SelectList list = (SelectList)result.ViewData[categorySelectListKey];
-        //         bool isSelected = list.Where(i => i.Value == newCategory.ID.ToString()).FirstOrDefault().Selected;
-
-        //         Assert.IsTrue(isSelected, $"The budget category '{newCategory.Name}' was not pre-selected when returning to View");
-        //     }
-
-        //     // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
+            // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
         #endregion
     }
 }
