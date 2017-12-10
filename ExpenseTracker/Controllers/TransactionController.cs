@@ -15,24 +15,23 @@ namespace ExpenseTracker.Controllers
     {
         private readonly IBudget _context;
 
-        public TransactionController(IBudget context)
-        {
+        public TransactionController(IBudget context) {
             _context = context;
         }
 
         // GET: Transaction
-        public async Task<IActionResult> Index()
-        {
-            var budgetContext = _context.GetTransactions().Include(t => t.OverrideCategory).Include(t => t.PayableTo);
+        public async Task<IActionResult> Index() {
+            var budgetContext = _context.GetTransactions()
+                .Include(t => t.OverrideCategory)
+                .Include(t => t.PayableTo)
+                .OrderByDescending(t => t.Date);
             return View(nameof(Index), await budgetContext.ToListAsync());
         }
 
         // GET: Transaction/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
+        public async Task<IActionResult> Details(int? id) {
             var transaction = await GetTransactionById(id, true);
-            if (transaction == null)
-            {
+            if (transaction == null) {
                 return NotFound();
             }
 
@@ -40,10 +39,8 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: Transaction/Create
-        public IActionResult Create()
-        {
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name");
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name");
+        public IActionResult Create() {
+            PopulateSelectLists();
             return View(nameof(Create));
         }
 
@@ -52,29 +49,23 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction)
-        {
-            if (ModelState.IsValid)
-            {
+        public async Task<IActionResult> Create([Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction) {
+            if (ModelState.IsValid) {
                 _context.AddTransaction(transaction);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
             return View(nameof(Create), transaction);
         }
 
         // GET: Transaction/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
+        public async Task<IActionResult> Edit(int? id) {
             var transaction = await GetTransactionById(id);
-            if (transaction == null)
-            {
+            if (transaction == null) {
                 return NotFound();
             }
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
             return View(nameof(Edit), transaction);
         }
 
@@ -83,44 +74,34 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction)
-        {
-            if (id != transaction.ID)
-            {
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction) {
+            if (id != transaction.ID) {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            if (ModelState.IsValid) {
+                try {
                     _context.UpdateTransaction(transaction);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TransactionExists(transaction.ID))
-                    {
+                catch (DbUpdateConcurrencyException) {
+                    if (!TransactionExists(transaction.ID)) {
                         return NotFound();
                     }
-                    else
-                    {
+                    else {
                         throw;
                     }
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
             return View(nameof(Edit), transaction);
         }
 
         // GET: Transaction/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
+        public async Task<IActionResult> Delete(int? id) {
             var transaction = await GetTransactionById(id, true);
-            if (transaction == null)
-            {
+            if (transaction == null) {
                 return NotFound();
             }
 
@@ -130,8 +111,7 @@ namespace ExpenseTracker.Controllers
         // POST: Transaction/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
+        public async Task<IActionResult> DeleteConfirmed(int id) {
             var transaction = await GetTransactionById(id);
             if (transaction != null) {
                 _context.RemoveTransaction(transaction);
@@ -140,8 +120,7 @@ namespace ExpenseTracker.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TransactionExists(int id)
-        {
+        private bool TransactionExists(int id) {
             return _context.GetTransactions().Any(e => e.ID == id);
         }
 
@@ -155,6 +134,11 @@ namespace ExpenseTracker.Controllers
             }
 
             return await transaction.SingleOrDefaultAsync();
+        }
+
+        private void PopulateSelectLists(int? selectedCategoryID = null, int? selectedPayeeID = null) {
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories().OrderBy(c => c.Name), "ID", "Name", selectedCategoryID);
+            ViewData["PayeeList"] = new SelectList(_context.GetPayees().OrderBy(p => p.Name), "ID", "Name", selectedPayeeID);
         }
     }
 }
