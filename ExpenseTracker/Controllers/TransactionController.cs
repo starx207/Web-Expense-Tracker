@@ -110,8 +110,8 @@ namespace ExpenseTracker.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
+            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
             return View(nameof(Edit), transaction);
         }
 
