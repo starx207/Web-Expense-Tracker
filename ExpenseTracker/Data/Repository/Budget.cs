@@ -60,6 +60,7 @@ namespace ExpenseTracker.Data.Repository
         }
 
         public void AddTransaction(Transaction transactionToAdd) {
+            transactionToAdd.Amount = RoundTransaction(transactionToAdd.Amount);
             repo.AddTransaction(transactionToAdd);
         }
 
@@ -68,11 +69,16 @@ namespace ExpenseTracker.Data.Repository
         }
 
         public void UpdateTransaction(Transaction editedTransaction) {
+            editedTransaction.Amount = RoundTransaction(editedTransaction.Amount);
             repo.EditTransaction(editedTransaction);
         }
 
         public async Task<int> SaveChangesAsync() {
             return await repo.SaveChangesAsync();
+        }
+
+        private double RoundTransaction(double originalAmt) {
+            return Math.Round(originalAmt, 2, MidpointRounding.AwayFromZero);
         }
     }
 }
