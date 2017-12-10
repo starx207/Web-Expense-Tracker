@@ -107,252 +107,204 @@ namespace ExpenseTracker.Tests.Controllers
                 AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(c => c.ID.ToString()));
             }
 
-        //     [TestMethod]
-        //     public async Task CreatePOSTWithAValidModelState() {
-        //         int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
-        //         Payee newPayee = new Payee {
-        //             ID = testID,
-        //             Name = "New Test Payee",
-        //             BeginEffectiveDate = new DateTime(2016, 09, 01)
-        //         };
+            [TestMethod]
+            public async Task CreatePOSTWithAValidModelState() {
+                int testID = budget.GetTransactions().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                Transaction newTransaction = new Transaction {
+                    ID = testID,
+                    Date = DateTime.Parse("10/16/2016"),
+                    Amount = 23.12
+                };
 
-        //         IActionResult actionResult = await controller.Create(newPayee);
-        //         var result = actionResult as RedirectToActionResult;
+                IActionResult actionResult = await controller.Create(newTransaction);
+                var result = actionResult as RedirectToActionResult;
                 
-        //         Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
+                Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
 
-        //         Payee createdPayee = budget.GetPayees().Where(p => p.ID == testID).First();
-        //         Assert.AreEqual(newPayee.Name, createdPayee.Name, "New payee was not properly added");
-        //     }
+                Transaction createdTrans = budget.GetTransactions().Where(p => p.ID == testID).First();
+                Assert.AreEqual(newTransaction.Amount, createdTrans.Amount, "New transaction was not properly added");
+            }
 
-        //     [TestMethod]
-        //     public async Task CreatePOSTWithInvalidModelState() {
-        //         int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
-        //         Payee newPayee = new Payee {
-        //             ID = testID,
-        //             Name = "New Test Payee",
-        //             BeginEffectiveDate = new DateTime(2016, 09, 01)
-        //         };
+            [TestMethod]
+            public async Task CreatePOSTWithInvalidModelState() {
+                int testID = budget.GetTransactions().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
+                Transaction newTransaction = new Transaction {
+                    ID = testID,
+                    Date = DateTime.Parse("10/16/2016"),
+                    Amount = 23.12
+                };
 
-        //         controller.ModelState.AddModelError("test", "test");
+                controller.ModelState.AddModelError("test", "test");
 
-        //         IActionResult actionResult = await controller.Create(newPayee);
-        //         var viewResult = actionResult as ViewResult;
+                IActionResult actionResult = await controller.Create(newTransaction);
+                var viewResult = actionResult as ViewResult;
 
-        //         Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
+                Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
 
-        //         Payee model = (Payee)viewResult.Model;
+                Transaction model = (Transaction)viewResult.Model;
 
-        //         Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
-        //     }
+                Assert.AreEqual(testID, model.ID, "The Transaction was not sent back to the view");
+            }
 
-        //     [TestMethod]
-        //     public async Task CreatePOSTWithInvalidModelStatePopulatesCategorySelectWithCorrectDefault() {
-        //         int testID = budget.GetPayees().OrderByDescending(p => p.ID).First().ID + 1;
-        //         BudgetCategory testCategory = budget.GetCategories().First();
-        //         Payee newPayee = new Payee {
-        //             ID = testID,
-        //             Name = "New Test Payee",
-        //             BeginEffectiveDate = new DateTime(2017,12,12),
-        //             Category = testCategory,
-        //             BudgetCategoryID = testCategory.ID
-        //         };
+            [TestMethod]
+            public async Task CreatePOSTWithInvalidModelStatePopulatesSelectListsWithCorrectDefaults() {
+                int testID = budget.GetTransactions().OrderByDescending(p => p.ID).First().ID + 1;
+                BudgetCategory testCategory = budget.GetCategories().First();
+                Payee testPayee = budget.GetPayees().Where(x => x.BudgetCategoryID != testCategory.ID).First();
+                Transaction newTransaction = new Transaction {
+                    ID = testID,
+                    Date = DateTime.Parse("10/16/2017"),
+                    Amount = 2001.2,
+                    OverrideCategory = testCategory,
+                    OverrideCategoryID = testCategory.ID,
+                    PayableTo = testPayee,
+                    PayeeID = testPayee.ID
+                };
 
-        //         controller.ModelState.AddModelError("test", "test");
+                controller.ModelState.AddModelError("test", "test");
 
-        //         IActionResult actionResult = await controller.Create(newPayee);
-        //         var result = actionResult as ViewResult;
-        //         // Check that ViewData is not null
-        //         ViewDataDictionary viewData = result.ViewData;
-        //         Assert.IsNotNull(viewData[categorySelectListKey], $"Create View expects data for ViewData['{categorySelectListKey}']");
+                IActionResult actionResult = await controller.Create(newTransaction);
+                var result = actionResult as ViewResult;
 
-        //         // Check that ViewData is a SelectList with correct number of Items
-        //         SelectList list = (SelectList)viewData[categorySelectListKey];
-        //         Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
-
-        //         // Check that all BudgetCategories are included in the SelectList
-        //         string errorMsg = "The following BudgetCategories are missing: ";
-        //         int missingCategories = 0;
-        //         foreach (var Category in budget.GetCategories()) {
-        //             if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-        //                 missingCategories += 1;
-        //                 errorMsg += Category.Name + ", ";
-        //             }
-        //         }
-        //         errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
-
-        //         Assert.AreEqual(0, missingCategories, errorMsg);
-
-        //         bool isSelected = list.Where(i => i.Value == newPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
-
-        //         Assert.IsTrue(isSelected, $"The category = '{newPayee.Category.Name}' should be pre-selected for payee = '{newPayee.Name}'");
-        //     }
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(x => x.ID.ToString()), testCategory.ID.ToString());
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(x => x.ID.ToString()), testPayee.ID.ToString());
+            }
         #endregion
 
         #region "Delete Method Tests"
-        //     [TestMethod]
-        //     public async Task DeleteGETReturnsView() {
-        //         int id = budget.GetPayees().Select(p => p.ID).First();
+            [TestMethod]
+            public async Task DeleteGETReturnsView() {
+                int id = budget.GetTransactions().Select(p => p.ID).First();
 
-        //         IActionResult actionResult = await controller.Delete(id);
-        //         var result = actionResult as ViewResult;
+                IActionResult actionResult = await controller.Delete(id);
+                var result = actionResult as ViewResult;
                 
-        //         Assert.IsNotNull(result);
-        //         Assert.AreEqual("Delete", result.ViewName, $"Delete method returned '{result.ViewName}' instead of 'Delete'");
-        //     }
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Delete", result.ViewName, $"Delete method returned '{result.ViewName}' instead of 'Delete'");
+            }
 
-        //     [DataTestMethod]
-        //     [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-        //     public async Task DeleteGETReturnsCorrectPayee(int id) {
-        //         IActionResult actionResult = await controller.Delete(id);
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
+            public async Task DeleteGETReturnsCorrectTransaction(int id) {
+                IActionResult actionResult = await controller.Delete(id);
 
-        //         if (!payeeReference.ContainsKey(id)) {
-        //             Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-        //         } else {
-        //             string payeeName = payeeReference[id];
+                if (!transactionReference.ContainsKey(id)) {
+                    Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
+                } else {
+                    double transactionAmount = transactionReference[id];
 
-        //             var result = actionResult as ViewResult;
-        //             Payee model = (Payee)result.ViewData.Model;
+                    var result = actionResult as ViewResult;
+                    Transaction model = (Transaction)result.ViewData.Model;
 
-        //             Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
-        //         }
-        //     }
+                    Assert.AreEqual(transactionAmount, model.Amount, $"The wrong Transaction was returned by for ID = {id}");
+                }
+            }
 
-        //     [TestMethod]
-        //     public async Task DeleteGETReturnsNotFoundForNullIndex() {
-        //         IActionResult actionResult = await controller.Delete(null);
+            [TestMethod]
+            public async Task DeleteGETReturnsNotFoundForNullIndex() {
+                IActionResult actionResult = await controller.Delete(null);
 
-        //         Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
-        //     }
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
+            }
 
-        //     [TestMethod]
-        //     public async Task DeletePOSTRemoveExistingPayee() {
-        //         int testID = budget.GetPayees().Select(p => p.ID).First();
+            [TestMethod]
+            public async Task DeletePOSTRemoveExistingTransaction() {
+                int testID = budget.GetTransactions().Select(p => p.ID).First();
 
-        //         IActionResult actionResult = await controller.DeleteConfirmed(testID);
-        //         var result = actionResult as RedirectToActionResult;
+                IActionResult actionResult = await controller.DeleteConfirmed(testID);
+                var result = actionResult as RedirectToActionResult;
 
-        //         Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+                Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
 
-        //         Payee payeeShouldntBeThere = budget.GetPayees().Where(p => p.ID == testID).SingleOrDefault();
+                Transaction transShouldntBeThere = budget.GetTransactions().Where(p => p.ID == testID).SingleOrDefault();
 
-        //         Assert.IsNull(payeeShouldntBeThere, $"Payee with id = {testID} wasn't removed");
-        //     }
+                Assert.IsNull(transShouldntBeThere, $"Transaction with id = {testID} wasn't removed");
+            }
 
-        //     [TestMethod]
-        //     public async Task DeletePOSTRemoveNonExistantCategory() {
-        //         int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 10;
-        //         int preCount = budget.GetPayees().Count();
+            [TestMethod]
+            public async Task DeletePOSTRemoveNonExistantTransaction() {
+                int testID = budget.GetTransactions().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 10;
+                int preCount = budget.GetTransactions().Count();
 
-        //         IActionResult actionResult = await controller.DeleteConfirmed(testID);
-        //         var result = actionResult as RedirectToActionResult;
+                IActionResult actionResult = await controller.DeleteConfirmed(testID);
+                var result = actionResult as RedirectToActionResult;
 
-        //         Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
+                Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
 
-        //         Assert.AreEqual(preCount, budget.GetPayees().Count(), "No payee should have been removed");
-        //     }
+                Assert.AreEqual(preCount, budget.GetTransactions().Count(), "No transaction should have been removed");
+            }
         #endregion
 
         #region Edit Method Tests
-        //     [TestMethod]
-        //     public async Task EditGETReturnsView() {
-        //         int testID = budget.GetPayees().First().ID;
+            [TestMethod]
+            public async Task EditGETReturnsView() {
+                int testID = budget.GetTransactions().First().ID;
 
-        //         IActionResult actionResult = await controller.Edit(testID);
-        //         var result = actionResult as ViewResult;
+                IActionResult actionResult = await controller.Edit(testID);
+                var result = actionResult as ViewResult;
 
-        //         Assert.IsNotNull(result);
-        //         Assert.AreEqual("Edit", result.ViewName, $"Edit method returned '{result.ViewName}' instead of 'Edit'");
-        //     }
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Edit", result.ViewName, $"Edit method returned '{result.ViewName}' instead of 'Edit'");
+            }
 
-        //     [DataTestMethod]
-        //     [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-        //     public async Task EditGETReturnsCorrectPayee(int id) {
-        //         IActionResult actionResult = await controller.Edit(id);
+            [DataTestMethod]
+            [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
+            public async Task EditGETReturnsCorrectTransaction(int id) {
+                IActionResult actionResult = await controller.Edit(id);
 
-        //         if (!payeeReference.ContainsKey(id)) {
-        //             Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-        //         } else {
-        //             string payeeName = payeeReference[id];
-        //             var result = actionResult as ViewResult;
-        //             Payee model = (Payee)result.Model;
+                if (!transactionReference.ContainsKey(id)) {
+                    Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
+                } else {
+                    double transAmount = transactionReference[id];
+                    var result = actionResult as ViewResult;
+                    Transaction model = (Transaction)result.Model;
 
-        //             Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
-        //         }
-        //     }
+                    Assert.AreEqual(transAmount, model.Amount, $"The wrong Transaction was returned by for ID = {id}");
+                }
+            }
 
-        //     [TestMethod]
-        //     public async Task EditGETReturnsNotFoundForNULLId() {
-        //         IActionResult actionResult = await controller.Edit(null);
+            [TestMethod]
+            public async Task EditGETReturnsNotFoundForNULLId() {
+                IActionResult actionResult = await controller.Edit(null);
 
-        //         Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "404 Not Found should be returned for a NULL id");
-        //     }
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "404 Not Found should be returned for a NULL id");
+            }
 
-        //     [TestMethod]
-        //     public async Task EditGETPopulatesViewDataWithCategories() {
-        //         int testID = budget.GetPayees().First().ID;
-        //         IActionResult actionResult = await controller.Edit(testID);
-        //         var result = actionResult as ViewResult;
+            [TestMethod]
+            public async Task EditGETPopulatesViewDataSelectLists() {
+                Transaction testTransaction = budget.GetTransactions().Where(t => t.OverrideCategoryID != null && t.PayeeID != null).First();
+                IActionResult actionResult = await controller.Edit(testTransaction.ID);
+                var result = actionResult as ViewResult;
 
-        //         // Check that ViewData is not null
-        //         ViewDataDictionary viewData = result.ViewData;
-        //         Assert.IsNotNull(viewData[categorySelectListKey], $"Edit View expects data for ViewData['{categorySelectListKey}']");
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()), testTransaction.OverrideCategoryID.ToString());
+                AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(p => p.ID.ToString()), testTransaction.PayeeID.ToString());
+            }
 
-        //         // Check that ViewData is a SelectList with correct number of Items
-        //         SelectList list = (SelectList)viewData[categorySelectListKey];
-        //         Assert.AreEqual(budget.GetCategories().Count(), list.Count(), "SelectList count does not match Category Count");
+            [TestMethod]
+            public async Task EditPOSTWithValidModelState() {
+                Transaction transToEdit = budget.GetTransactions().First();
+                int testID = transToEdit.ID;
+                double newAmount = transToEdit.Amount + 50000;
+                transToEdit.Amount = newAmount;
+                IActionResult actionResult = await controller.Edit(transToEdit.ID, transToEdit);
+                var result = actionResult as RedirectToActionResult;
 
-        //         // Check that all BudgetCategories are included in the SelectList
-        //         string errorMsg = "The following BudgetCategories are missing: ";
-        //         int missingCategories = 0;
-        //         foreach (var Category in budget.GetCategories()) {
-        //             if (list.Where(i => i.Value == Category.ID.ToString()).FirstOrDefault() == null) {
-        //                 missingCategories += 1;
-        //                 errorMsg += Category.Name + ", ";
-        //             }
-        //         }
-        //         errorMsg = errorMsg.Substring(0, errorMsg.Length - 2);
+                Assert.IsNotNull(result, "Edit POST did not return a RedirectToActionResult");
+                Assert.AreEqual("Index", result.ActionName, $"Edit POST should redirect to 'Index', not {result.ActionName}");
 
-        //         Assert.AreEqual(0, missingCategories, errorMsg);
-        //     }
+                Transaction editedTrans = budget.GetTransactions().Where(p => p.ID == testID).First();
 
-        //     [TestMethod]
-        //     public async Task EditGETBudgetCategoriesHasCorrectCategoryPreSelected() {
-        //         Payee testPayee = budget.GetPayees().First();
-        //         IActionResult actionResult = await controller.Edit(testPayee.ID);
-        //         var result = actionResult as ViewResult;
-        //         SelectList list = (SelectList)result.ViewData[categorySelectListKey];
+                Assert.AreEqual(newAmount, editedTrans.Amount, "The changes for the transaction were not saved");
+            }
 
-        //         bool isSelected = list.Where(i => i.Value == testPayee.BudgetCategoryID.ToString()).FirstOrDefault().Selected;
+            [TestMethod]
+            public async Task EditPOSTWithMismatchedIDReturnsNotFound() {
+                Transaction editedTrans = budget.GetTransactions().First();
+                editedTrans.Amount += 50000;
+                IActionResult actionResult = await controller.Edit(editedTrans.ID + 1, editedTrans);
 
-        //         Assert.IsTrue(isSelected, $"The category = '{testPayee.Category.Name}' should be pre-selected for payee = '{testPayee.Name}'");
-        //     }
-
-        //     [TestMethod]
-        //     public async Task EditPOSTWithValidModelState() {
-        //         Payee payeeToEdit = budget.GetPayees().First();
-        //         int testID = payeeToEdit.ID;
-        //         string newName = payeeToEdit.Name + "_modified";
-        //         payeeToEdit.Name = newName;
-        //         IActionResult actionResult = await controller.Edit(payeeToEdit.ID, payeeToEdit);
-        //         var result = actionResult as RedirectToActionResult;
-
-        //         Assert.IsNotNull(result, "Edit POST did not return a RedirectToActionResult");
-        //         Assert.AreEqual("Index", result.ActionName, $"Edit POST should redirect to 'Index', not {result.ActionName}");
-
-        //         Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
-
-        //         Assert.AreEqual(newName, editedPayee.Name, "The changes for the payee were not saved");
-        //     }
-
-        //     [TestMethod]
-        //     public async Task EditPOSTWithMismatchedIDReturnsNotFound() {
-        //         Payee editedPayee = budget.GetPayees().First();
-        //         editedPayee.Name += "_modified";
-        //         IActionResult actionResult = await controller.Edit(editedPayee.ID + 1, editedPayee);
-
-        //         Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "If the ID doesn't match the ID of the edited Payee, Not Found should be called");
-        //     }
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "If the ID doesn't match the ID of the edited Transaction, Not Found should be called");
+            }
 
         //     [TestMethod]
         //     public async Task EditPOSTWithInvalidModelStateReturnsToEditView() {
