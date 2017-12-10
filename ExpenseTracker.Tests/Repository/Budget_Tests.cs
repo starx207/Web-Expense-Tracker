@@ -457,6 +457,40 @@ namespace ExpenseTracker.Tests.Repository
                 Assert.AreEqual(newCategory.Name, transToEdit.OverrideCategory.Name, "The transaction was not correctly reassigned to the new category");
                 Assert.AreEqual(newCategory.ID, transToEdit.OverrideCategoryID, "The transaction was not correctly reassinged to the new category");
             }
+
+            [DataTestMethod]
+            [DataRow(100.1254), DataRow(10.1234), DataRow(0.1), DataRow(-75.0349)]
+            public void RoundAmountToNearestCentOnAdd(double testAmount) {
+                budget = new Budget(repo);
+                int testID = budget.GetTransactions().OrderByDescending(t => t.ID).First().ID + 1;
+                double roundedAmount = Math.Round(testAmount, 2, MidpointRounding.AwayFromZero);
+                Transaction testTrans = new Transaction {
+                    ID = testID,
+                    Date = DateTime.Parse("10/16/2017"),
+                    Amount = testAmount
+                };
+
+                budget.AddTransaction(testTrans);
+
+                Transaction retrievedTrans = budget.GetTransactions().Where(t => t.ID == testID).First();
+
+                Assert.AreEqual(roundedAmount, retrievedTrans.Amount, $"Amount = {testAmount} should be rounded to {roundedAmount} when transaction is added");
+            }
+
+            [DataTestMethod]
+            [DataRow(100.1254), DataRow(10.1234), DataRow(0.1), DataRow(-75.0349)]
+            public void RoundAmountToNearestCentOnUpdate(double testAmount) {
+                budget = new Budget(repo);
+                Transaction testTrans = budget.GetTransactions().First();
+                double roundedAmount = Math.Round(testAmount, 2, MidpointRounding.AwayFromZero);
+                testTrans.Amount = testAmount;
+
+                budget.UpdateTransaction(testTrans);
+
+                Transaction retrievedTrans = budget.GetTransactions().Where(t => t.ID == testTrans.ID).First();
+
+                Assert.AreEqual(roundedAmount, retrievedTrans.Amount, $"Amount = {testAmount} should be rounded to {roundedAmount} when transaction is edited");
+            }
         #endregion
     }
 }
