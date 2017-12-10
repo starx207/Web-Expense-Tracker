@@ -30,15 +30,7 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var transaction = await _context.GetTransactions()
-                .Include(t => t.OverrideCategory)
-                .Include(t => t.PayableTo)
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var transaction = await GetTransactionById(id, true);
             if (transaction == null)
             {
                 return NotFound();
@@ -68,26 +60,21 @@ namespace ExpenseTracker.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
+            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
             return View(nameof(Create), transaction);
         }
 
         // GET: Transaction/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var transaction = await _context.GetTransactions().SingleOrDefaultAsync(m => m.ID == id);
+            var transaction = await GetTransactionById(id);
             if (transaction == null)
             {
                 return NotFound();
             }
-            ViewData["OverrideCategoryID"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
-            ViewData["PayeeID"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
+            ViewData["CategoryList"] = new SelectList(_context.GetCategories(), "ID", "Name", transaction.OverrideCategoryID);
+            ViewData["PayeeList"] = new SelectList(_context.GetPayees(), "ID", "Name", transaction.PayeeID);
             return View(nameof(Edit), transaction);
         }
 
@@ -131,15 +118,7 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var transaction = await _context.GetTransactions()
-                .Include(t => t.OverrideCategory)
-                .Include(t => t.PayableTo)
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var transaction = await GetTransactionById(id, true);
             if (transaction == null)
             {
                 return NotFound();
@@ -153,15 +132,29 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transaction = await _context.GetTransactions().SingleOrDefaultAsync(m => m.ID == id);
-            _context.RemoveTransaction(transaction);
-            await _context.SaveChangesAsync();
+            var transaction = await GetTransactionById(id);
+            if (transaction != null) {
+                _context.RemoveTransaction(transaction);
+                await _context.SaveChangesAsync();
+            }
             return RedirectToAction(nameof(Index));
         }
 
         private bool TransactionExists(int id)
         {
             return _context.GetTransactions().Any(e => e.ID == id);
+        }
+
+        private async Task<Transaction> GetTransactionById(int? id, bool includeCategoryAndPayee = false) {
+            if (id == null) { return null; }
+
+            var transaction = _context.GetTransactions().Where(t => t.ID == id);
+
+            if (includeCategoryAndPayee) {
+                transaction = transaction.Include(t => t.PayableTo).Include(t => t.OverrideCategory);
+            }
+
+            return await transaction.SingleOrDefaultAsync();
         }
     }
 }
