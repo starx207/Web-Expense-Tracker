@@ -23,8 +23,10 @@ namespace ExpenseTracker.Models
 
         public int? PayeeID { get; set; }
 
+        [Display(Name = "Payable To")]
         public Payee PayableTo { get; set; }
 
+        [Display(Name = "Override Category")]
         public BudgetCategory OverrideCategory { get; set; }
     }
 }
