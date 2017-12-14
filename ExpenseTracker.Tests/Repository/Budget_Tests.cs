@@ -144,6 +144,22 @@ namespace ExpenseTracker.Tests.Repository
                     removedCategory = budget.GetCategories().Where(c => c.ID == testID).First()
                 , $"Category with id = {testID} should have been removed");
             }
+
+            [TestMethod]
+            public void EditABudgetCategory() {
+                budget = new Budget(repo);
+                BudgetCategory categoryToEdit = budget.GetCategories().First();
+                int testID = categoryToEdit.ID;
+                string originalName = categoryToEdit.Name;
+                string newName = originalName + "_modified";
+
+                categoryToEdit.Name = newName;
+                budget.UpdateBudgetCategory(categoryToEdit);
+
+                BudgetCategory editedCategory = budget.GetCategories().First(c => c.ID == testID);
+
+                Assert.AreEqual(newName, editedCategory.Name, "The Budget Category name was not updated");
+            }
         #endregion
     
         #region "Payee Tests"
