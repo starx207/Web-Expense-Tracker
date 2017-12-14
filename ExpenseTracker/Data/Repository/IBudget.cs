@@ -18,6 +18,7 @@ namespace ExpenseTracker.Data.Repository
         void RemovePayee(Payee payeeToRemove);
         void RemoveAlias(Alias aliasToRemove);
         void RemoveTransaction(Transaction transactionToRemove);
+        void UpdateBudgetCategory(BudgetCategory editedCategory);
         void UpdatePayee(Payee editedPayee);
         void UpdateAlias(Alias editedAlias);
         void UpdateTransaction(Transaction editedTransaction);

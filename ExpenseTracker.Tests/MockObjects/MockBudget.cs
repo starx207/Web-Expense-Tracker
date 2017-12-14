@@ -38,6 +38,14 @@ namespace ExpenseTracker.Tests.Mock
             _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
         }
 
+        public void UpdateBudgetCategory(BudgetCategory category) {
+            BudgetCategory categoryToEdit = _categories.AsQueryable().Where(c => c.ID == category.ID).First();
+            List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
+            newCategories.Remove(categoryToEdit);
+            newCategories.Add(category);
+            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
+        }
+
         public IQueryable<Payee> GetPayees() {
             return _payees.AsQueryable();
         }
