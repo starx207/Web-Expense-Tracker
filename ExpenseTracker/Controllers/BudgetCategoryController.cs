@@ -60,57 +60,51 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: BudgetCategory/Edit/5
-        // public async Task<IActionResult> Edit(int? id)
-        // {
-        //     throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
-        //     if (id == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     var budgetCategory = await _context.GetCategories().SingleOrDefaultAsync(m => m.ID == id);
-        //     if (budgetCategory == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     return View(nameof(Edit) ,budgetCategory);
-        // }
+        public async Task<IActionResult> Edit(int? id)
+        {
+            var budgetCategory = await GetCategoryById(id);
+            if (budgetCategory == null)
+            {
+                return NotFound();
+            }
+            return View(nameof(Edit) ,budgetCategory);
+        }
 
         // POST: BudgetCategory/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
-        // {
-        //     throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
-        //     if (id != budgetCategory.ID)
-        //     {
-        //         return NotFound();
-        //     }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
+        {
+            throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
+            if (id != budgetCategory.ID)
+            {
+                return NotFound();
+            }
 
-        //     if (ModelState.IsValid)
-        //     {
-        //         try
-        //         {
-        //             _context.Update(budgetCategory);
-        //             await _context.SaveChangesAsync();
-        //         }
-        //         catch (DbUpdateConcurrencyException)
-        //         {
-        //             if (!BudgetCategoryExists(budgetCategory.ID))
-        //             {
-        //                 return NotFound();
-        //             }
-        //             else
-        //             {
-        //                 throw;
-        //             }
-        //         }
-        //         return RedirectToAction(nameof(Index));
-        //     }
-        //     return View(nameof(Edit), budgetCategory);
-        // }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.UpdateBudgetCategory(budgetCategory);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!BudgetCategoryExists(budgetCategory.ID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(nameof(Edit), budgetCategory);
+        }
 
         // GET: BudgetCategory/Delete/5
         public async Task<IActionResult> Delete(int? id)
