@@ -230,6 +230,39 @@ namespace ExpenseTracker.Tests.Controllers
 
 
         #region "Edit Method Tests"
+            [TestMethod]
+            public async Task EditGETReturnsView() {
+                int testID = budget.GetCategories().First().ID;
+                IActionResult actionResult = await controller.Edit(testID);
+
+                var result = actionResult as ViewResult;
+
+                Assert.IsNotNull(result, "A ViewResult was not returned");
+                Assert.AreEqual("Edit", result.ViewName, $"Edit returned {result.ViewName} instead of 'Edit'");
+            }
+            
+            [DataTestMethod]
+            [DataRow(1), DataRow(4), DataRow(-9), DataRow(5000000)]
+            public async Task EditGETUsesCorrectModel(int id) {
+                IActionResult actionResult = await controller.Edit(id);
+                
+                if (!categoryReference.ContainsKey(id)) {
+                    Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"ID = {id} should raise 404 Not Found");
+                } else {
+                    var result = (ViewResult)actionResult;
+                    BudgetCategory model = (BudgetCategory)result.Model;
+
+                    Assert.AreEqual(categoryReference[id], model.Name, $"The wrong Budget Category was returned for ID = {id}");
+                }
+
+            }
+
+            [TestMethod]
+            public async Task EditGETReturnsNotFoundForNULLId() {
+                IActionResult actionResult = await controller.Edit(null);
+
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL Id should raise 404 Not Found");
+            }
         #endregion
     }
 }
