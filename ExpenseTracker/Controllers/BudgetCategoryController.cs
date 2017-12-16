@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
 
 namespace ExpenseTracker.Controllers
@@ -78,32 +78,32 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
         {
             throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
-            if (id != budgetCategory.ID)
-            {
-                return NotFound();
-            }
+            // if (id != budgetCategory.ID)
+            // {
+            //     return NotFound();
+            // }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.UpdateBudgetCategory(budgetCategory);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BudgetCategoryExists(budgetCategory.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(nameof(Edit), budgetCategory);
+            // if (ModelState.IsValid)
+            // {
+            //     try
+            //     {
+            //         _context.UpdateBudgetCategory(budgetCategory);
+            //         await _context.SaveChangesAsync();
+            //     }
+            //     catch (DbUpdateConcurrencyException)
+            //     {
+            //         if (!BudgetCategoryExists(budgetCategory.ID))
+            //         {
+            //             return NotFound();
+            //         }
+            //         else
+            //         {
+            //             throw;
+            //         }
+            //     }
+            //     return RedirectToAction(nameof(Index));
+            // }
+            // return View(nameof(Edit), budgetCategory);
         }
 
         // GET: BudgetCategory/Delete/5

@@ -1,4 +1,4 @@
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
 using ExpenseTracker.Tests.Mock;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

@@ -1,5 +1,5 @@
 ﻿using ExpenseTracker.Data;
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 using System;
 using System.Collections.Generic;
 using System.IO;

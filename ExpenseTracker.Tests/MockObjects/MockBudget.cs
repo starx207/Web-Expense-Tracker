@@ -1,4 +1,4 @@
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
 using System;
 using System.Collections.Generic;

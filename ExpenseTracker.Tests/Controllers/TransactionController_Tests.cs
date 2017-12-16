@@ -1,5 +1,5 @@
 using ExpenseTracker.Controllers;
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
 using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;

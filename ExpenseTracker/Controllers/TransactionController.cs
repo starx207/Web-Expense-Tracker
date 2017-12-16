@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
-using ExpenseTracker.Data.Repository;
+using ExpenseTracker.Repository;
 
 namespace ExpenseTracker.Controllers
 {
