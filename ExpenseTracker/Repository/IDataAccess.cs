@@ -2,7 +2,7 @@ using ExpenseTracker.Models;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Data.Repository
+namespace ExpenseTracker.Repository
 {
     public interface IDataAccess
     {

@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Data.Repository
+namespace ExpenseTracker.Repository
 {
     public class Budget : IBudget
     {
