@@ -1,5 +1,6 @@
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,49 +27,84 @@ namespace ExpenseTracker.Tests.Mock
             return _categories.AsQueryable();
         }
 
-        public void AddBudgetCategory(BudgetCategory category) {
+        public async Task<BudgetCategory> GetCategoryAsync(int? id) {
+            if (id == null) {throw new NullIdException();}
+            BudgetCategory category = await _categories.AsQueryable().SingleOrDefaultAsync(c => c.ID == id);
+            if (category == null) {throw new IdNotFoundException();}
+            return category;
+        }
+
+        public async Task AddBudgetCategoryAsync(BudgetCategory category) {
             IEnumerable<BudgetCategory> newCategories = _categories.AsEnumerable().Append(category);
-            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
+            await Task.Factory.StartNew(() =>
+                _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories)
+            );
         }
 
-        public void RemoveBudgetCategory(BudgetCategory category) {
-            BudgetCategory categoryToRemove = _categories.AsQueryable().Where(c => c.ID == category.ID).First();
-            List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
-            newCategories.Remove(categoryToRemove);
-            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
+        public async Task RemoveBudgetCategoryAsync(int id) {
+            try {
+                BudgetCategory categoryToRemove = _categories.AsQueryable().Where(c => c.ID == id).FirstOrDefault();
+                List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
+                newCategories.Remove(categoryToRemove);
+                await Task.Factory.StartNew(() => 
+                    _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories)
+                );
+            } catch {}
         }
 
-        public void UpdateBudgetCategory(BudgetCategory category) {
+        public async Task UpdateBudgetCategoryAsync(int id, BudgetCategory category) {
+            if (id != category.ID) {
+                throw new IdMismatchException();
+            }
             BudgetCategory categoryToEdit = _categories.AsQueryable().Where(c => c.ID == category.ID).First();
             List<BudgetCategory> newCategories = _categories.AsEnumerable().ToList();
             newCategories.Remove(categoryToEdit);
             newCategories.Add(category);
-            _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories);
+            await Task.Factory.StartNew(() =>
+                _categories = new TestAsyncEnumerable<BudgetCategory>(newCategories)
+            );
         }
 
         public IQueryable<Payee> GetPayees() {
             return _payees.AsQueryable();
         }
 
-        public void AddPayee(Payee payeeToAdd) {
+        public async Task<Payee> GetPayeeAsync(int? id) {
+            if (id == null) { throw new NullIdException(); }
+            Payee payee = await _payees.AsQueryable().SingleOrDefaultAsync(p => p.ID == id);
+            if (payee == null) { throw new IdNotFoundException(); }
+            return payee;
+        }
+
+        public async Task AddPayeeAsync(Payee payeeToAdd) {
             IEnumerable<Payee> newPayees = _payees.AsEnumerable().Append(payeeToAdd);
-            _payees = new TestAsyncEnumerable<Payee>(newPayees);
+            await Task.Factory.StartNew(() =>
+                _payees = new TestAsyncEnumerable<Payee>(newPayees)
+            );
         }
 
-        public void RemovePayee(Payee payeeToRemove) {
-            Payee removePayee = _payees.AsQueryable().Where(p => p.ID == payeeToRemove.ID).First();
-            List<Payee> newPayees = _payees.AsEnumerable().ToList();
-            newPayees.Remove(removePayee);
-            _payees = new TestAsyncEnumerable<Payee>(newPayees);
+        public async Task RemovePayeeAsync(int id) {
+            try {
+                Payee removePayee = _payees.AsQueryable().Where(p => p.ID == id).First();
+                List<Payee> newPayees = _payees.AsEnumerable().ToList();
+                newPayees.Remove(removePayee);
+                await Task.Factory.StartNew(() =>
+                    _payees = new TestAsyncEnumerable<Payee>(newPayees)
+                );
+            } catch {}
         }
 
-        public void UpdatePayee(Payee editedPayee) {
-            Payee payeeToEdit = _payees.AsQueryable().Where(p => p.ID == editedPayee.ID).First();
+        public async Task UpdatePayeeAsync(int id, Payee payee) {
+            if (id != payee.ID) {
+                throw new IdMismatchException();
+            }
+            Payee payeeToEdit = _payees.AsQueryable().Where(p => p.ID == payee.ID).First();
             List<Payee> newPayees = _payees.AsEnumerable().ToList();
             newPayees.Remove(payeeToEdit);
-            newPayees.Add(editedPayee);
-
-            _payees = new TestAsyncEnumerable<Payee>(newPayees);
+            newPayees.Add(payee);
+            await Task.Factory.StartNew(() =>
+                _payees = new TestAsyncEnumerable<Payee>(newPayees)
+            );
         }
 
         public IQueryable<Alias> GetAliases() {
