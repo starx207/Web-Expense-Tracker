@@ -3,12 +3,13 @@ using ExpenseTracker.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Data
 {
     public static class DbInitializer
     {
-        public static void Initialize(IBudget context) {
+        public static async Task Initialize(IBudget context) {
             if (context.GetCategories().Any()) {
                 return; // Db Already has data
             }
@@ -168,10 +169,8 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var c in categories) {
-                context.AddBudgetCategory(c);
+                await context.AddBudgetCategoryAsync(c);
             }
-
-            context.SaveChangesAsync();
 
             // Populate Payees
             List<Payee> payees = new List<Payee> {
@@ -274,10 +273,8 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var p in payees) {
-                context.AddPayee(p);
+                await context.AddPayeeAsync(p);
             }
-            
-            context.SaveChangesAsync();
 
             // Create Aliases
             List<Alias> aliases = new List<Alias> {
@@ -327,7 +324,7 @@ namespace ExpenseTracker.Data
                 context.AddAlias(a);
             }
 
-            context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 }
