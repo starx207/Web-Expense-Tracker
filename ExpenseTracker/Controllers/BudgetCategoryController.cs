@@ -28,12 +28,15 @@ namespace ExpenseTracker.Controllers
         // GET: BudgetCategory/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            var budgetCategory = await GetCategoryById(id);
-            if (budgetCategory == null)
-            {
-                return NotFound();
+            BudgetCategory budgetCategory;
+            try {
+                budgetCategory = await _context.GetCategoryAsync(id);
+            } catch (Exception ex) {
+                if (ex is IdNotFoundException || ex is NullIdException) {
+                    return NotFound();
+                }
+                throw;
             }
-
             return View(nameof(Details), budgetCategory);
         }
 
@@ -52,20 +55,23 @@ namespace ExpenseTracker.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.AddBudgetCategory(budgetCategory);
-                await _context.SaveChangesAsync();
+                await _context.AddBudgetCategoryAsync(budgetCategory);
                 return RedirectToAction(nameof(Index));
             }
-            return View(nameof(Create) ,budgetCategory);
+            return View(nameof(Create), budgetCategory);
         }
 
         // GET: BudgetCategory/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            var budgetCategory = await GetCategoryById(id);
-            if (budgetCategory == null)
-            {
-                return NotFound();
+            BudgetCategory budgetCategory;
+            try {
+                budgetCategory = await _context.GetCategoryAsync(id);
+            } catch (Exception ex) {
+                if (ex is IdNotFoundException || ex is NullIdException) {
+                    return NotFound();
+                }
+                throw;
             }
             return View(nameof(Edit) ,budgetCategory);
         }
@@ -109,10 +115,14 @@ namespace ExpenseTracker.Controllers
         // GET: BudgetCategory/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            var budgetCategory = await GetCategoryById(id);
-            if (budgetCategory == null)
-            {
-                return NotFound();
+            BudgetCategory budgetCategory;
+            try {
+                budgetCategory = await _context.GetCategoryAsync(id);
+            } catch (Exception ex) {
+                if (ex is IdNotFoundException || ex is NullIdException) {
+                    return NotFound();
+                }
+                throw;
             }
 
             return View(nameof(Delete), budgetCategory);
@@ -123,25 +133,13 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var budgetCategory = await GetCategoryById(id);
-            if (budgetCategory != null) {
-                _context.RemoveBudgetCategory(budgetCategory);
-                await _context.SaveChangesAsync();
-            }
+            await _context.RemoveBudgetCategoryAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         private bool BudgetCategoryExists(int id)
         {
             return _context.GetCategories().Any(e => e.ID == id);
-        }
-
-        private async Task<BudgetCategory> GetCategoryById(int? id) {
-            if (id == null) { return null; }
-
-            var category = await _context.GetCategories().Where(c => c.ID == id).SingleOrDefaultAsync();
-
-            return category;
         }
     }
 }

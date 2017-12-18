@@ -57,8 +57,7 @@ namespace ExpenseTracker.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.AddPayee(payee);
-                await _context.SaveChangesAsync();
+                await _context.AddPayeeAsync(payee);
                 return RedirectToAction(nameof(Index));
             }
             CreateCategorySelectList(payee);
@@ -84,28 +83,17 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee)
         {
-            if (id != payee.ID)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.UpdatePayee(payee);
-                    await _context.SaveChangesAsync();
+                    await _context.UpdatePayeeAsync(id, payee);
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PayeeExists(payee.ID))
-                    {
+                catch (Exception ex) {
+                    if (ex is IdMismatchException || (ex is DbUpdateConcurrencyException && (!PayeeExists(payee.ID)))) {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -130,11 +118,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var payee = await GetPayeeById(id);
-            if (payee != null) {
-                _context.RemovePayee(payee);
-                await _context.SaveChangesAsync();
-            }
+            await _context.RemovePayeeAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
