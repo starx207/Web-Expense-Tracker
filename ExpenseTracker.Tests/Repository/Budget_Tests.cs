@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Tests.Repository
 {
@@ -99,7 +100,7 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void AddANewBudgetCategory() {
+            public async Task AddANewBudgetCategory() {
                 budget = new Budget(repo);
                 int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
                 string testName = "Insurance";
@@ -113,7 +114,7 @@ namespace ExpenseTracker.Tests.Repository
                 };
                 int newCount;
 
-                budget.AddBudgetCategory(newCategory);
+                await budget.AddBudgetCategoryAsync(newCategory);
                 newCount = budget.GetCategories().Count();
 
                 Assert.IsTrue(newCount == categoryCount + 1, "No category was added");
@@ -128,13 +129,13 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void RemoveABudgetCategory() {
+            public async Task RemoveABudgetCategory() {
                 budget = new Budget(repo);
                 int testID = repo.BudgetCategories().Select(c => c.ID).First();
                 BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
                 int newCount;
 
-                budget.RemoveBudgetCategory(remove);
+                await budget.RemoveBudgetCategoryAsync(remove.ID);
                 newCount = budget.GetCategories().Count();
 
                 Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
@@ -146,7 +147,7 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void EditABudgetCategory() {
+            public async Task EditABudgetCategory() {
                 budget = new Budget(repo);
                 BudgetCategory categoryToEdit = budget.GetCategories().First();
                 int testID = categoryToEdit.ID;
@@ -154,7 +155,7 @@ namespace ExpenseTracker.Tests.Repository
                 string newName = originalName + "_modified";
 
                 categoryToEdit.Name = newName;
-                budget.UpdateBudgetCategory(categoryToEdit);
+                await budget.UpdateBudgetCategoryAsync(categoryToEdit.ID, categoryToEdit);
 
                 BudgetCategory editedCategory = budget.GetCategories().First(c => c.ID == testID);
 
@@ -189,7 +190,7 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void AddAPayee() {
+            public async Task AddAPayee() {
                 budget = new Budget(repo);
                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
                 string payeeName = "Sweetwater";
@@ -204,7 +205,7 @@ namespace ExpenseTracker.Tests.Repository
                 };
                 int newCount;
 
-                budget.AddPayee(payee);
+                await budget.AddPayeeAsync(payee);
                 newCount = budget.GetPayees().Count();
 
                 Assert.AreEqual(payeeCount + 1, newCount, "No Payee was added");
@@ -219,13 +220,13 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void DeleteAPayee() {
+            public async Task DeleteAPayee() {
                 budget = new Budget(repo);
                 Payee payeeToRemove = budget.GetPayees().First();
                 int testID = payeeToRemove.ID;
                 int newCount;
 
-                budget.RemovePayee(payeeToRemove);
+                await budget.RemovePayeeAsync(payeeToRemove.ID);
                 newCount = budget.GetPayees().Count();
 
                 Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
@@ -237,7 +238,7 @@ namespace ExpenseTracker.Tests.Repository
             }
 
             [TestMethod]
-            public void EditAPayee() {
+            public async Task EditAPayee() {
                 budget = new Budget(repo);
                 Payee payeeToEdit = budget.GetPayees().First();
                 int testID = payeeToEdit.ID;
@@ -246,7 +247,7 @@ namespace ExpenseTracker.Tests.Repository
                 string newName = originalName + " plus something extra";
 
                 payeeToEdit.Name = newName;
-                budget.UpdatePayee(payeeToEdit);
+                await budget.UpdatePayeeAsync(payeeToEdit.ID, payeeToEdit);
 
                 Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
 
@@ -258,7 +259,7 @@ namespace ExpenseTracker.Tests.Repository
                 editedPayee.Category = newCategory;
                 editedPayee.BudgetCategoryID = newCategory.ID;
 
-                budget.UpdatePayee(editedPayee);
+                await budget.UpdatePayeeAsync(editedPayee.ID, editedPayee);
 
                 payeeToEdit = budget.GetPayees().Where(p => p.ID == testID).First();
 
