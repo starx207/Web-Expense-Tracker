@@ -20,8 +20,8 @@ namespace ExpenseTracker.Models
         public double Amount { get; set; }
 
         [Required]
-        public BudgetType Type { get; set; }
+        public virtual BudgetType Type { get; set; }
 
-        public ICollection<Payee> Payees { get; set; }
+        public virtual ICollection<Payee> Payees { get; set; }
     }
 }

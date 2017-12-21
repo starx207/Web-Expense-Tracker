@@ -12,10 +12,10 @@ namespace ExpenseTracker.Models
 
         public int? BudgetCategoryID { get; set; }
 
-        public BudgetCategory Category { get; set; }
+        public virtual BudgetCategory Category { get; set; }
 
-        public ICollection<Transaction> Transactions { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
 
-        public ICollection<Alias> Aliases { get; set; }
+        public virtual ICollection<Alias> Aliases { get; set; }
     }
 }

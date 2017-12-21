@@ -16,6 +16,6 @@ namespace ExpenseTracker.Models
         public int PayeeID { get; set; }
 
         [Display(Name = "Payee")]
-        public Payee AliasForPayee { get; set; }
+        public virtual Payee AliasForPayee { get; set; }
     }
 }
