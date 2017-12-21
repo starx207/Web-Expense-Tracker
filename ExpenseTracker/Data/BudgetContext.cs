@@ -7,9 +7,9 @@ namespace ExpenseTracker.Data
     {
         public BudgetContext(DbContextOptions<BudgetContext> options) : base(options) { }
 
-        public DbSet<BudgetCategory> BudgetCategories { get; set; }
-        public DbSet<Payee> Payees { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
-        public DbSet<Alias> Aliases { get; set; }
+        public virtual DbSet<BudgetCategory> BudgetCategories { get; set; }
+        public virtual DbSet<Payee> Payees { get; set; }
+        public virtual DbSet<Transaction> Transactions { get; set; }
+        public virtual DbSet<Alias> Aliases { get; set; }
     }
 }
