@@ -1,14 +1,15 @@
 using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Repository
+namespace ExpenseTracker.Services
 {
-    public class Budget : IBudget
+    public class BudgetService : IBudgetService
     {
-        private readonly IDataAccess repo;
-        public Budget(IDataAccess repository) { 
+        private readonly IBudgetRepo repo;
+        public BudgetService(IBudgetRepo repository) { 
             repo = repository;
         }
 

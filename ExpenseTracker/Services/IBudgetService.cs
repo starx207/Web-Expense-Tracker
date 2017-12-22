@@ -2,9 +2,9 @@ using ExpenseTracker.Models;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Repository
+namespace ExpenseTracker.Services
 {
-    public interface IBudget
+    public interface IBudgetService
     {
         IQueryable<BudgetCategory> GetCategories();
         IQueryable<Payee> GetPayees();
