@@ -1,4 +1,4 @@
-using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,10 +10,10 @@ namespace ExpenseTracker.Models
 {
     public class AliasController : Controller
     {
-        private readonly IBudget _context;
+        private readonly IBudgetService _context;
         private readonly string payeeIndex = "Index";
 
-        public AliasController(IBudget context) {
+        public AliasController(IBudgetService context) {
             _context = context;
         }
 

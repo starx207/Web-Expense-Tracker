@@ -6,15 +6,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 
 namespace ExpenseTracker.Controllers
 {
     public class PayeeController : Controller
     {
-        private readonly IBudget _context;
+        private readonly IBudgetService _context;
 
-        public PayeeController(IBudget context)
+        public PayeeController(IBudgetService context)
         {
             _context = context;
         }

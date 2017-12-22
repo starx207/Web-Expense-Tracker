@@ -1,5 +1,6 @@
 ﻿using ExpenseTracker.Data;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +27,8 @@ namespace ExpenseTracker
         {
             services.AddDbContext<BudgetContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddScoped<IDataAccess, BudgetDataAccess>();
-            services.AddScoped<IBudget, Budget>();
+            services.AddScoped<IBudgetRepo, BudgetRepo>();
+            services.AddScoped<IBudgetService, BudgetService>();
             services.AddMvc();
         }
 

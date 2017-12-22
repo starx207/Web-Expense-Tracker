@@ -1,5 +1,5 @@
 using ExpenseTracker.Controllers;
-using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,19 +15,19 @@ namespace ExpenseTracker.Tests.Controllers
     [TestClass]
     public class AliasController_Tests : TestCommon
     {
-        private IBudget budget;
+        private IBudgetService budget;
         private Dictionary<int, string> aliasReference;
         private AliasController controller;
         private readonly string payeeSelectListKey = "PayeeList";
 
-        private Mock<IBudget> mockBudget;
+        private Mock<IBudgetService> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             List<Alias> aliases = TestInitializer.CreateTestAliases(payees.AsQueryable());
-            mockBudget = new Mock<IBudget>();
+            mockBudget = new Mock<IBudgetService>();
             mockBudget.Setup(m => m.AddAlias(It.IsAny<Alias>()));
             mockBudget.Setup(m => m.GetAliases()).Returns(new TestAsyncEnumerable<Alias>(aliases));
             mockBudget.Setup(m => m.GetPayees()).Returns(payees.AsQueryable());

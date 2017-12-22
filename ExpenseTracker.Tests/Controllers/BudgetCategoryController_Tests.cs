@@ -1,5 +1,6 @@
 using ExpenseTracker.Controllers;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,16 +15,16 @@ namespace ExpenseTracker.Tests.Controllers
     [TestClass]
     public class BudgetCategoryController_Tests
     {
-        private IBudget budget;
+        private IBudgetService budget;
         private Dictionary<int, string> categoryReference;
         private BudgetCategoryController controller;
-        private Mock<IBudget> mockBudget;
+        private Mock<IBudgetService> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             // Create in-memory BudgetCategories
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
-            mockBudget = new Mock<IBudget>();
+            mockBudget = new Mock<IBudgetService>();
             mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
             mockBudget.Setup(m => m.GetCategoryAsync(It.IsAny<int?>())).ReturnsAsync((int? x) => categories.AsQueryable().Where(c => c.ID == x).FirstOrDefault());
 

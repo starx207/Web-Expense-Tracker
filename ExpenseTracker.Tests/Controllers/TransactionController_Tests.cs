@@ -1,5 +1,5 @@
 using ExpenseTracker.Controllers;
-using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,19 +15,19 @@ namespace ExpenseTracker.Tests.Controllers
     [TestClass]
     public class TransactionController_Tests : TestCommon
     {
-        private IBudget budget;
+        private IBudgetService budget;
         private Dictionary<int, double> transactionReference;
         private TransactionController controller;
         private readonly string categorySelectListKey = "CategoryList";
         private readonly string payeeSelectListKey = "PayeeList";
-        private Mock<IBudget> mockBudget;
+        private Mock<IBudgetService> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             List<Transaction> transactions = TestInitializer.CreateTestTransactions(categories.AsQueryable(), payees.AsQueryable());
-            mockBudget = new Mock<IBudget>();
+            mockBudget = new Mock<IBudgetService>();
             mockBudget.Setup(m => m.GetTransactions()).Returns(new TestAsyncEnumerable<Transaction>(transactions));
             mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
             mockBudget.Setup(m => m.GetPayees()).Returns(new TestAsyncEnumerable<Payee>(payees));

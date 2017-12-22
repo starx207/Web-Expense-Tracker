@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
-using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 
 namespace ExpenseTracker.Controllers
 {
     public class TransactionController : Controller
     {
-        private readonly IBudget _context;
+        private readonly IBudgetService _context;
 
-        public TransactionController(IBudget context) {
+        public TransactionController(IBudgetService context) {
             _context = context;
         }
 
