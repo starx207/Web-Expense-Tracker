@@ -1,10 +1,10 @@
 using ExpenseTracker.Controllers;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
-using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,14 +20,18 @@ namespace ExpenseTracker.Tests.Controllers
         private AliasController controller;
         private readonly string payeeSelectListKey = "PayeeList";
 
+        private Mock<IBudget> mockBudget;
+
         [TestInitialize]
         public void InitializeTestData() {
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             List<Alias> aliases = TestInitializer.CreateTestAliases(payees.AsQueryable());
-            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
-                                    new TestAsyncEnumerable<Payee>(payees),
-                                    new TestAsyncEnumerable<Alias>(aliases), null);
+            mockBudget = new Mock<IBudget>();
+            mockBudget.Setup(m => m.AddAlias(It.IsAny<Alias>()));
+            mockBudget.Setup(m => m.GetAliases()).Returns(new TestAsyncEnumerable<Alias>(aliases));
+            mockBudget.Setup(m => m.GetPayees()).Returns(payees.AsQueryable());
+            budget = mockBudget.Object;
 
             aliasReference = new Dictionary<int, string>();
             foreach (var alias in budget.GetAliases()) {
@@ -72,8 +76,7 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
                 Assert.AreEqual(nameof(Payee), result.ControllerName, "Create should redirect to PayeeController Index");
 
-                Alias createdAlias = budget.GetAliases().Where(p => p.ID == testID).First();
-                Assert.AreEqual(newAlias.Name, createdAlias.Name, "New alias was not properly added");
+                mockBudget.Verify(m => m.AddAlias(It.IsAny<Alias>()), Times.Once());
             }
 
             [TestMethod]
@@ -165,9 +168,7 @@ namespace ExpenseTracker.Tests.Controllers
                 Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
                 Assert.AreEqual(nameof(Payee), result.ControllerName, "DeletePOST should redirect to Payee Index");
 
-                Alias aliasShouldntBeThere = budget.GetAliases().Where(p => p.ID == testID).SingleOrDefault();
-
-                Assert.IsNull(aliasShouldntBeThere, $"Alias with id = {testID} wasn't removed");
+                mockBudget.Verify(m => m.RemoveAlias(It.IsAny<Alias>()), Times.Once);
             }
 
             [TestMethod]

@@ -1,12 +1,10 @@
 using ExpenseTracker.Controllers;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
-using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
-// using Microsoft.AspNetCore.Mvc.Rendering;
-// using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,15 +20,19 @@ namespace ExpenseTracker.Tests.Controllers
         private TransactionController controller;
         private readonly string categorySelectListKey = "CategoryList";
         private readonly string payeeSelectListKey = "PayeeList";
+        private Mock<IBudget> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
             List<Transaction> transactions = TestInitializer.CreateTestTransactions(categories.AsQueryable(), payees.AsQueryable());
-            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
-                                    new TestAsyncEnumerable<Payee>(payees),
-                                    null, new TestAsyncEnumerable<Transaction>(transactions));
+            mockBudget = new Mock<IBudget>();
+            mockBudget.Setup(m => m.GetTransactions()).Returns(new TestAsyncEnumerable<Transaction>(transactions));
+            mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
+            mockBudget.Setup(m => m.GetPayees()).Returns(new TestAsyncEnumerable<Payee>(payees));
+
+            budget = mockBudget.Object;
 
             transactionReference = new Dictionary<int, double>();
             foreach (var transaction in budget.GetTransactions()) {
@@ -121,8 +123,7 @@ namespace ExpenseTracker.Tests.Controllers
                 
                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
 
-                Transaction createdTrans = budget.GetTransactions().Where(p => p.ID == testID).First();
-                Assert.AreEqual(newTransaction.Amount, createdTrans.Amount, "New transaction was not properly added");
+                mockBudget.Verify(m => m.AddTransaction(It.IsAny<Transaction>()), Times.Once());
             }
 
             [TestMethod]
@@ -216,9 +217,7 @@ namespace ExpenseTracker.Tests.Controllers
 
                 Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
 
-                Transaction transShouldntBeThere = budget.GetTransactions().Where(p => p.ID == testID).SingleOrDefault();
-
-                Assert.IsNull(transShouldntBeThere, $"Transaction with id = {testID} wasn't removed");
+                mockBudget.Verify(m => m.RemoveTransaction(It.IsAny<Transaction>()), Times.Once());
             }
 
             [TestMethod]

@@ -1,9 +1,9 @@
 using ExpenseTracker.Controllers;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
-using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +17,17 @@ namespace ExpenseTracker.Tests.Controllers
         private IBudget budget;
         private Dictionary<int, string> categoryReference;
         private BudgetCategoryController controller;
+        private Mock<IBudget> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             // Create in-memory BudgetCategories
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
-            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), null, null, null);
+            mockBudget = new Mock<IBudget>();
+            mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
+            mockBudget.Setup(m => m.GetCategoryAsync(It.IsAny<int?>())).ReturnsAsync((int? x) => categories.AsQueryable().Where(c => c.ID == x).FirstOrDefault());
+
+            budget = mockBudget.Object;
 
             categoryReference = new Dictionary<int, string>();
             foreach (var category in budget.GetCategories()) {
@@ -31,8 +36,6 @@ namespace ExpenseTracker.Tests.Controllers
 
             controller = new BudgetCategoryController(budget);
         }
-
-
 
 
 
@@ -70,11 +73,16 @@ namespace ExpenseTracker.Tests.Controllers
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
             public async Task DetailsMethodReturnsCorrectBudgetCategory(int id) {
-                IActionResult actionResult = await controller.Details(id);
+                IActionResult actionResult;
 
                 if (!categoryReference.ContainsKey(id)) {
+                    GetCategoryAsync_ShouldThrow(new IdNotFoundException());
+
+                    actionResult = await controller.Details(id);
                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
                 } else {
+                    actionResult = await controller.Details(id);
+
                     string categoryName = categoryReference[id];
 
                     var result = actionResult as ViewResult;
@@ -86,6 +94,7 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task DetailsMethodReturnsNotFoundForNullIndex() {
+                GetCategoryAsync_ShouldThrow(new NullIdException());
                 IActionResult actionResult = await controller.Details(null);
 
                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
@@ -124,8 +133,7 @@ namespace ExpenseTracker.Tests.Controllers
                 
                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
 
-                BudgetCategory category = budget.GetCategories().Where(c => c.ID == testID).First();
-                Assert.AreEqual(newCategory.Name, category.Name, "New category was not properly added");
+                mockBudget.Verify(m => m.AddBudgetCategoryAsync(It.IsAny<BudgetCategory>()), Times.Once());
             }
 
             [TestMethod]
@@ -174,11 +182,15 @@ namespace ExpenseTracker.Tests.Controllers
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
             public async Task DeleteGETReturnsCorrectBudgetCategory(int id) {
-                IActionResult actionResult = await controller.Delete(id);
+                IActionResult actionResult;
 
                 if (!categoryReference.ContainsKey(id)) {
+                    GetCategoryAsync_ShouldThrow(new IdNotFoundException());
+
+                    actionResult = await controller.Delete(id);
                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
                 } else {
+                    actionResult = await controller.Delete(id);
                     string categoryName = categoryReference[id];
 
                     var result = actionResult as ViewResult;
@@ -190,6 +202,7 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task DeleteGETReturnsNotFoundForNullIndex() {
+                GetCategoryAsync_ShouldThrow(new NullIdException());
                 IActionResult actionResult = await controller.Delete(null);
 
                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
@@ -206,7 +219,7 @@ namespace ExpenseTracker.Tests.Controllers
 
                 BudgetCategory categoryShouldntBeThere = budget.GetCategories().Where(c => c.ID == testID).SingleOrDefault();
 
-                Assert.IsNull(categoryShouldntBeThere, $"Category with id = {testID} wasn't removed");
+                mockBudget.Verify(m => m.RemoveBudgetCategoryAsync(It.IsAny<int>()), Times.Once());
             }
 
             [TestMethod]
@@ -244,11 +257,15 @@ namespace ExpenseTracker.Tests.Controllers
             [DataTestMethod]
             [DataRow(1), DataRow(4), DataRow(-9), DataRow(5000000)]
             public async Task EditGETUsesCorrectModel(int id) {
-                IActionResult actionResult = await controller.Edit(id);
+                IActionResult actionResult;
                 
                 if (!categoryReference.ContainsKey(id)) {
+                    GetCategoryAsync_ShouldThrow(new IdNotFoundException());
+
+                    actionResult = await controller.Edit(id);
                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"ID = {id} should raise 404 Not Found");
                 } else {
+                    actionResult = await controller.Edit(id);
                     var result = (ViewResult)actionResult;
                     BudgetCategory model = (BudgetCategory)result.Model;
 
@@ -259,10 +276,16 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task EditGETReturnsNotFoundForNULLId() {
+                GetCategoryAsync_ShouldThrow(new NullIdException());
                 IActionResult actionResult = await controller.Edit(null);
 
                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL Id should raise 404 Not Found");
             }
         #endregion
+
+
+        private void GetCategoryAsync_ShouldThrow(Exception exToThrow) {
+            mockBudget.Setup(m => m.GetCategoryAsync(It.IsAny<int?>())).ThrowsAsync(exToThrow);
+        }
     }
 }

@@ -1,10 +1,10 @@
 using ExpenseTracker.Controllers;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
-using ExpenseTracker.Tests.Mock;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +19,17 @@ namespace ExpenseTracker.Tests.Controllers
         private Dictionary<int, string> payeeReference;
         private PayeeController controller;
         private readonly string categorySelectListKey = "CategoryList";
+        private Mock<IBudget> mockBudget;
 
         [TestInitialize]
         public void InitializeTestData() {
             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
-            budget = new MockBudget(new TestAsyncEnumerable<BudgetCategory>(categories), 
-                                    new TestAsyncEnumerable<Payee>(payees),
-                                    null, null);
+            mockBudget = new Mock<IBudget>();
+            mockBudget.Setup(m => m.GetPayees()).Returns(new TestAsyncEnumerable<Payee>(payees));
+            mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
+
+            budget = mockBudget.Object;
 
             payeeReference = new Dictionary<int, string>();
             foreach (var payee in budget.GetPayees()) {
@@ -116,8 +119,7 @@ namespace ExpenseTracker.Tests.Controllers
                 
                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
 
-                Payee createdPayee = budget.GetPayees().Where(p => p.ID == testID).First();
-                Assert.AreEqual(newPayee.Name, createdPayee.Name, "New payee was not properly added");
+                mockBudget.Verify(m => m.AddPayeeAsync(It.IsAny<Payee>()), Times.Once());
             }
 
             [TestMethod]
@@ -212,7 +214,7 @@ namespace ExpenseTracker.Tests.Controllers
 
                 Payee payeeShouldntBeThere = budget.GetPayees().Where(p => p.ID == testID).SingleOrDefault();
 
-                Assert.IsNull(payeeShouldntBeThere, $"Payee with id = {testID} wasn't removed");
+                mockBudget.Verify(m => m.RemovePayeeAsync(It.IsAny<int>()), Times.Once());
             }
 
             [TestMethod]
@@ -293,6 +295,8 @@ namespace ExpenseTracker.Tests.Controllers
 
             [TestMethod]
             public async Task EditPOSTWithMismatchedIDReturnsNotFound() {
+                mockBudget.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new IdMismatchException());
+                
                 Payee editedPayee = budget.GetPayees().First();
                 editedPayee.Name += "_modified";
                 IActionResult actionResult = await controller.Edit(editedPayee.ID + 1, editedPayee);

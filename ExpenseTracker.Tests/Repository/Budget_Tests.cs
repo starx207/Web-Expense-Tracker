@@ -1,7 +1,7 @@
 using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
-using ExpenseTracker.Tests.Mock;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,7 @@ namespace ExpenseTracker.Tests.Repository
     public class Budget_Tests
     {
         private IDataAccess repo;
+        private Mock<IDataAccess> mockRepo;
         private IBudget budget;
         private Dictionary<int, string> categoryRef;
         private Dictionary<int, string> payeeRef;
@@ -59,7 +60,14 @@ namespace ExpenseTracker.Tests.Repository
             transactionCount = transactions.Count;
 
             // Iniitlize the IBudgetAccess repo with in-memory data
-            repo = new MockDataAccess(transactions, payees, categories, aliases);
+            mockRepo = new Mock<IDataAccess>();
+            mockRepo.Setup(r => r.BudgetCategories()).Returns(categories.AsQueryable());
+            mockRepo.Setup(r => r.Payees()).Returns(payees.AsQueryable());
+            mockRepo.Setup(r => r.Transactions()).Returns(transactions.AsQueryable());
+            mockRepo.Setup(r => r.Aliases()).Returns(aliases.AsQueryable());
+
+            repo = mockRepo.Object;
+            //repo = new MockDataAccess(transactions, payees, categories, aliases);
         }
 
         [TestMethod]
@@ -117,15 +125,7 @@ namespace ExpenseTracker.Tests.Repository
                 await budget.AddBudgetCategoryAsync(newCategory);
                 newCount = budget.GetCategories().Count();
 
-                Assert.IsTrue(newCount == categoryCount + 1, "No category was added");
-
-                BudgetCategory retrievedCategory;
-                try {
-                    retrievedCategory = budget.GetCategories().Where(c => c.Name == testName).First();
-                    Assert.AreEqual(testID, retrievedCategory.ID, $"'{testName}' should have ID = {testID}");
-                } catch {
-                    Assert.Fail($"No '{testName}' category was found");
-                }
+                mockRepo.Verify(r => r.AddBudgetCategory(It.IsAny<BudgetCategory>()), Times.Once());
             }
 
             [TestMethod]
@@ -138,12 +138,7 @@ namespace ExpenseTracker.Tests.Repository
                 await budget.RemoveBudgetCategoryAsync(remove.ID);
                 newCount = budget.GetCategories().Count();
 
-                Assert.IsTrue(newCount == categoryCount - 1, "No category was removed");
-
-                BudgetCategory removedCategory;
-                Assert.ThrowsException<InvalidOperationException>(() =>
-                    removedCategory = budget.GetCategories().Where(c => c.ID == testID).First()
-                , $"Category with id = {testID} should have been removed");
+                mockRepo.Verify(r => r.DeleteBudgetCategory(It.IsAny<BudgetCategory>()), Times.Once());
             }
 
             [TestMethod]
@@ -208,15 +203,7 @@ namespace ExpenseTracker.Tests.Repository
                 await budget.AddPayeeAsync(payee);
                 newCount = budget.GetPayees().Count();
 
-                Assert.AreEqual(payeeCount + 1, newCount, "No Payee was added");
-
-                Payee retrievedPayee;
-                try {
-                    retrievedPayee = budget.GetPayees().Where(p => p.Name == payeeName).First();
-                    Assert.AreEqual(testID, retrievedPayee.ID, $"'{payeeName}' should have ID = {testID}");
-                } catch {
-                    Assert.Fail($"No payee named '{payeeName}' was found");
-                }
+                mockRepo.Verify(r => r.AddPayee(It.IsAny<Payee>()), Times.Once());
             }
 
             [TestMethod]
@@ -229,12 +216,7 @@ namespace ExpenseTracker.Tests.Repository
                 await budget.RemovePayeeAsync(payeeToRemove.ID);
                 newCount = budget.GetPayees().Count();
 
-                Assert.AreEqual(payeeCount - 1, newCount, "No payee was removed");
-
-                Payee retrievedPayee;
-                Assert.ThrowsException<InvalidOperationException>(() =>
-                    retrievedPayee = budget.GetPayees().Where(p => p.ID == testID).First()
-                , $"Payee with id = {testID} should have been removed");
+                mockRepo.Verify(r => r.DeletePayee(It.IsAny<Payee>()), Times.Once());
             }
 
             [TestMethod]
@@ -311,15 +293,7 @@ namespace ExpenseTracker.Tests.Repository
                 budget.AddAlias(newAlias);
                 newCount = budget.GetAliases().Count();
 
-                Assert.AreEqual(aliasCount + 1, newCount, "No Alias was added");
-
-                Alias retrievedAlias;
-                try {
-                    retrievedAlias = budget.GetAliases().Where(a => a.Name == aliasName).First();
-                    Assert.AreEqual(testID, retrievedAlias.ID, $"'{aliasName}' should have Id = {testID}");
-                } catch {
-                    Assert.Fail($"No alias with name = '{aliasName}' was found");
-                }
+                mockRepo.Verify(r => r.AddAlias(It.IsAny<Alias>()), Times.Once());
             }
 
             [TestMethod]
@@ -332,12 +306,7 @@ namespace ExpenseTracker.Tests.Repository
                 budget.RemoveAlias(aliasToRemove);
                 newCount = budget.GetAliases().Count();
 
-                Assert.AreEqual(aliasCount - 1, newCount, "No alias was removed");
-
-                Alias retrievedAlias;
-                Assert.ThrowsException<InvalidOperationException>(() =>
-                    retrievedAlias = budget.GetAliases().Where(a => a.ID == testID).First()
-                , $"Alias with Id = {testID} should have been removed");
+                mockRepo.Verify(r => r.DeleteAlias(It.IsAny<Alias>()), Times.Once());
             }
 
             [TestMethod]
@@ -414,17 +383,7 @@ namespace ExpenseTracker.Tests.Repository
                 budget.AddTransaction(trans);
                 newCount = budget.GetTransactions().Count();
 
-                Assert.AreEqual(transactionCount + 1, newCount, "No Transaction was added");
-
-                Transaction retrievedTransaction;
-                try {
-                    retrievedTransaction = budget.GetTransactions().Where(p => p.ID == testID).First();
-                    Assert.AreEqual(transactionAmount, retrievedTransaction.Amount, $"Transaction with ID = {testID} should have amount = {transactionAmount}");
-                    Assert.AreEqual(payee.ID, retrievedTransaction.PayeeID, $"Transaction with ID = {testID} should have PayeeID = {payee.ID}");
-                    Assert.AreEqual(category.ID, retrievedTransaction.OverrideCategoryID, $"Transaction with ID = {testID} should have OverrideCategoryID = {category.ID}");
-                } catch {
-                    Assert.Fail($"No Transaction with ID = {testID} was found");
-                }
+                mockRepo.Verify(r => r.AddTransaction(It.IsAny<Transaction>()), Times.Once());
             }
 
             [TestMethod]
@@ -437,12 +396,7 @@ namespace ExpenseTracker.Tests.Repository
                 budget.RemoveTransaction(transToRemove);
                 newCount = budget.GetTransactions().Count();
 
-                Assert.AreEqual(transactionCount - 1, newCount, "No transaction was removed");
-
-                Transaction retrievedTrans;
-                Assert.ThrowsException<InvalidOperationException>(() =>
-                    retrievedTrans = budget.GetTransactions().Where(p => p.ID == testID).First()
-                , $"Transaction with id = {testID} should have been removed");
+                mockRepo.Verify(r => r.DeleteTransaction(It.IsAny<Transaction>()), Times.Once());
             }
 
             [TestMethod]
@@ -478,6 +432,9 @@ namespace ExpenseTracker.Tests.Repository
             [DataTestMethod]
             [DataRow(100.1254), DataRow(10.1234), DataRow(0.1), DataRow(-75.0349)]
             public void RoundAmountToNearestCentOnAdd(double testAmount) {
+                Transaction retrievedTrans = new Transaction();
+                mockRepo.Setup(m => m.AddTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => retrievedTrans = t);
+
                 budget = new Budget(repo);
                 int testID = budget.GetTransactions().OrderByDescending(t => t.ID).First().ID + 1;
                 double roundedAmount = Math.Round(testAmount, 2, MidpointRounding.AwayFromZero);
@@ -489,7 +446,7 @@ namespace ExpenseTracker.Tests.Repository
 
                 budget.AddTransaction(testTrans);
 
-                Transaction retrievedTrans = budget.GetTransactions().Where(t => t.ID == testID).First();
+                //Transaction retrievedTrans = budget.GetTransactions().Where(t => t.ID == testID).First();
 
                 Assert.AreEqual(roundedAmount, retrievedTrans.Amount, $"Amount = {testAmount} should be rounded to {roundedAmount} when transaction is added");
             }
