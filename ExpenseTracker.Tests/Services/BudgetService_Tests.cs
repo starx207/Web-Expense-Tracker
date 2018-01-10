@@ -75,7 +75,7 @@ namespace ExpenseTracker.Tests.Services
         public void BudgetImplementsIBudget()
         {
             try {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
             } catch {
                 Assert.Fail("Budget class does not implement IBudget");
             }
@@ -86,7 +86,7 @@ namespace ExpenseTracker.Tests.Services
         #region "BudgetCategory Tests"
             [TestMethod]
             public void GetAllBudgetCategoriesReturnsCorrectCount() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 IQueryable<BudgetCategory> allCategories;
 
                 allCategories = budget.GetCategories();
@@ -97,7 +97,7 @@ namespace ExpenseTracker.Tests.Services
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
             public void GetAllBudgetCategoriesReturnsCorrectCategories(int id) {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 BudgetCategory category;
                 IQueryable<BudgetCategory> allCategories;
                 string expectedName = categoryRef[id];
@@ -110,7 +110,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task AddANewBudgetCategory() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = repo.BudgetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
                 string testName = "Insurance";
                 BudgetCategory newCategory = new BudgetCategory {
@@ -131,7 +131,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task RemoveABudgetCategory() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = repo.BudgetCategories().Select(c => c.ID).First();
                 BudgetCategory remove = budget.GetCategories().Where(c => c.ID == testID).First();
                 int newCount;
@@ -144,7 +144,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task EditABudgetCategory() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 BudgetCategory categoryToEdit = budget.GetCategories().First();
                 int testID = categoryToEdit.ID;
                 string originalName = categoryToEdit.Name;
@@ -163,7 +163,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void GetAllPayeesReturnsCorrectCount() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 IQueryable<Payee> allPayees;
 
                 allPayees = budget.GetPayees();
@@ -174,7 +174,7 @@ namespace ExpenseTracker.Tests.Services
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
             public void GetPayeesReturnsCorrectPayees(int id) {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Payee payee;
                 IQueryable<Payee> allPayees;
                 string expectedName = payeeRef[id];
@@ -187,7 +187,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task AddAPayee() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
                 string payeeName = "Sweetwater";
                 BudgetCategory category = budget.GetCategories().First();
@@ -209,7 +209,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task DeleteAPayee() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Payee payeeToRemove = budget.GetPayees().First();
                 int testID = payeeToRemove.ID;
                 int newCount;
@@ -222,7 +222,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public async Task EditAPayee() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Payee payeeToEdit = budget.GetPayees().First();
                 int testID = payeeToEdit.ID;
                 string originalName = payeeToEdit.Name;
@@ -255,7 +255,7 @@ namespace ExpenseTracker.Tests.Services
         #region Alias Tests
             [TestMethod]
             public void GetAliasesReturnsCorrectCount() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 IQueryable<Alias> allAliases;
 
                 allAliases = budget.GetAliases();
@@ -266,7 +266,7 @@ namespace ExpenseTracker.Tests.Services
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3)]
             public void GetAliasesReturnsCorrectAliases(int id) {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Alias alias;
                 IQueryable<Alias> allAliases;
                 string expectedName = aliasRef[id];
@@ -279,7 +279,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void AddAnAlias() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = budget.GetAliases().OrderByDescending(a => a.ID).First().ID + 1;
                 string aliasName = "Yet Another Walmart Alias";
                 Payee payee = budget.GetPayees().First();
@@ -299,7 +299,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void DeleteAnAlias() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Alias aliasToRemove = budget.GetAliases().First();
                 int testID = aliasToRemove.ID;
                 int newCount;
@@ -312,7 +312,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void EditAnAlias() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Alias aliasToEdit = budget.GetAliases().First();
                 int testID = aliasToEdit.ID;
                 string originalName = aliasToEdit.Name;
@@ -341,7 +341,7 @@ namespace ExpenseTracker.Tests.Services
         #region Transaction Tests
             [TestMethod]
             public void GetAllTransactionsReturnsCorrectCount() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 IQueryable<Transaction> allTransactions;
 
                 allTransactions = budget.GetTransactions();
@@ -352,7 +352,7 @@ namespace ExpenseTracker.Tests.Services
             [DataTestMethod]
             [DataRow(1), DataRow(2), DataRow(3), DataRow(4)]
             public void GetTransactionsReturnsCorrectTransaction(int id) {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Transaction transaction;
                 IQueryable<Transaction> allTransactions;
                 double expectedAmount = transactionRef[id];
@@ -365,7 +365,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void AddATransaction() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = budget.GetTransactions().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
                 double transactionAmount = 123123;
                 BudgetCategory category = budget.GetCategories().First();
@@ -389,7 +389,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void DeleteATransaction() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Transaction transToRemove = budget.GetTransactions().First();
                 int testID = transToRemove.ID;
                 int newCount;
@@ -402,7 +402,7 @@ namespace ExpenseTracker.Tests.Services
 
             [TestMethod]
             public void EditATransaction() {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Transaction transToEdit = budget.GetTransactions().First();
                 int testID = transToEdit.ID;
                 double originalAmount = transToEdit.Amount;
@@ -436,7 +436,7 @@ namespace ExpenseTracker.Tests.Services
                 Transaction retrievedTrans = new Transaction();
                 mockRepo.Setup(m => m.AddTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => retrievedTrans = t);
 
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 int testID = budget.GetTransactions().OrderByDescending(t => t.ID).First().ID + 1;
                 double roundedAmount = Math.Round(testAmount, 2, MidpointRounding.AwayFromZero);
                 Transaction testTrans = new Transaction {
@@ -455,7 +455,7 @@ namespace ExpenseTracker.Tests.Services
             [DataTestMethod]
             [DataRow(100.1254), DataRow(10.1234), DataRow(0.1), DataRow(-75.0349)]
             public void RoundAmountToNearestCentOnUpdate(double testAmount) {
-                budget = new BudgetService(repo);
+                budget = new BudgetServiceII(repo);
                 Transaction testTrans = budget.GetTransactions().First();
                 double roundedAmount = Math.Round(testAmount, 2, MidpointRounding.AwayFromZero);
                 testTrans.Amount = testAmount;
