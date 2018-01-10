@@ -1,142 +1,183 @@
+using ExpenseTracker.Data;
+using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
-using ExpenseTracker.Repository;
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public class BudgetService : IBudgetService
+    public class BudgetService : ICategoryService, IPayeeService, IAliasService, ITransactionService
     {
-        private readonly IBudgetRepo repo;
-        public BudgetService(IBudgetRepo repository) { 
-            repo = repository;
+        private readonly BudgetContext _context;
+
+        public BudgetService(BudgetContext context) {
+            _context = context;
         }
 
-        public IQueryable<BudgetCategory> GetCategories() {
-            return repo.BudgetCategories();
-        }
-
-        public async Task<BudgetCategory> GetCategoryAsync(int? id) {
-            if (id == null) {
-                throw new NullIdException("No id specified");
+        #region Budget Category Methods
+            public async Task<List<BudgetCategory>> GetOrderedCategoriesAsync() {
+                return await _context.BudgetCategories.OrderBy(c => c.Name).ConvertToListAsync();
             }
 
-            BudgetCategory category = await Task.Factory.StartNew(() => GetCategories().SingleOrDefault(c => c.ID == id));
-            if (category == null) {
-                throw new IdNotFoundException($"No category found for ID = {id}");
-            }
-            return category;
-        }
-
-        public async Task AddBudgetCategoryAsync(BudgetCategory categoryToAdd) {
-            repo.AddBudgetCategory(categoryToAdd);
-            await repo.SaveChangesAsync();
-        }
-
-        public async Task RemoveBudgetCategoryAsync(int id) {
-            BudgetCategory category;
-            try {
-                category = await GetCategoryAsync(id);
-                repo.DeleteBudgetCategory(category);
-                await repo.SaveChangesAsync();
-            } catch (Exception ex) {
-                if (!(ex is NullIdException || ex is IdNotFoundException)) {
-                    throw;
+            public async Task<BudgetCategory> GetSingleCategoryAsync(int? id) {
+                if (id == null) {
+                    throw new NullIdException("No id specified");
                 }
-            }
-        }
 
-        public async Task UpdateBudgetCategoryAsync(int id, BudgetCategory category) {
-            if (id != category.ID) {
-                throw new IdMismatchException($"Id = {id} does not match category.ID = {category.ID}");
-            }
-            repo.EditBudgetCategory(category);
-            await repo.SaveChangesAsync();
-        }
-
-        public IQueryable<Payee> GetPayees() {
-            return repo.Payees();
-        }
-
-        public async Task<Payee> GetPayeeAsync(int? id) {
-            if (id == null) {
-                throw new NullIdException("No id specified");
-            }
-
-            Payee payee = await Task.Factory.StartNew(() => GetPayees().SingleOrDefault(p => p.ID == id));
-            if (payee == null) {
-                throw new IdNotFoundException($"No payee found for ID = {id}");
-            }
-            return payee;
-        }
-
-        public async Task AddPayeeAsync(Payee payeeToAdd) {
-            repo.AddPayee(payeeToAdd);
-            await repo.SaveChangesAsync();
-        }
-
-        public async Task RemovePayeeAsync(int id) {
-            Payee payee;
-            try {
-                payee = await GetPayeeAsync(id);
-                repo.DeletePayee(payee);
-                await repo.SaveChangesAsync();
-            } catch (Exception ex) {
-                if (!(ex is NullIdException || ex is IdNotFoundException)) {
-                    throw;
+                var category = await _context.BudgetCategories.SingleOrDefaultCategoryAsync((int)id);
+                
+                if (category == null) {
+                    throw new IdNotFoundException($"No category found for ID = {id}");
                 }
+
+                return category;
             }
-        }
 
-        public async Task UpdatePayeeAsync(int id, Payee payee) {
-            if (id != payee.ID) {
-                throw new IdMismatchException($"ID = {id} does not match payee.ID = {payee.ID}");
+            public async Task<int> AddCategoryAsync(BudgetCategory category) {
+                _context.BudgetCategories.Add(category);
+                return await _context.SaveChangesAsync();
             }
-            repo.EditPayee(payee);
-            await repo.SaveChangesAsync();
-        }
 
-        public IQueryable<Alias> GetAliases() {
-            return repo.Aliases();
-        }
+            public async Task<int> RemoveCategoryAsync(int id) {
+                var category = _context.BudgetCategories.SingleOrDefault(c => c.ID == id);
+                if (category != null) {
+                    _context.BudgetCategories.Remove(category);
+                }
+                return await _context.SaveChangesAsync();
+            }
+        #endregion
 
-        public void AddAlias(Alias aliasToAdd) {
-            repo.AddAlias(aliasToAdd);
-        }
+        #region Payee Methods
+            public async Task<List<Payee>> GetOrderedPayeeListAsync(bool includeAll = false) {
+                var retVals = _context.Payees.AsQueryable();
+                if (includeAll) {
+                    retVals = retVals.IncludeAllPayeeProperties();
+                }
+                return await retVals.OrderBy(p => p.Name).ConvertToListAsync();
+            }
 
-        public void RemoveAlias(Alias aliasToRemove) {
-            repo.DeleteAlias(aliasToRemove);
-        }
+            public async Task<Payee> GetSinglePayeeAsync(int? id) {
+                if (id == null) {
+                    throw new NullIdException("No id specified");
+                }
 
-        public void UpdateAlias(Alias editedAlias) {
-            repo.EditAlias(editedAlias);
-        }
+                var payee = await _context.Payees.SingleOrDefaultPayeeAsync((int)id);
+                
+                if (payee == null) {
+                    throw new IdNotFoundException($"No payee found for ID = {id}");
+                }
 
-        public IQueryable<Transaction> GetTransactions() {
-            return repo.Transactions();
-        }
+                return payee;
+            }
 
-        public void AddTransaction(Transaction transactionToAdd) {
-            transactionToAdd.Amount = RoundTransaction(transactionToAdd.Amount);
-            repo.AddTransaction(transactionToAdd);
-        }
+            public async Task<int> AddPayeeAsync(Payee payee) {
+                _context.Payees.Add(payee);
+                return await _context.SaveChangesAsync();
+            }
 
-        public void RemoveTransaction(Transaction transactionToRemove) {
-            repo.DeleteTransaction(transactionToRemove);
-        }
+            public async Task<int> UpdatePayeeAsync(int id, Payee payee) {
+                if (id != payee.ID) {
+                    throw new IdMismatchException($"Id = {id} does not match payee Id of {payee.ID}");
+                }
+                _context.Payees.Update(payee);
+                return await _context.SaveChangesAsync();
+            }
 
-        public void UpdateTransaction(Transaction editedTransaction) {
-            editedTransaction.Amount = RoundTransaction(editedTransaction.Amount);
-            repo.EditTransaction(editedTransaction);
-        }
+            public async Task<int> RemovePayeeAsync(int id) {
+                var payee = _context.Payees.SingleOrDefault(p => p.ID == id);
 
-        public async Task<int> SaveChangesAsync() {
-            return await repo.SaveChangesAsync();
-        }
+                if (payee != null) {
+                    _context.Payees.Remove(payee);
+                }
 
-        private double RoundTransaction(double originalAmt) {
-            return Math.Round(originalAmt, 2, MidpointRounding.AwayFromZero);
-        }
+                return await _context.SaveChangesAsync();
+            }
+        #endregion
+        
+        #region Alias Methods
+            public async Task<Alias> GetSingleAliasAsync(int? id) {
+                if (id == null) {
+                    throw new NullIdException("No id specified");
+                }
+
+                var alias = await _context.Aliases.SingleOrDefaultAliasAsync((int)id);
+
+                if (alias == null) {
+                    throw new IdNotFoundException($"No alias found for ID = {id}");
+                }
+
+                return alias;
+            }
+
+            public async Task<int> UpdateAliasAsync(int id, Alias alias) {
+                if (id != alias.ID) {
+                    throw new IdMismatchException($"Id = {id} does not match alias Id of {alias.ID}");
+                }
+                _context.Aliases.Update(alias);
+                return await _context.SaveChangesAsync();
+            }
+
+            public async Task<int> AddAliasAsync(Alias alias) {
+                _context.Aliases.Add(alias);
+                return await _context.SaveChangesAsync();
+            }
+
+            public async Task<int> RemoveAliasAsync(int id) {
+                var alias = _context.Aliases.SingleOrDefault(c => c.ID == id);
+                if (alias != null) {
+                    _context.Aliases.Remove(alias);
+                }
+                return await _context.SaveChangesAsync();
+            }
+        #endregion
+
+        #region Transaction Methods
+            public async Task<List<Transaction>> GetOrderedTransactionListAsync(bool includeAll = false) {
+                var transactions = _context.Transactions.AsQueryable();
+
+                if (includeAll) {
+                    transactions = transactions.IncludeAllTransactionProperties();
+                }
+
+                return await transactions.OrderByDescending(t => t.Date).ConvertToListAsync();
+            }
+
+            public async Task<Transaction> GetSingleTransactionAsync(int? id) {
+                if (id == null) {
+                    throw new NullIdException("No id specified");
+                }
+
+                var transaction = await _context.Transactions.SingleOrDefaultTransactionAsync((int)id);
+
+                if (transaction == null) {
+                    throw new IdNotFoundException($"No transaction found for ID = {id}");
+                }
+
+                return transaction;
+            }
+
+            public async Task<int> AddTransactionAsync(Transaction transaction) {
+                _context.Transactions.Add(transaction);
+                return await _context.SaveChangesAsync();
+            }
+
+            public async Task<int> UpdateTransactionAsync(int id, Transaction transaction) {
+                if (id != transaction.ID) {
+                    throw new IdMismatchException($"Id = {id} does not equal transaction id of {transaction.ID}");
+                }
+
+                _context.Transactions.Update(transaction);
+                return await _context.SaveChangesAsync();
+            }
+
+            public async Task<int> RemoveTransactionAsync(int id) {
+                var transaction = _context.Transactions.SingleOrDefault(t => t.ID == id);
+                if (transaction != null) {
+                    _context.Transactions.Remove(transaction);
+                }
+                return await _context.SaveChangesAsync();
+            }
+        #endregion
     }
 }
