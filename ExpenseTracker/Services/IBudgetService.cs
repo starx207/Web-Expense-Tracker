@@ -1,4 +1,5 @@
 using ExpenseTracker.Models;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace ExpenseTracker.Services
     public interface IBudgetService
     {
         IQueryable<BudgetCategory> GetCategories();
+        Task<List<BudgetCategory>> GetCategoriesAsync(string orderBy = "", bool descending = false);
         IQueryable<Payee> GetPayees();
         IQueryable<Alias> GetAliases();
         IQueryable<Transaction> GetTransactions();
