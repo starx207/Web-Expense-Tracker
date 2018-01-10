@@ -1,5 +1,8 @@
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
+//using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,6 +30,14 @@ namespace ExpenseTracker.Repository
         public IQueryable<BudgetCategory> BudgetCategories() {
             IQueryable<BudgetCategory> categories = _context.BudgetCategories.AsQueryable();
             return categories;
+        }
+
+        public async Task<List<BudgetCategory>> BudgetCategoriesAsync(string orderBy = "", bool descendingOrder = false) {
+            var returnCategories = _context.BudgetCategories.AsQueryable();
+            
+            returnCategories = SortQueryableCollectionByProperty(orderBy, returnCategories, descendingOrder);
+
+            return await returnCategories.ConvertToListAsync();
         }
 
         public IQueryable<Alias> Aliases() {
@@ -91,6 +102,24 @@ namespace ExpenseTracker.Repository
 
         public async Task<int> SaveChangesAsync() {
             return await _context.SaveChangesAsync();
+        }
+
+        private IQueryable<T> SortQueryableCollectionByProperty<T>(string propertyName, IQueryable<T> queryable, bool descending) where T : class {
+
+            if (typeof(T).GetProperty(propertyName) == null) {
+                throw new ArgumentException($"{typeof(T).Name}.{propertyName} does not exist");
+            }
+
+            if (descending) {
+                queryable = queryable.OrderByDescending(q => GetPropetyValue(propertyName, q));
+            } else {
+                queryable = queryable.OrderBy(q => GetPropetyValue(propertyName, q));
+            }
+            return queryable;
+        }
+
+        private object GetPropetyValue<T>(string propertyName, T obj) {
+            return obj.GetType().GetProperty(propertyName).GetAccessors()[0].Invoke(obj, null);
         }
     }
 }
