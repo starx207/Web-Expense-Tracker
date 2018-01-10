@@ -1,4 +1,5 @@
 using ExpenseTracker.Controllers;
+using ExpenseTracker.Exceptions;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Services;
 using ExpenseTracker.Models;

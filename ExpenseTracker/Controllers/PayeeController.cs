@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Services;
 using ExpenseTracker.Models;
+using ExpenseTracker.Exceptions;
 
 namespace ExpenseTracker.Controllers
 {

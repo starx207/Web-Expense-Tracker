@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace ExpenseTracker.Repository
+namespace ExpenseTracker.Exceptions
 {
     [Serializable]
     public class IdNotFoundException : Exception
