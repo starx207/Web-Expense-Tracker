@@ -5,6 +5,7 @@ namespace ExpenseTracker.Data
 {
     public class BudgetContext : DbContext
     {
+        public BudgetContext() { }
         public BudgetContext(DbContextOptions<BudgetContext> options) : base(options) { }
 
         public virtual DbSet<BudgetCategory> BudgetCategories { get; set; }
