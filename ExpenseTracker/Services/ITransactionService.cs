@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public interface ITransactionService
+    public interface ITransactionService : IBaseService
     {
         Task<List<Transaction>> GetOrderedTransactionListAsync(bool includeAll = false);
         Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false);

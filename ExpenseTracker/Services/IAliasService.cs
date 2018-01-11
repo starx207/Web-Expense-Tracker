@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public interface IAliasService
+    public interface IAliasService : IBaseService
     {
         Task<Alias> GetSingleAliasAsync(int? id, bool includeAll = false);
         Task<int> UpdateAliasAsync(int id, Alias alias);
