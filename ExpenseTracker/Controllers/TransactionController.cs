@@ -21,16 +21,12 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
-            var budgetContext = _context.GetTransactions()
-                .Include(t => t.OverrideCategory)
-                .Include(t => t.PayableTo)
-                .OrderByDescending(t => t.Date);
-            return View(nameof(Index), await budgetContext.ToListAsync());
+            return View(nameof(Index), await _context.GetOrderedTransactionListAsync(true));
         }
 
         // GET: Transaction/Details/5
         public async Task<IActionResult> Details(int? id) {
-            var transaction = await GetTransactionById(id, true);
+            var transaction = await _context.GetSingleTransactionAsync(id, true);
             if (transaction == null) {
                 return NotFound();
             }
@@ -51,8 +47,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction) {
             if (ModelState.IsValid) {
-                _context.AddTransaction(transaction);
-                await _context.SaveChangesAsync();
+                await _context.AddTransactionAsync(transaction);
                 return RedirectToAction(nameof(Index));
             }
             PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
@@ -61,7 +56,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var transaction = await GetTransactionById(id);
+            var transaction = await _context.GetSingleTransactionAsync(id);
             if (transaction == null) {
                 return NotFound();
             }
@@ -81,8 +76,7 @@ namespace ExpenseTracker.Controllers
 
             if (ModelState.IsValid) {
                 try {
-                    _context.UpdateTransaction(transaction);
-                    await _context.SaveChangesAsync();
+                    await _context.UpdateTransactionAsync(id, transaction);
                 }
                 catch (DbUpdateConcurrencyException) {
                     if (!TransactionExists(transaction.ID)) {
@@ -100,7 +94,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-            var transaction = await GetTransactionById(id, true);
+            var transaction = await _context.GetSingleTransactionAsync(id, true);
             if (transaction == null) {
                 return NotFound();
             }
@@ -112,33 +106,20 @@ namespace ExpenseTracker.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var transaction = await GetTransactionById(id);
+            var transaction = await _context.GetSingleTransactionAsync(id);
             if (transaction != null) {
-                _context.RemoveTransaction(transaction);
-                await _context.SaveChangesAsync();
+                await _context.RemoveTransactionAsync(id);
             }
             return RedirectToAction(nameof(Index));
         }
 
         private bool TransactionExists(int id) {
-            return _context.GetTransactions().Any(e => e.ID == id);
-        }
-
-        private async Task<Transaction> GetTransactionById(int? id, bool includeCategoryAndPayee = false) {
-            if (id == null) { return null; }
-
-            var transaction = _context.GetTransactions().Where(t => t.ID == id);
-
-            if (includeCategoryAndPayee) {
-                transaction = transaction.Include(t => t.PayableTo).Include(t => t.OverrideCategory);
-            }
-
-            return await transaction.SingleOrDefaultAsync();
+            return _context.TransactionExists(id);
         }
 
         private void PopulateSelectLists(int? selectedCategoryID = null, int? selectedPayeeID = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories().OrderBy(c => c.Name), "ID", "Name", selectedCategoryID);
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees().OrderBy(p => p.Name), "ID", "Name", selectedPayeeID);
+            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategoryQueryable(), "ID", "Name", selectedCategoryID);
+            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayeeQueryable(), "ID", "Name", selectedPayeeID);
         }
     }
 }

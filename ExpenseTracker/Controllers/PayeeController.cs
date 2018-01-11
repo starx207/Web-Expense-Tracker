@@ -24,17 +24,13 @@ namespace ExpenseTracker.Controllers
         // GET: Payee
         public async Task<IActionResult> Index()
         {
-            var budgetContext = _context.GetPayees()
-                .Include(p => p.Category)
-                .Include(p => p.Aliases)
-                .OrderBy(p => p.Name);
-            return View(nameof(Index), await budgetContext.ToListAsync());
+            return View(nameof(Index), await _context.GetOrderedPayeeListAsync(true));
         }
 
         // GET: Payee/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            var payee = await GetPayeeById(id, true);
+            var payee = await _context.GetSinglePayeeAsync(id, true);
             if (payee == null)
             {
                 return NotFound();
@@ -69,7 +65,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            var payee = await GetPayeeById(id);
+            var payee = await _context.GetSinglePayeeAsync(id);
             if (payee == null)
             {
                 return NotFound();
@@ -106,7 +102,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            var payee = await GetPayeeById(id, true);
+            var payee = await _context.GetSinglePayeeAsync(id, true);
             if (payee == null)
             {
                 return NotFound();
@@ -126,23 +122,11 @@ namespace ExpenseTracker.Controllers
 
         private bool PayeeExists(int id)
         {
-            return _context.GetPayees().Any(e => e.ID == id);
-        }
-
-        private async Task<Payee> GetPayeeById(int? id, bool includeCategory = false) {
-            if (id == null) { return null; }
-
-            var payee = _context.GetPayees().Where(p => p.ID == id);
-            
-            if (includeCategory) {
-                payee = payee.Include(p => p.Category);
-            }
-
-            return await payee.SingleOrDefaultAsync();
+            return _context.PayeeExists(id);
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetCategories().OrderBy(c => c.Name), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategoryQueryable(), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }

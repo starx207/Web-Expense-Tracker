@@ -10,7 +10,7 @@ namespace ExpenseTracker.Data
     public static class DbInitializer
     {
         public static async Task Initialize(IBudgetService context) {
-            if (context.GetCategories().Any()) {
+            if (context.HasCategories()) {
                 return; // Db Already has data
             }
 
@@ -169,7 +169,7 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var c in categories) {
-                await context.AddBudgetCategoryAsync(c);
+                await context.AddCategoryAsync(c);
             }
 
             // Populate Payees
@@ -321,10 +321,8 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var a in aliases) {
-                context.AddAlias(a);
+                await context.AddAliasAsync(a);
             }
-
-            await context.SaveChangesAsync();
         }
     }
 }

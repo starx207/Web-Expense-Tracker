@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public class BudgetServiceII : IBudgetService
+    public class BudgetServiceII
     {
         private readonly IBudgetRepo repo;
         public BudgetServiceII(IBudgetRepo repository) { 

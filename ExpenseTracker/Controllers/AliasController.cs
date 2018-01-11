@@ -32,8 +32,7 @@ namespace ExpenseTracker.Models
             if (ModelState.IsValid) {
                 // var payee = await _context.GetPayees().Where(p => p.ID == alias.PayeeID).SingleOrDefaultAsync();
                 // alias.AliasForPayee = payee;
-                _context.AddAlias(alias);
-                await _context.SaveChangesAsync();
+                await _context.AddAliasAsync(alias);
                 return RedirectToAction(payeeIndex, nameof(Payee));
             }
             CreatePayeeSelectList(alias.PayeeID);
@@ -42,7 +41,7 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var alias = await GetAliasById(id);
+            var alias = await _context.GetSingleAliasAsync(id);
             if (alias == null) {
                 return NotFound();
             }
@@ -62,8 +61,7 @@ namespace ExpenseTracker.Models
 
             if (ModelState.IsValid) {
                 try {
-                    _context.UpdateAlias(alias);
-                    await _context.SaveChangesAsync();
+                    await _context.UpdateAliasAsync(id, alias);
                 } catch (DbUpdateConcurrencyException) {
                     if (!AliasExists(alias.ID)) {
                         return NotFound();
@@ -79,7 +77,7 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-             var alias = await GetAliasById(id, true);
+             var alias = await _context.GetSingleAliasAsync(id, true);
              if (alias == null) {
                  return NotFound();
              }
@@ -91,30 +89,29 @@ namespace ExpenseTracker.Models
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var alias = await GetAliasById(id);
+            var alias = await _context.GetSingleAliasAsync(id);
             if (alias != null) {
-                _context.RemoveAlias(alias);
-                await _context.SaveChangesAsync();
+                await _context.RemoveAliasAsync(id);
             }
             return RedirectToAction(payeeIndex, nameof(Payee));
         }
 
         private bool AliasExists(int id) {
-            return _context.GetAliases().Any(a => a.ID == id);
+            return _context.AliasExists(id);
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_context.GetPayees().OrderBy(p => p.Name), "ID", "Name", idToSelect);
+            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayeeQueryable(), "ID", "Name", idToSelect);
         }
 
-        private async Task<Alias> GetAliasById(int? id, bool includePayee = false) {
-            if (id == null) { return null; }
+        // private async Task<Alias> GetAliasById(int? id, bool includePayee = false) {
+        //     if (id == null) { return null; }
             
-            var alias = _context.GetAliases().Where(a => a.ID == id);
-            if (includePayee) {
-                alias = alias.Include(a => a.AliasForPayee);
-            }
-            return await alias.SingleOrDefaultAsync();
-        }
+        //     var alias = _context.GetAliases().Where(a => a.ID == id);
+        //     if (includePayee) {
+        //         alias = alias.Include(a => a.AliasForPayee);
+        //     }
+        //     return await alias.SingleOrDefaultAsync();
+        // }
     }
 }
