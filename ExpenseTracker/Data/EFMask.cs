@@ -35,5 +35,9 @@ namespace ExpenseTracker.Data
         public static async Task<Transaction> SingleOrDefaultTransactionAsync(this IQueryable<Transaction> collection, int id) {
             return await collection.SingleOrDefaultAsync(t => t.ID == id);
         }
+
+        public static IQueryable<Alias> IncludeAllAliasProperties(this IQueryable<Alias> collection) {
+            return collection.Include(a => a.AliasForPayee);
+        }
     }
 }
