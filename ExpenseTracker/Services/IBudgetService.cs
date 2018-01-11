@@ -5,27 +5,8 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public interface IBudgetService
+    public interface IBudgetService : ICategoryService, IPayeeService, IAliasService, ITransactionService
     {
-        IQueryable<BudgetCategory> GetCategories();
-        Task<List<BudgetCategory>> GetCategoriesAsync(string orderBy = "", bool descending = false);
-        IQueryable<Payee> GetPayees();
-        IQueryable<Alias> GetAliases();
-        IQueryable<Transaction> GetTransactions();
-        Task<BudgetCategory> GetCategoryAsync(int? id);
-        Task<Payee> GetPayeeAsync(int? id);
-        Task AddBudgetCategoryAsync(BudgetCategory categoryToAdd);
-        Task AddPayeeAsync(Payee payeeToAdd);
-        void AddAlias(Alias aliasToAdd);
-        void AddTransaction(Transaction transactionToAdd);
-        Task RemoveBudgetCategoryAsync(int id);
-        Task RemovePayeeAsync(int id);
-        void RemoveAlias(Alias aliasToRemove);
-        void RemoveTransaction(Transaction transactionToRemove);
-        Task UpdateBudgetCategoryAsync(int id, BudgetCategory category);
-        Task UpdatePayeeAsync(int id, Payee payee);
-        void UpdateAlias(Alias editedAlias);
-        void UpdateTransaction(Transaction editedTransaction);
-        Task<int> SaveChangesAsync();
+        
     }
 }

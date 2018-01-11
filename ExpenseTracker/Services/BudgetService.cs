@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services
 {
-    public class BudgetService : ICategoryService, IPayeeService, IAliasService, ITransactionService
+    public class BudgetService : IBudgetService
     {
         private readonly BudgetContext _context;
 
@@ -16,8 +16,15 @@ namespace ExpenseTracker.Services
         }
 
         #region Budget Category Methods
-            public async Task<List<BudgetCategory>> GetOrderedCategoriesAsync() {
+            public bool HasCategories() {
+                return _context.BudgetCategories.Any();
+            }
+            public async Task<List<BudgetCategory>> GetOrderedCategoryListAsync() {
                 return await _context.BudgetCategories.OrderBy(c => c.Name).ConvertToListAsync();
+            }
+
+            public IQueryable<BudgetCategory> GetOrderedCategoryQueryable() {
+                return _context.BudgetCategories.OrderBy(c => c.Name).AsQueryable();
             }
 
             public async Task<BudgetCategory> GetSingleCategoryAsync(int? id) {
@@ -46,6 +53,10 @@ namespace ExpenseTracker.Services
                 }
                 return await _context.SaveChangesAsync();
             }
+
+            public bool CategoryExists(int id) {
+                return _context.BudgetCategories.Any(c => c.ID == id);
+            }
         #endregion
 
         #region Payee Methods
@@ -57,12 +68,22 @@ namespace ExpenseTracker.Services
                 return await retVals.OrderBy(p => p.Name).ConvertToListAsync();
             }
 
-            public async Task<Payee> GetSinglePayeeAsync(int? id) {
+            public IQueryable<Payee> GetOrderedPayeeQueryable() {
+                return _context.Payees.OrderBy(p => p.Name).AsQueryable();
+            }
+
+            public async Task<Payee> GetSinglePayeeAsync(int? id, bool includeAll = false) {
                 if (id == null) {
                     throw new NullIdException("No id specified");
                 }
 
-                var payee = await _context.Payees.SingleOrDefaultPayeeAsync((int)id);
+                var payees = _context.Payees.AsQueryable();
+
+                if (includeAll) {
+                    payees = payees.IncludeAllPayeeProperties();
+                }
+
+                var payee = await payees.SingleOrDefaultPayeeAsync((int)id);
                 
                 if (payee == null) {
                     throw new IdNotFoundException($"No payee found for ID = {id}");
@@ -93,15 +114,25 @@ namespace ExpenseTracker.Services
 
                 return await _context.SaveChangesAsync();
             }
+
+            public bool PayeeExists(int id) {
+                return _context.Payees.Any(p => p.ID == id);
+            }
         #endregion
         
         #region Alias Methods
-            public async Task<Alias> GetSingleAliasAsync(int? id) {
+            public async Task<Alias> GetSingleAliasAsync(int? id, bool includeAll = false) {
                 if (id == null) {
                     throw new NullIdException("No id specified");
                 }
 
-                var alias = await _context.Aliases.SingleOrDefaultAliasAsync((int)id);
+                var aliases = _context.Aliases.AsQueryable();
+
+                if (includeAll) {
+                    aliases = aliases.IncludeAllAliasProperties();
+                }
+
+                var alias = await aliases.SingleOrDefaultAliasAsync((int)id);
 
                 if (alias == null) {
                     throw new IdNotFoundException($"No alias found for ID = {id}");
@@ -130,9 +161,17 @@ namespace ExpenseTracker.Services
                 }
                 return await _context.SaveChangesAsync();
             }
+
+            public bool AliasExists(int id) {
+                return _context.Aliases.Any(a => a.ID == id);
+            }
         #endregion
 
         #region Transaction Methods
+            public bool TransactionExists(int id) {
+                return _context.Transactions.Any(t => t.ID == id);
+            }
+
             public async Task<List<Transaction>> GetOrderedTransactionListAsync(bool includeAll = false) {
                 var transactions = _context.Transactions.AsQueryable();
 
@@ -143,12 +182,18 @@ namespace ExpenseTracker.Services
                 return await transactions.OrderByDescending(t => t.Date).ConvertToListAsync();
             }
 
-            public async Task<Transaction> GetSingleTransactionAsync(int? id) {
+            public async Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false) {
                 if (id == null) {
                     throw new NullIdException("No id specified");
                 }
 
-                var transaction = await _context.Transactions.SingleOrDefaultTransactionAsync((int)id);
+                var transactions = _context.Transactions.AsQueryable();
+
+                if (includeAll) {
+                    transactions = transactions.IncludeAllTransactionProperties();
+                }
+
+                var transaction = await transactions.SingleOrDefaultTransactionAsync((int)id);
 
                 if (transaction == null) {
                     throw new IdNotFoundException($"No transaction found for ID = {id}");
