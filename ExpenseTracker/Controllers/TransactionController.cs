@@ -13,7 +13,7 @@ namespace ExpenseTracker.Controllers
 {
     public class TransactionController : Controller
     {
-        private readonly IBudgetService _context;
+        private readonly ITransactionService _context;
 
         public TransactionController(IBudgetService context) {
             _context = context;

@@ -10,7 +10,7 @@ namespace ExpenseTracker.Models
 {
     public class AliasController : Controller
     {
-        private readonly IBudgetService _context;
+        private readonly IAliasService _context;
         private readonly string payeeIndex = "Index";
 
         public AliasController(IBudgetService context) {

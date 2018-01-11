@@ -14,7 +14,7 @@ namespace ExpenseTracker.Controllers
 {
     public class PayeeController : Controller
     {
-        private readonly IBudgetService _context;
+        private readonly IPayeeService _context;
 
         public PayeeController(IBudgetService context)
         {

@@ -14,7 +14,7 @@ namespace ExpenseTracker.Controllers
 {
     public class BudgetCategoryController : Controller
     {
-        private readonly IBudgetService _context;
+        private readonly ICategoryService _context;
 
         public BudgetCategoryController(IBudgetService context)
         {
