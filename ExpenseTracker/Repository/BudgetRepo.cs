@@ -37,7 +37,7 @@ namespace ExpenseTracker.Repository
             
             returnCategories = SortQueryableCollectionByProperty(orderBy, returnCategories, descendingOrder);
 
-            return await returnCategories.ConvertToListAsync();
+            return await returnCategories.Extension().ToListAsync();
         }
 
         public IQueryable<Alias> Aliases() {

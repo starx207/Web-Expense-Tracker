@@ -20,7 +20,7 @@ namespace ExpenseTracker.Services
                 return _context.BudgetCategories.Any();
             }
             public async Task<List<BudgetCategory>> GetOrderedCategoryListAsync() {
-                return await _context.BudgetCategories.OrderBy(c => c.Name).ConvertToListAsync();
+                return await _context.BudgetCategories.OrderBy(c => c.Name).Extension().ToListAsync();
             }
 
             public IQueryable<BudgetCategory> GetOrderedCategoryQueryable() {
@@ -32,7 +32,7 @@ namespace ExpenseTracker.Services
                     throw new NullIdException("No id specified");
                 }
 
-                var category = await _context.BudgetCategories.SingleOrDefaultCategoryAsync((int)id);
+                var category = await _context.BudgetCategories.Extension().SingleOrDefaultAsync((int)id);
                 
                 if (category == null) {
                     throw new IdNotFoundException($"No category found for ID = {id}");
@@ -63,9 +63,9 @@ namespace ExpenseTracker.Services
             public async Task<List<Payee>> GetOrderedPayeeListAsync(bool includeAll = false) {
                 var retVals = _context.Payees.AsQueryable();
                 if (includeAll) {
-                    retVals = retVals.IncludeAllPayeeProperties();
+                    retVals = retVals.Extension().IncludeAll();
                 }
-                return await retVals.OrderBy(p => p.Name).ConvertToListAsync();
+                return await retVals.OrderBy(p => p.Name).Extension().ToListAsync();
             }
 
             public IQueryable<Payee> GetOrderedPayeeQueryable() {
@@ -80,10 +80,10 @@ namespace ExpenseTracker.Services
                 var payees = _context.Payees.AsQueryable();
 
                 if (includeAll) {
-                    payees = payees.IncludeAllPayeeProperties();
+                    payees = payees.Extension().IncludeAll();
                 }
 
-                var payee = await payees.SingleOrDefaultPayeeAsync((int)id);
+                var payee = await payees.Extension().SingleOrDefaultAsync((int)id);
                 
                 if (payee == null) {
                     throw new IdNotFoundException($"No payee found for ID = {id}");
@@ -129,10 +129,10 @@ namespace ExpenseTracker.Services
                 var aliases = _context.Aliases.AsQueryable();
 
                 if (includeAll) {
-                    aliases = aliases.IncludeAllAliasProperties();
+                    aliases = aliases.Extension().IncludeAll();
                 }
 
-                var alias = await aliases.SingleOrDefaultAliasAsync((int)id);
+                var alias = await aliases.Extension().SingleOrDefaultAsync((int)id);
 
                 if (alias == null) {
                     throw new IdNotFoundException($"No alias found for ID = {id}");
@@ -176,10 +176,10 @@ namespace ExpenseTracker.Services
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {
-                    transactions = transactions.IncludeAllTransactionProperties();
+                    transactions = transactions.Extension().IncludeAll();
                 }
 
-                return await transactions.OrderByDescending(t => t.Date).ConvertToListAsync();
+                return await transactions.OrderByDescending(t => t.Date).Extension().ToListAsync();
             }
 
             public async Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false) {
@@ -190,10 +190,10 @@ namespace ExpenseTracker.Services
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {
-                    transactions = transactions.IncludeAllTransactionProperties();
+                    transactions = transactions.Extension().IncludeAll();
                 }
 
-                var transaction = await transactions.SingleOrDefaultTransactionAsync((int)id);
+                var transaction = await transactions.Extension().SingleOrDefaultAsync((int)id);
 
                 if (transaction == null) {
                     throw new IdNotFoundException($"No transaction found for ID = {id}");
