@@ -7,5 +7,3 @@ dotnet restore
 dotnet aspnet-codegenerator controller -name [Controller Name] -m [Model Name] -dc [Data Context Name] --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
 
 // This changed in vsts and should be pushed to GitHub
-
-// This changed in GitHub and should be pushed to Vsts
