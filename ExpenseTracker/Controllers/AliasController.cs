@@ -101,17 +101,7 @@ namespace ExpenseTracker.Models
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayeeQueryable(), "ID", "Name", idToSelect);
+            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayeeQueryable(nameof(Payee.Name)), "ID", "Name", idToSelect);
         }
-
-        // private async Task<Alias> GetAliasById(int? id, bool includePayee = false) {
-        //     if (id == null) { return null; }
-            
-        //     var alias = _context.GetAliases().Where(a => a.ID == id);
-        //     if (includePayee) {
-        //         alias = alias.Include(a => a.AliasForPayee);
-        //     }
-        //     return await alias.SingleOrDefaultAsync();
-        // }
     }
 }

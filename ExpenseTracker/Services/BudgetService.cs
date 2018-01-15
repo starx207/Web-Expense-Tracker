@@ -1,6 +1,7 @@
 using ExpenseTracker.Data;
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,12 +20,12 @@ namespace ExpenseTracker.Services
             public bool HasCategories() {
                 return _context.BudgetCategories.Any();
             }
-            public async Task<List<BudgetCategory>> GetOrderedCategoryListAsync() {
-                return await _context.BudgetCategories.OrderBy(c => c.Name).Extension().ToListAsync();
+            public async Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false) {
+                return await GetOrderedCategoryQueryable(orderBy, orderByDescending).Extension().ToListAsync();
             }
 
-            public IQueryable<BudgetCategory> GetOrderedCategoryQueryable() {
-                return _context.BudgetCategories.OrderBy(c => c.Name).AsQueryable();
+            public IQueryable<BudgetCategory> GetOrderedCategoryQueryable(string orderBy, bool orderByDescending = false) {
+                return SortQueryableByProperty(_context.BudgetCategories, orderBy, orderByDescending);
             }
 
             public async Task<BudgetCategory> GetSingleCategoryAsync(int? id) {
@@ -60,16 +61,16 @@ namespace ExpenseTracker.Services
         #endregion
 
         #region Payee Methods
-            public async Task<List<Payee>> GetOrderedPayeeListAsync(bool includeAll = false) {
+            public async Task<List<Payee>> GetOrderedPayeeListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false) {
+                return await GetOrderedPayeeQueryable(orderBy, orderByDescending, includeAll).Extension().ToListAsync();
+            }
+
+            public IQueryable<Payee> GetOrderedPayeeQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var retVals = _context.Payees.AsQueryable();
                 if (includeAll) {
                     retVals = retVals.Extension().IncludeAll();
                 }
-                return await retVals.OrderBy(p => p.Name).Extension().ToListAsync();
-            }
-
-            public IQueryable<Payee> GetOrderedPayeeQueryable() {
-                return _context.Payees.OrderBy(p => p.Name).AsQueryable();
+                return SortQueryableByProperty(retVals, orderBy, orderByDescending);
             }
 
             public async Task<Payee> GetSinglePayeeAsync(int? id, bool includeAll = false) {
@@ -172,14 +173,14 @@ namespace ExpenseTracker.Services
                 return _context.Transactions.Any(t => t.ID == id);
             }
 
-            public async Task<List<Transaction>> GetOrderedTransactionListAsync(bool includeAll = false) {
+            public async Task<List<Transaction>> GetOrderedTransactionListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {
                     transactions = transactions.Extension().IncludeAll();
                 }
 
-                return await transactions.OrderByDescending(t => t.Date).Extension().ToListAsync();
+                return await SortQueryableByProperty(transactions, orderBy, orderByDescending).Extension().ToListAsync();
             }
 
             public async Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false) {
@@ -222,6 +223,25 @@ namespace ExpenseTracker.Services
                     _context.Transactions.Remove(transaction);
                 }
                 return await _context.SaveChangesAsync();
+            }
+        #endregion
+
+        #region Private Methods
+            private IQueryable<T> SortQueryableByProperty<T>(IQueryable<T> queryable, string propertyName, bool descending) {
+                if (typeof(T).GetProperty(propertyName) == null) {
+                    throw new ArgumentException($"{typeof(T).Name}.{propertyName} does not exist");
+                }
+
+                if (descending) {
+                    queryable = queryable.OrderByDescending(q => GetPropertyValue(propertyName, q));
+                } else {
+                    queryable = queryable.OrderBy(q => GetPropertyValue(propertyName, q));
+                }
+                return queryable;
+            }
+
+            private object GetPropertyValue<T>(string propertyName, T obj) {
+                return obj.GetType().GetProperty(propertyName).GetAccessors()[0].Invoke(obj, null);
             }
         #endregion
     }

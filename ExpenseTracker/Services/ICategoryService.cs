@@ -6,7 +6,7 @@ namespace ExpenseTracker.Services
 {
     public interface ICategoryService
     {
-        Task<List<BudgetCategory>> GetOrderedCategoryListAsync();
+        Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false);
         Task<BudgetCategory> GetSingleCategoryAsync(int? id);
         Task<int> AddCategoryAsync(BudgetCategory category);
         Task<int> RemoveCategoryAsync(int id);

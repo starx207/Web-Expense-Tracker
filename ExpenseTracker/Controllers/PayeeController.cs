@@ -24,7 +24,7 @@ namespace ExpenseTracker.Controllers
         // GET: Payee
         public async Task<IActionResult> Index()
         {
-            return View(nameof(Index), await _context.GetOrderedPayeeListAsync(true));
+            return View(nameof(Index), await _context.GetOrderedPayeeListAsync(orderBy: nameof(Payee.Name), includeAll: true));
         }
 
         // GET: Payee/Details/5
@@ -126,7 +126,7 @@ namespace ExpenseTracker.Controllers
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategoryQueryable(), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategoryQueryable(nameof(BudgetCategory.Name)), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }

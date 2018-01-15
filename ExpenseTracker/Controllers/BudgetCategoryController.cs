@@ -24,7 +24,7 @@ namespace ExpenseTracker.Controllers
         // GET: BudgetCategory
         public async Task<IActionResult> Index()
         {
-            return View(nameof(Index), await _context.GetOrderedCategoryListAsync());
+            return View(nameof(Index), await _context.GetOrderedCategoryListAsync(nameof(BudgetCategory.Name)));
         }
 
         // GET: BudgetCategory/Details/5
