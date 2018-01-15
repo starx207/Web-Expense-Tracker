@@ -5,7 +5,3 @@
 // .NET CLI for scaffolding a controller -- [] indicates a variable
 dotnet restore
 dotnet aspnet-codegenerator controller -name [Controller Name] -m [Model Name] -dc [Data Context Name] --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
-
-// changed in Vsts should be pushed to GitHub
-
-// changed in GitHub should be pushed to Vsts
