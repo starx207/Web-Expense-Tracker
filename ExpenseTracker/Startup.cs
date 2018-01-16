@@ -27,7 +27,7 @@ namespace ExpenseTracker
         {
             services.AddDbContext<BudgetContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddScoped<IBudgetRepo, BudgetRepo>();
+            //services.AddScoped<IBudgetRepo, BudgetRepo>();
             services.AddScoped<IBudgetService, BudgetService>();
             services.AddMvc();
         }
