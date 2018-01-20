@@ -1,8 +1,8 @@
+using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -74,7 +74,7 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _context.UpdateTransactionAsync(id, transaction);
                 }
-                catch (DbUpdateConcurrencyException) {
+                catch (ConcurrencyException) {
                     if (!TransactionExists(transaction.ID)) {
                         return NotFound();
                     }

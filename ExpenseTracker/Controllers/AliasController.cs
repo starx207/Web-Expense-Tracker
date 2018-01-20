@@ -1,8 +1,8 @@
-using ExpenseTracker.Repository;
+using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -62,7 +62,7 @@ namespace ExpenseTracker.Models
             if (ModelState.IsValid) {
                 try {
                     await _context.UpdateAliasAsync(id, alias);
-                } catch (DbUpdateConcurrencyException) {
+                } catch (ConcurrencyException) {
                     if (!AliasExists(alias.ID)) {
                         return NotFound();
                     } else {

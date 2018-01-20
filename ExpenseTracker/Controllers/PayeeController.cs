@@ -3,7 +3,6 @@ using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 
@@ -85,7 +84,7 @@ namespace ExpenseTracker.Controllers
                     await _context.UpdatePayeeAsync(id, payee);
                 }
                 catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is DbUpdateConcurrencyException && (!PayeeExists(payee.ID)))) {
+                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!PayeeExists(payee.ID)))) {
                         return NotFound();
                     }
                     throw;
