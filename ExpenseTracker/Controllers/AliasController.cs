@@ -13,9 +13,7 @@ namespace ExpenseTracker.Models
         private readonly IAliasRepo _context;
         private readonly string payeeIndex = "Index";
 
-        public AliasController(IDataRepo context) {
-            _context = context;
-        }
+        public AliasController(IDataRepo context) => _context = context;
 
         // GET: Alias/Create
         public IActionResult Create(int? payeeID = null) {
@@ -63,7 +61,7 @@ namespace ExpenseTracker.Models
                 try {
                     await _context.UpdateAliasAsync(id, alias);
                 } catch (ConcurrencyException) {
-                    if (!AliasExists(alias.ID)) {
+                    if (!_context.AliasExists(alias.ID)) {
                         return NotFound();
                     } else {
                         throw;
@@ -94,10 +92,6 @@ namespace ExpenseTracker.Models
                 await _context.RemoveAliasAsync(id);
             }
             return RedirectToAction(payeeIndex, nameof(Payee));
-        }
-
-        private bool AliasExists(int id) {
-            return _context.AliasExists(id);
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {

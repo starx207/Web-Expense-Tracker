@@ -12,14 +12,10 @@ namespace ExpenseTracker.Controllers
     {
         private readonly IPayeeRepo _context;
 
-        public PayeeController(IDataRepo context)
-        {
-            _context = context;
-        }
+        public PayeeController(IDataRepo context) => _context = context;
 
         // GET: Payee
-        public async Task<IActionResult> Index()
-        {
+        public async Task<IActionResult> Index() {
             return View(nameof(Index), await _context.GetOrderedPayeeListAsync(orderBy: nameof(Payee.Name), includeAll: true));
         }
 
@@ -27,17 +23,14 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             var payee = await _context.GetSinglePayeeAsync(id, true);
-            if (payee == null)
-            {
+            if (payee == null) {
                 return NotFound();
             }
-
             return View(nameof(Details), payee);
         }
 
         // GET: Payee/Create
-        public IActionResult Create()
-        {
+        public IActionResult Create() {
             CreateCategorySelectList();
             return View(nameof(Create));
         }
@@ -47,10 +40,8 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee)
-        {
-            if (ModelState.IsValid)
-            {
+        public async Task<IActionResult> Create([Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
+            if (ModelState.IsValid) {
                 await _context.AddPayeeAsync(payee);
                 return RedirectToAction(nameof(Index));
             }
@@ -59,11 +50,9 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: Payee/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
+        public async Task<IActionResult> Edit(int? id) {
             var payee = await _context.GetSinglePayeeAsync(id);
-            if (payee == null)
-            {
+            if (payee == null) {
                 return NotFound();
             }
             CreateCategorySelectList(payee);
@@ -75,16 +64,13 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
+            if (ModelState.IsValid) {
+                try {
                     await _context.UpdatePayeeAsync(id, payee);
                 }
                 catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!PayeeExists(payee.ID)))) {
+                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_context.PayeeExists(payee.ID)))) {
                         return NotFound();
                     }
                     throw;
@@ -96,29 +82,20 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: Payee/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
+        public async Task<IActionResult> Delete(int? id) {
             var payee = await _context.GetSinglePayeeAsync(id, true);
-            if (payee == null)
-            {
+            if (payee == null) {
                 return NotFound();
             }
-
             return View(nameof(Delete), payee);
         }
 
         // POST: Payee/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
+        public async Task<IActionResult> DeleteConfirmed(int id) {
             await _context.RemovePayeeAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool PayeeExists(int id)
-        {
-            return _context.PayeeExists(id);
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {

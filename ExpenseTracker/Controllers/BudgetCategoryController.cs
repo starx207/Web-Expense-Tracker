@@ -11,14 +11,10 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ICategoryRepo _context;
 
-        public BudgetCategoryController(IDataRepo context)
-        {
-            _context = context;
-        }
+        public BudgetCategoryController(IDataRepo context) => _context = context;
 
         // GET: BudgetCategory
-        public async Task<IActionResult> Index()
-        {
+        public async Task<IActionResult> Index() {
             return View(nameof(Index), await _context.GetOrderedCategoryListAsync(nameof(BudgetCategory.Name)));
         }
 
@@ -38,10 +34,7 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: BudgetCategory/Create
-        public IActionResult Create()
-        {
-            return View(nameof(Create));
-        }
+        public IActionResult Create() => View(nameof(Create));
 
         // POST: BudgetCategory/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
@@ -132,11 +125,6 @@ namespace ExpenseTracker.Controllers
         {
             await _context.RemoveCategoryAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool BudgetCategoryExists(int id)
-        {
-            return _context.CategoryExists(id);
         }
     }
 }

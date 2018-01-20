@@ -11,9 +11,7 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ITransactionRepo _context;
 
-        public TransactionController(IDataRepo context) {
-            _context = context;
-        }
+        public TransactionController(IDataRepo context) => _context = context;
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
@@ -26,7 +24,6 @@ namespace ExpenseTracker.Controllers
             if (transaction == null) {
                 return NotFound();
             }
-
             return View(nameof(Details), transaction);
         }
 
@@ -75,7 +72,7 @@ namespace ExpenseTracker.Controllers
                     await _context.UpdateTransactionAsync(id, transaction);
                 }
                 catch (ConcurrencyException) {
-                    if (!TransactionExists(transaction.ID)) {
+                    if (!_context.TransactionExists(transaction.ID)) {
                         return NotFound();
                     }
                     else {
@@ -107,10 +104,6 @@ namespace ExpenseTracker.Controllers
                 await _context.RemoveTransactionAsync(id);
             }
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool TransactionExists(int id) {
-            return _context.TransactionExists(id);
         }
 
         private void PopulateSelectLists(int? selectedCategoryID = null, int? selectedPayeeID = null) {
