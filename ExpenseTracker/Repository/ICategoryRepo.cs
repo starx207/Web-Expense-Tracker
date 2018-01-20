@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Repository
 {
-    public interface ICategoryRepo
+    public interface ICategoryRepo : ISharedRepo
     {
-        Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false);
+        //Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false);
         Task<BudgetCategory> GetSingleCategoryAsync(int? id);
         Task<int> AddCategoryAsync(BudgetCategory category);
         Task<int> RemoveCategoryAsync(int id);
