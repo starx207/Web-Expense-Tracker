@@ -23,7 +23,7 @@ namespace ExpenseTracker.Repository
                 return _context.BudgetCategories.Any();
             }
 
-            public IQueryable<BudgetCategory> GetOrderedCategoryQueryable(string orderBy, bool orderByDescending = false) {
+            public IQueryable<BudgetCategory> GetOrderedCategories(string orderBy, bool orderByDescending = false) {
                 return SortQueryableByProperty(_context.BudgetCategories, orderBy, orderByDescending);
             }
 
@@ -60,7 +60,7 @@ namespace ExpenseTracker.Repository
         #endregion
 
         #region Payee Methods
-            public IQueryable<Payee> GetOrderedPayeeQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false) {
+            public IQueryable<Payee> GetOrderedPayees(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var retVals = _context.Payees.AsQueryable();
                 if (includeAll) {
                     retVals = retVals.Include(p => p.Category).Include(p => p.Aliases);
@@ -176,7 +176,7 @@ namespace ExpenseTracker.Repository
                 return _context.Transactions.Any(t => t.ID == id);
             }
 
-            public IQueryable<Transaction> GetOrderedTransactionQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false) {
+            public IQueryable<Transaction> GetOrderedTransactions(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {

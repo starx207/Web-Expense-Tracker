@@ -95,7 +95,7 @@ namespace ExpenseTracker.Models
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayeeQueryable(nameof(Payee.Name)), "ID", "Name", idToSelect);
+            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", idToSelect);
         }
     }
 }

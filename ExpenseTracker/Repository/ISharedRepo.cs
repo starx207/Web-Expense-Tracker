@@ -5,7 +5,7 @@ namespace ExpenseTracker.Repository
 {
     public interface ISharedRepo
     {
-        IQueryable<Payee> GetOrderedPayeeQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false);
-        IQueryable<BudgetCategory> GetOrderedCategoryQueryable(string orderBy, bool orderByDescending = false);
+        IQueryable<Payee> GetOrderedPayees(string orderBy, bool orderByDescending = false, bool includeAll = false);
+        IQueryable<BudgetCategory> GetOrderedCategories(string orderBy, bool orderByDescending = false);
     }
 }
