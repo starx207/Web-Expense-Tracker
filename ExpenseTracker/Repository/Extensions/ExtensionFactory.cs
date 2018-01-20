@@ -6,7 +6,7 @@ using ExpenseTracker.Models;
 using System;
 using System.Linq;
 
-namespace ExpenseTracker.Data
+namespace ExpenseTracker.Repository.Extensions
 {
     public static class ExtensionFactory
     {

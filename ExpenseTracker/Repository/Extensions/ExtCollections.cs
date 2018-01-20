@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Data
+namespace ExpenseTracker.Repository.Extensions
 {
     internal class CategoryExt : ICategoryExtMask
     {
@@ -20,10 +20,6 @@ namespace ExpenseTracker.Data
 
         public async Task<List<BudgetCategory>> ToListAsync() {
             return await _collection.ToListAsync();
-        }
-
-        public async Task<BudgetCategory> SingleOrDefaultAsync(int id) {
-            return await _collection.SingleOrDefaultAsync(c => c.ID == id);
         }
     }
 
@@ -38,14 +34,6 @@ namespace ExpenseTracker.Data
         public async Task<List<Payee>> ToListAsync() {
             return await _collection.ToListAsync();
         }
-
-        public async Task<Payee> SingleOrDefaultAsync(int id) {
-            return await _collection.SingleOrDefaultAsync(p => p.ID == id);
-        }
-
-        public IQueryable<Payee> IncludeAll() {
-            return _collection.Include(p => p.Category).Include(p => p.Aliases);
-        }
     }
 
     internal class AliasExt: IAliasExtMask
@@ -59,14 +47,6 @@ namespace ExpenseTracker.Data
         public async Task<List<Alias>> ToListAsync() {
             return await _collection.ToListAsync();
         }
-
-        public async Task<Alias> SingleOrDefaultAsync(int id) {
-            return await _collection.SingleOrDefaultAsync(a => a.ID == id);
-        }
-
-        public IQueryable<Alias> IncludeAll() {
-            return _collection.Include(p => p.AliasForPayee);
-        }
     }
 
     internal class TransactionExt: ITransactionExtMask
@@ -79,14 +59,6 @@ namespace ExpenseTracker.Data
 
         public async Task<List<Transaction>> ToListAsync() {
             return await _collection.ToListAsync();
-        }
-
-        public async Task<Transaction> SingleOrDefaultAsync(int id) {
-            return await _collection.SingleOrDefaultAsync(t => t.ID == id);
-        }
-
-        public IQueryable<Transaction> IncludeAll() {
-            return _collection.Include(p => p.OverrideCategory).Include(p => p.PayableTo);
         }
     }
 }
