@@ -1,6 +1,7 @@
 using ExpenseTracker.Data;
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
+using ExpenseTracker.Repository.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,9 +22,6 @@ namespace ExpenseTracker.Repository
             public bool HasCategories() {
                 return _context.BudgetCategories.Any();
             }
-            public async Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false) {
-                return await GetOrderedCategoryQueryable(orderBy, orderByDescending).Extension().ToListAsync();
-            }
 
             public IQueryable<BudgetCategory> GetOrderedCategoryQueryable(string orderBy, bool orderByDescending = false) {
                 return SortQueryableByProperty(_context.BudgetCategories, orderBy, orderByDescending);
@@ -34,7 +32,7 @@ namespace ExpenseTracker.Repository
                     throw new NullIdException("No id specified");
                 }
 
-                var category = await _context.BudgetCategories.Extension().SingleOrDefaultAsync((int)id);
+                var category = await _context.BudgetCategories.SingleOrDefaultAsync(c => c.ID == id);
                 
                 if (category == null) {
                     throw new IdNotFoundException($"No category found for ID = {id}");
@@ -62,14 +60,10 @@ namespace ExpenseTracker.Repository
         #endregion
 
         #region Payee Methods
-            public async Task<List<Payee>> GetOrderedPayeeListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false) {
-                return await GetOrderedPayeeQueryable(orderBy, orderByDescending, includeAll).Extension().ToListAsync();
-            }
-
             public IQueryable<Payee> GetOrderedPayeeQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var retVals = _context.Payees.AsQueryable();
                 if (includeAll) {
-                    retVals = retVals.Extension().IncludeAll();
+                    retVals = retVals.Include(p => p.Category).Include(p => p.Aliases);
                 }
                 return SortQueryableByProperty(retVals, orderBy, orderByDescending);
             }
@@ -82,10 +76,10 @@ namespace ExpenseTracker.Repository
                 var payees = _context.Payees.AsQueryable();
 
                 if (includeAll) {
-                    payees = payees.Extension().IncludeAll();
+                    payees = payees.Include(p => p.Category).Include(p => p.Aliases);
                 }
 
-                var payee = await payees.Extension().SingleOrDefaultAsync((int)id);
+                var payee = await payees.SingleOrDefaultAsync(p => p.ID == id);
                 
                 if (payee == null) {
                     throw new IdNotFoundException($"No payee found for ID = {id}");
@@ -135,10 +129,10 @@ namespace ExpenseTracker.Repository
                 var aliases = _context.Aliases.AsQueryable();
 
                 if (includeAll) {
-                    aliases = aliases.Extension().IncludeAll();
+                    aliases = aliases.Include(a => a.AliasForPayee);
                 }
 
-                var alias = await aliases.Extension().SingleOrDefaultAsync((int)id);
+                var alias = await aliases.SingleOrDefaultAsync(a => a.ID == id);
 
                 if (alias == null) {
                     throw new IdNotFoundException($"No alias found for ID = {id}");
@@ -182,14 +176,14 @@ namespace ExpenseTracker.Repository
                 return _context.Transactions.Any(t => t.ID == id);
             }
 
-            public async Task<List<Transaction>> GetOrderedTransactionListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false) {
+            public IQueryable<Transaction> GetOrderedTransactionQueryable(string orderBy, bool orderByDescending = false, bool includeAll = false) {
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {
-                    transactions = transactions.Extension().IncludeAll();
+                    transactions = transactions.Include(t => t.OverrideCategory).Include(t => t.PayableTo);
                 }
 
-                return await SortQueryableByProperty(transactions, orderBy, orderByDescending).Extension().ToListAsync();
+                return SortQueryableByProperty(transactions, orderBy, orderByDescending);
             }
 
             public async Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false) {
@@ -200,10 +194,10 @@ namespace ExpenseTracker.Repository
                 var transactions = _context.Transactions.AsQueryable();
 
                 if (includeAll) {
-                    transactions = transactions.Extension().IncludeAll();
+                    transactions = transactions.Include(t => t.OverrideCategory).Include(t => t.PayableTo);
                 }
 
-                var transaction = await transactions.Extension().SingleOrDefaultAsync((int)id);
+                var transaction = await transactions.SingleOrDefaultAsync(t => t.ID == id);
 
                 if (transaction == null) {
                     throw new IdNotFoundException($"No transaction found for ID = {id}");
