@@ -1,6 +1,7 @@
 using ExpenseTracker.Data;
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,8 +103,12 @@ namespace ExpenseTracker.Repository
                 if (id != payee.ID) {
                     throw new IdMismatchException($"Id = {id} does not match payee Id of {payee.ID}");
                 }
-                _context.Payees.Update(payee);
-                return await _context.SaveChangesAsync();
+                try {
+                    _context.Payees.Update(payee);
+                    return await _context.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException) {
+                    throw new ConcurrencyException();
+                }
             }
 
             public async Task<int> RemovePayeeAsync(int id) {
@@ -146,8 +151,12 @@ namespace ExpenseTracker.Repository
                 if (id != alias.ID) {
                     throw new IdMismatchException($"Id = {id} does not match alias Id of {alias.ID}");
                 }
-                _context.Aliases.Update(alias);
-                return await _context.SaveChangesAsync();
+                try {
+                    _context.Aliases.Update(alias);
+                    return await _context.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException) {
+                    throw new ConcurrencyException();
+                }
             }
 
             public async Task<int> AddAliasAsync(Alias alias) {
@@ -213,8 +222,12 @@ namespace ExpenseTracker.Repository
                     throw new IdMismatchException($"Id = {id} does not equal transaction id of {transaction.ID}");
                 }
 
-                _context.Transactions.Update(transaction);
-                return await _context.SaveChangesAsync();
+                try {
+                    _context.Transactions.Update(transaction);
+                    return await _context.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException) {
+                    throw new ConcurrencyException();
+                }                
             }
 
             public async Task<int> RemoveTransactionAsync(int id) {
