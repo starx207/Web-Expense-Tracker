@@ -12,20 +12,24 @@ namespace ExpenseTracker.Repository.Extensions
     public interface ICategoryExtMask
     {
         Task<List<BudgetCategory>> ToListAsync();
+        Task<BudgetCategory> SingleOrDefaultAsync(int id);
     }
 
     public interface IPayeeExtMask
     {
         Task<List<Payee>> ToListAsync();
+        Task<Payee> SingleOrDefaultAsync(int id);
     }
 
     public interface IAliasExtMask
     {
         Task<List<Alias>> ToListAsync();
+        Task<Alias> SingleOrDefaultAsync(int id);
     }
 
     public interface ITransactionExtMask
     {
         Task<List<Transaction>> ToListAsync();
+        Task<Transaction> SingleOrDefaultAsync(int id);
     }
 }
