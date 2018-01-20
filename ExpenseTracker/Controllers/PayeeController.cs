@@ -1,22 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ExpenseTracker.Exceptions;
+using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTracker.Repository;
-using ExpenseTracker.Services;
-using ExpenseTracker.Models;
-using ExpenseTracker.Exceptions;
+using System;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
     public class PayeeController : Controller
     {
-        private readonly IPayeeService _context;
+        private readonly IPayeeRepo _context;
 
-        public PayeeController(IBudgetService context)
+        public PayeeController(IDataRepo context)
         {
             _context = context;
         }

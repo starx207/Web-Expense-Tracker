@@ -1,22 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ExpenseTracker.Repository;
-using ExpenseTracker.Services;
-using ExpenseTracker.Models;
 using ExpenseTracker.Exceptions;
+using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
     public class BudgetCategoryController : Controller
     {
-        private readonly ICategoryService _context;
+        private readonly ICategoryRepo _context;
 
-        public BudgetCategoryController(IBudgetService context)
+        public BudgetCategoryController(IDataRepo context)
         {
             _context = context;
         }

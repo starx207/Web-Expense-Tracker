@@ -1,21 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTracker.Data;
-using ExpenseTracker.Models;
-using ExpenseTracker.Services;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
     public class TransactionController : Controller
     {
-        private readonly ITransactionService _context;
+        private readonly ITransactionRepo _context;
 
-        public TransactionController(IBudgetService context) {
+        public TransactionController(IDataRepo context) {
             _context = context;
         }
 

@@ -2,9 +2,9 @@ using ExpenseTracker.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Services
+namespace ExpenseTracker.Repository
 {
-    public interface ICategoryService
+    public interface ICategoryRepo
     {
         Task<List<BudgetCategory>> GetOrderedCategoryListAsync(string orderBy, bool orderByDescending = false);
         Task<BudgetCategory> GetSingleCategoryAsync(int? id);

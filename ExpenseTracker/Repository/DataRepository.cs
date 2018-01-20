@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Services
+namespace ExpenseTracker.Repository
 {
-    public class BudgetService : IBudgetService
+    public class DataRepository : IDataRepo
     {
         private readonly BudgetContext _context;
 
-        public BudgetService(BudgetContext context) {
+        public DataRepository(BudgetContext context) {
             _context = context;
         }
 

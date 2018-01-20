@@ -1,4 +1,4 @@
-using ExpenseTracker.Services;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Models;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace ExpenseTracker.Data
 {
     public static class DbInitializer
     {
-        public static async Task Initialize(IBudgetService context) {
+        public static async Task Initialize(IDataRepo context) {
             if (context.HasCategories()) {
                 return; // Db Already has data
             }

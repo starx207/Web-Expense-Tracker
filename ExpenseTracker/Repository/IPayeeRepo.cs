@@ -2,9 +2,9 @@ using ExpenseTracker.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Services
+namespace ExpenseTracker.Repository
 {
-    public interface IPayeeService : IBaseService
+    public interface IPayeeRepo : ISharedRepo
     {
         Task<List<Payee>> GetOrderedPayeeListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false);
         Task<Payee> GetSinglePayeeAsync(int? id, bool includeAll = false);

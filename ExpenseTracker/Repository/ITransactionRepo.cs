@@ -2,9 +2,9 @@ using ExpenseTracker.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Services
+namespace ExpenseTracker.Repository
 {
-    public interface ITransactionService : IBaseService
+    public interface ITransactionRepo : ISharedRepo
     {
         Task<List<Transaction>> GetOrderedTransactionListAsync(string orderBy, bool orderByDescending = false, bool includeAll = false);
         Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false);

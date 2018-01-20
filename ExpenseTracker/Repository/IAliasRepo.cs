@@ -2,9 +2,9 @@ using ExpenseTracker.Models;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Services
+namespace ExpenseTracker.Repository
 {
-    public interface IAliasService : IBaseService
+    public interface IAliasRepo : ISharedRepo
     {
         Task<Alias> GetSingleAliasAsync(int? id, bool includeAll = false);
         Task<int> UpdateAliasAsync(int id, Alias alias);

@@ -1,5 +1,5 @@
 ﻿using ExpenseTracker.Data;
-using ExpenseTracker.Services;
+using ExpenseTracker.Repository;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +22,7 @@ namespace ExpenseTracker
             using (var scope = host.Services.CreateScope()) {
                 var services = scope.ServiceProvider;
                 try {
-                    var context = services.GetRequiredService<IBudgetService>();
+                    var context = services.GetRequiredService<IDataRepo>();
                     DbInitializer.Initialize(context).Wait();
                 } catch (Exception ex) {
                     var logger = services.GetRequiredService<ILogger<Program>>();
