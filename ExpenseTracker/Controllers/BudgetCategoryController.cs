@@ -1,6 +1,7 @@
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Repository.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: BudgetCategory
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _context.GetOrderedCategoryListAsync(nameof(BudgetCategory.Name)));
+            return View(nameof(Index), await _context.GetOrderedCategoryQueryable(nameof(BudgetCategory.Name)).Extension().ToListAsync());
         }
 
         // GET: BudgetCategory/Details/5

@@ -1,6 +1,7 @@
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Repository.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _context.GetOrderedTransactionListAsync(orderBy: nameof(Transaction.Date), orderByDescending: true, includeAll: true));
+            return View(nameof(Index), await _context.GetOrderedTransactionQueryable(orderBy: nameof(Transaction.Date), orderByDescending: true, includeAll: true).Extension().ToListAsync());
         }
 
         // GET: Transaction/Details/5
