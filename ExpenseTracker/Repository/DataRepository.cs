@@ -32,7 +32,7 @@ namespace ExpenseTracker.Repository
                     throw new NullIdException("No id specified");
                 }
 
-                var category = await _context.BudgetCategories.SingleOrDefaultAsync(c => c.ID == id);
+                var category = await _context.BudgetCategories.Extension().SingleOrDefaultAsync((int)id);
                 
                 if (category == null) {
                     throw new IdNotFoundException($"No category found for ID = {id}");
@@ -79,7 +79,7 @@ namespace ExpenseTracker.Repository
                     payees = payees.Include(p => p.Category).Include(p => p.Aliases);
                 }
 
-                var payee = await payees.SingleOrDefaultAsync(p => p.ID == id);
+                var payee = await payees.Extension().SingleOrDefaultAsync((int)id);
                 
                 if (payee == null) {
                     throw new IdNotFoundException($"No payee found for ID = {id}");
@@ -132,7 +132,7 @@ namespace ExpenseTracker.Repository
                     aliases = aliases.Include(a => a.AliasForPayee);
                 }
 
-                var alias = await aliases.SingleOrDefaultAsync(a => a.ID == id);
+                var alias = await aliases.Extension().SingleOrDefaultAsync((int)id);
 
                 if (alias == null) {
                     throw new IdNotFoundException($"No alias found for ID = {id}");
@@ -197,7 +197,7 @@ namespace ExpenseTracker.Repository
                     transactions = transactions.Include(t => t.OverrideCategory).Include(t => t.PayableTo);
                 }
 
-                var transaction = await transactions.SingleOrDefaultAsync(t => t.ID == id);
+                var transaction = await transactions.Extension().SingleOrDefaultAsync((int)id);
 
                 if (transaction == null) {
                     throw new IdNotFoundException($"No transaction found for ID = {id}");
