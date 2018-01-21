@@ -7,11 +7,10 @@ namespace ExpenseTracker.Repository
 {
     public interface IBudgetRepo
     {
-        IQueryable<Transaction> Transactions();
-        IQueryable<Payee> Payees();
-        IQueryable<BudgetCategory> BudgetCategories();
-        IQueryable<Alias> Aliases();
-        Task<List<BudgetCategory>> BudgetCategoriesAsync(string orderBy = "", bool descendingOrder = false);
+        IQueryable<Transaction> Transactions { get; }
+        IQueryable<Payee> Payees { get; }
+        IQueryable<BudgetCategory> Categories { get; }
+        IQueryable<Alias> Aliases { get; }
         void DeleteTransaction(Transaction transactionToDelete);
         void DeletePayee(Payee payeeToDelete);
         void DeleteBudgetCategory(BudgetCategory categoryToDelete);
