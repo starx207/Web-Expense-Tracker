@@ -1,24 +1,25 @@
 // using ExpenseTracker.Controllers;
 // using ExpenseTracker.Exceptions;
-// using ExpenseTracker.Repository;
+using ExpenseTracker.Repository;
 // using ExpenseTracker.Services;
-// using ExpenseTracker.Models;
-// using Microsoft.AspNetCore.Mvc;
-// using Microsoft.VisualStudio.TestTools.UnitTesting;
-// using Moq;
+using ExpenseTracker.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 // using System;
 // using System.Collections.Generic;
 // using System.Linq;
-// using System.Threading.Tasks;
+using System.Threading.Tasks;
 
-// namespace ExpenseTracker.Tests.Controllers
-// {
-//     [TestClass]
-//     public class BudgetCategoryController_Tests
-//     {
+namespace ExpenseTracker.Controllers.Tests
+{
+    [TestClass]
+    public class BudgetCategoryController_Tests
+    {
 //         private IBudgetService budget;
 //         private Dictionary<int, string> categoryReference;
-//         private BudgetCategoryController controller;
+         private BudgetCategoryController controller;
+         private Mock<IBudgetRepo> mockRepo;
 //         private Mock<IBudgetService> mockBudget;
 
 //         [TestInitialize]
@@ -38,21 +39,28 @@
 
 //             controller = new BudgetCategoryController(budget);
 //         }
+            [TestInitialize]
+            public void Initialize_test_objects() {
+                mockRepo = new Mock<IBudgetRepo>();
+                controller = new BudgetCategoryController(mockRepo.Object);
+            }
 
 
 
 
 
-//         #region "Index Method Tests"
-//             [TestMethod]
-//             public async Task IndexMethodReturnsView() {
-//                 IActionResult actionResult = await controller.Index();
-//                 var result = actionResult as ViewResult;
+        #region "Index Method Tests"
+            [TestMethod]
+            public async Task Index_GET_returns_index_view() {
+                // Act
+                var actionResult = await controller.Index();
+                var result = actionResult as ViewResult;
 
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
-//             }
-//         #endregion
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Index", result.ViewName);
+            }
+        #endregion
 
 
 
@@ -289,5 +297,5 @@
 //         private void GetCategoryAsync_ShouldThrow(Exception exToThrow) {
 //             mockBudget.Setup(m => m.GetCategoryAsync(It.IsAny<int?>())).ThrowsAsync(exToThrow);
 //         }
-//     }
-// }
+    }
+}
