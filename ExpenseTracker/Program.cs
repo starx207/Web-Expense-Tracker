@@ -1,19 +1,14 @@
 ﻿using ExpenseTracker.Data;
 using ExpenseTracker.Repository;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ExpenseTracker
 {
-    public class Program
+  public class Program
     {
         public static void Main(string[] args)
         {
@@ -22,7 +17,7 @@ namespace ExpenseTracker
             using (var scope = host.Services.CreateScope()) {
                 var services = scope.ServiceProvider;
                 try {
-                    var context = services.GetRequiredService<IDataRepo>();
+                    var context = services.GetRequiredService<IBudgetRepo>();
                     DbInitializer.Initialize(context).Wait();
                 } catch (Exception ex) {
                     var logger = services.GetRequiredService<ILogger<Program>>();
