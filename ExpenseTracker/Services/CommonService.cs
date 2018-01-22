@@ -17,7 +17,7 @@ namespace ExpenseTracker.Services
         }
         
         public IQueryable<Payee> GetOrderedPayees(string orderBy, bool orderByDescending = false, bool includeAll = false) {
-            var retVals = _context.GetPayees(includeAll).AsQueryable();
+            var retVals = _context.GetPayees(includeAll, includeAll).AsQueryable();
             return SortQueryableByProperty(retVals, orderBy, orderByDescending);
         }
     }
