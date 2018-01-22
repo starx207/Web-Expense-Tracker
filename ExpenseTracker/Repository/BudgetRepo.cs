@@ -1,6 +1,7 @@
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository.Extensions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,18 +17,33 @@ namespace ExpenseTracker.Repository
             _context = context;
         }
 
-        public IQueryable<BudgetCategory> Categories {
-            get { return _context.BudgetCategories.AsQueryable(); }
-        }
-        public IQueryable<Payee> Payees {
-            get { return _context.Payees.AsQueryable(); }
-        }
-        public IQueryable<Alias> Aliases {
-            get { return _context.Aliases.AsQueryable(); }
-        }
-        public IQueryable<Transaction> Transactions {
-            get { return _context.Transactions.AsQueryable(); }
-        }
+        #region Get Methods
+            public IQueryable<BudgetCategory> GetCategories() => _context.BudgetCategories.AsQueryable();
+            public IQueryable<Payee> GetPayees(bool includeCategory = false) {
+                if (includeCategory) {
+                    return _context.Payees.Include(p => p.Category).AsQueryable();
+                } else {
+                    return _context.Payees.AsQueryable();
+                }
+            }
+            public IQueryable<Alias> GetAliases(bool includePayee = false) {
+                if (includePayee) {
+                    return _context.Aliases.Include(a => a.AliasForPayee).AsQueryable();
+                } else {
+                    return _context.Aliases.AsQueryable();
+                }
+            }
+            public IQueryable<Transaction> GetTransactions(bool includePayee = false, bool includeCategory = false) {
+                var transactions = _context.Transactions.AsQueryable();
+                if (includeCategory) {
+                    transactions = transactions.Include(t => t.OverrideCategory);
+                }
+                if (includePayee) {
+                    transactions = transactions.Include(t => t.PayableTo);
+                }
+                return transactions;
+            }
+        #endregion
 
         #region "DELETE methods"
             public void DeleteTransaction(Transaction transactionToDelete) => _context.Transactions.Remove(transactionToDelete);
