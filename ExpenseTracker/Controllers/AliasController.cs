@@ -1,19 +1,18 @@
 using ExpenseTracker.Exceptions;
-using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Models
 {
-    public class AliasController : Controller
+  public class AliasController : Controller
     {
-        private readonly IAliasRepo _context;
+        private readonly IAliasManagerService _service;
         private readonly string payeeIndex = "Index";
 
-        public AliasController(IDataRepo context) => _context = context;
+        public AliasController(IBudgetRepo repo) => _service = new AliasManagerService(repo);
 
         // GET: Alias/Create
         public IActionResult Create(int? payeeID = null) {
@@ -30,7 +29,7 @@ namespace ExpenseTracker.Models
             if (ModelState.IsValid) {
                 // var payee = await _context.GetPayees().Where(p => p.ID == alias.PayeeID).SingleOrDefaultAsync();
                 // alias.AliasForPayee = payee;
-                await _context.AddAliasAsync(alias);
+                await _service.AddAliasAsync(alias);
                 return RedirectToAction(payeeIndex, nameof(Payee));
             }
             CreatePayeeSelectList(alias.PayeeID);
@@ -39,7 +38,7 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var alias = await _context.GetSingleAliasAsync(id);
+            var alias = await _service.GetSingleAliasAsync(id);
             if (alias == null) {
                 return NotFound();
             }
@@ -59,9 +58,9 @@ namespace ExpenseTracker.Models
 
             if (ModelState.IsValid) {
                 try {
-                    await _context.UpdateAliasAsync(id, alias);
+                    await _service.UpdateAliasAsync(id, alias);
                 } catch (ConcurrencyException) {
-                    if (!_context.AliasExists(alias.ID)) {
+                    if (!_service.AliasExists(alias.ID)) {
                         return NotFound();
                     } else {
                         throw;
@@ -75,7 +74,7 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-             var alias = await _context.GetSingleAliasAsync(id, true);
+             var alias = await _service.GetSingleAliasAsync(id, true);
              if (alias == null) {
                  return NotFound();
              }
@@ -87,15 +86,15 @@ namespace ExpenseTracker.Models
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var alias = await _context.GetSingleAliasAsync(id);
+            var alias = await _service.GetSingleAliasAsync(id);
             if (alias != null) {
-                await _context.RemoveAliasAsync(id);
+                await _service.RemoveAliasAsync(id);
             }
             return RedirectToAction(payeeIndex, nameof(Payee));
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", idToSelect);
+            ViewData["PayeeList"] = new SelectList(_service.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", idToSelect);
         }
     }
 }

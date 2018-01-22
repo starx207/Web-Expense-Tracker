@@ -2,6 +2,7 @@ using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
@@ -11,19 +12,19 @@ namespace ExpenseTracker.Controllers
 {
     public class PayeeController : Controller
     {
-        private readonly IPayeeRepo _context;
+        private readonly IPayeeManagerService _service;
 
-        public PayeeController(IDataRepo context) => _context = context;
+        public PayeeController(IBudgetRepo repo) => _service = new PayeeManagerService(repo);
 
         // GET: Payee
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _context.GetOrderedPayees(orderBy: nameof(Payee.Name), includeAll: true).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetOrderedPayees(orderBy: nameof(Payee.Name), includeAll: true).Extension().ToListAsync());
         }
 
         // GET: Payee/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            var payee = await _context.GetSinglePayeeAsync(id, true);
+            var payee = await _service.GetSinglePayeeAsync(id, true);
             if (payee == null) {
                 return NotFound();
             }
@@ -43,7 +44,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
-                await _context.AddPayeeAsync(payee);
+                await _service.AddPayeeAsync(payee);
                 return RedirectToAction(nameof(Index));
             }
             CreateCategorySelectList(payee);
@@ -52,7 +53,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Payee/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var payee = await _context.GetSinglePayeeAsync(id);
+            var payee = await _service.GetSinglePayeeAsync(id);
             if (payee == null) {
                 return NotFound();
             }
@@ -68,10 +69,10 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
                 try {
-                    await _context.UpdatePayeeAsync(id, payee);
+                    await _service.UpdatePayeeAsync(id, payee);
                 }
                 catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_context.PayeeExists(payee.ID)))) {
+                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.PayeeExists(payee.ID)))) {
                         return NotFound();
                     }
                     throw;
@@ -84,7 +85,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Payee/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-            var payee = await _context.GetSinglePayeeAsync(id, true);
+            var payee = await _service.GetSinglePayeeAsync(id, true);
             if (payee == null) {
                 return NotFound();
             }
@@ -95,12 +96,12 @@ namespace ExpenseTracker.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            await _context.RemovePayeeAsync(id);
+            await _service.RemovePayeeAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_service.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }

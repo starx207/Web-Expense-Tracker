@@ -2,6 +2,7 @@ using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;
@@ -10,18 +11,18 @@ namespace ExpenseTracker.Controllers
 {
     public class TransactionController : Controller
     {
-        private readonly ITransactionRepo _context;
+        private readonly ITransactionManagerService _service;
 
-        public TransactionController(IDataRepo context) => _context = context;
+        public TransactionController(IBudgetRepo repo) => _service = new TransactionManagerService(repo);
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _context.GetOrderedTransactions(orderBy: nameof(Transaction.Date), orderByDescending: true, includeAll: true).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetOrderedTransactions(orderBy: nameof(Transaction.Date), orderByDescending: true, includeAll: true).Extension().ToListAsync());
         }
 
         // GET: Transaction/Details/5
         public async Task<IActionResult> Details(int? id) {
-            var transaction = await _context.GetSingleTransactionAsync(id, true);
+            var transaction = await _service.GetSingleTransactionAsync(id, true);
             if (transaction == null) {
                 return NotFound();
             }
@@ -41,7 +42,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction) {
             if (ModelState.IsValid) {
-                await _context.AddTransactionAsync(transaction);
+                await _service.AddTransactionAsync(transaction);
                 return RedirectToAction(nameof(Index));
             }
             PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
@@ -50,7 +51,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var transaction = await _context.GetSingleTransactionAsync(id);
+            var transaction = await _service.GetSingleTransactionAsync(id);
             if (transaction == null) {
                 return NotFound();
             }
@@ -70,10 +71,10 @@ namespace ExpenseTracker.Controllers
 
             if (ModelState.IsValid) {
                 try {
-                    await _context.UpdateTransactionAsync(id, transaction);
+                    await _service.UpdateTransactionAsync(id, transaction);
                 }
                 catch (ConcurrencyException) {
-                    if (!_context.TransactionExists(transaction.ID)) {
+                    if (!_service.TransactionExists(transaction.ID)) {
                         return NotFound();
                     }
                     else {
@@ -88,7 +89,7 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-            var transaction = await _context.GetSingleTransactionAsync(id, true);
+            var transaction = await _service.GetSingleTransactionAsync(id, true);
             if (transaction == null) {
                 return NotFound();
             }
@@ -100,16 +101,16 @@ namespace ExpenseTracker.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var transaction = await _context.GetSingleTransactionAsync(id);
+            var transaction = await _service.GetSingleTransactionAsync(id);
             if (transaction != null) {
-                await _context.RemoveTransactionAsync(id);
+                await _service.RemoveTransactionAsync(id);
             }
             return RedirectToAction(nameof(Index));
         }
 
         private void PopulateSelectLists(int? selectedCategoryID = null, int? selectedPayeeID = null) {
-            ViewData["CategoryList"] = new SelectList(_context.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", selectedCategoryID);
-            ViewData["PayeeList"] = new SelectList(_context.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", selectedPayeeID);
+            ViewData["CategoryList"] = new SelectList(_service.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", selectedCategoryID);
+            ViewData["PayeeList"] = new SelectList(_service.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", selectedPayeeID);
         }
     }
 }

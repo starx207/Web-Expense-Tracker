@@ -2,6 +2,7 @@ using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -10,13 +11,13 @@ namespace ExpenseTracker.Controllers
 {
     public class BudgetCategoryController : Controller
     {
-        private readonly ICategoryRepo _context;
+        private readonly ICategoryManagerService _service;
 
-        public BudgetCategoryController(IDataRepo context) => _context = context;
+        public BudgetCategoryController(IBudgetRepo repo) => _service = new CategoryManagerService(repo);
 
         // GET: BudgetCategory
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _context.GetOrderedCategories(nameof(BudgetCategory.Name)).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetOrderedCategories(nameof(BudgetCategory.Name)).Extension().ToListAsync());
         }
 
         // GET: BudgetCategory/Details/5
@@ -24,7 +25,7 @@ namespace ExpenseTracker.Controllers
         {
             BudgetCategory budgetCategory;
             try {
-                budgetCategory = await _context.GetSingleCategoryAsync(id);
+                budgetCategory = await _service.GetSingleCategoryAsync(id);
             } catch (Exception ex) {
                 if (ex is IdNotFoundException || ex is NullIdException) {
                     return NotFound();
@@ -46,7 +47,7 @@ namespace ExpenseTracker.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _context.AddCategoryAsync(budgetCategory);
+                await _service.AddCategoryAsync(budgetCategory);
                 return RedirectToAction(nameof(Index));
             }
             return View(nameof(Create), budgetCategory);
@@ -57,7 +58,7 @@ namespace ExpenseTracker.Controllers
         {
             BudgetCategory budgetCategory;
             try {
-                budgetCategory = await _context.GetSingleCategoryAsync(id);
+                budgetCategory = await _service.GetSingleCategoryAsync(id);
             } catch (Exception ex) {
                 if (ex is IdNotFoundException || ex is NullIdException) {
                     return NotFound();
@@ -108,7 +109,7 @@ namespace ExpenseTracker.Controllers
         {
             BudgetCategory budgetCategory;
             try {
-                budgetCategory = await _context.GetSingleCategoryAsync(id);
+                budgetCategory = await _service.GetSingleCategoryAsync(id);
             } catch (Exception ex) {
                 if (ex is IdNotFoundException || ex is NullIdException) {
                     return NotFound();
@@ -124,7 +125,7 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _context.RemoveCategoryAsync(id);
+            await _service.RemoveCategoryAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }
