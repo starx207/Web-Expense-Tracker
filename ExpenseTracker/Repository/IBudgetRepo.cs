@@ -8,7 +8,7 @@ namespace ExpenseTracker.Repository
     public interface IBudgetRepo
     {
         IQueryable<Transaction> GetTransactions(bool includePayee = false, bool includeCategory = false);
-        IQueryable<Payee> GetPayees(bool includeCategory = false);
+        IQueryable<Payee> GetPayees(bool includeCategory = false, bool includeAliases = false);
         IQueryable<BudgetCategory> GetCategories();
         IQueryable<Alias> GetAliases(bool includePayee = false);
         void DeleteTransaction(Transaction transactionToDelete);
