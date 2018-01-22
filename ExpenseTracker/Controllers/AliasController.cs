@@ -13,6 +13,7 @@ namespace ExpenseTracker.Models
         private readonly string payeeIndex = "Index";
 
         public AliasController(IBudgetRepo repo) => _service = new AliasManagerService(repo);
+        public AliasController(IAliasManagerService service) => _service = service;
 
         // GET: Alias/Create
         public IActionResult Create(int? payeeID = null) {

@@ -14,6 +14,7 @@ namespace ExpenseTracker.Controllers
         private readonly ICategoryManagerService _service;
 
         public BudgetCategoryController(IBudgetRepo repo) => _service = new CategoryManagerService(repo);
+        public BudgetCategoryController(ICategoryManagerService service) => _service = service;
 
         // GET: BudgetCategory
         public async Task<IActionResult> Index() {

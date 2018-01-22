@@ -15,6 +15,7 @@ namespace ExpenseTracker.Controllers
         private readonly IPayeeManagerService _service;
 
         public PayeeController(IBudgetRepo repo) => _service = new PayeeManagerService(repo);
+        public PayeeController(IPayeeManagerService service) => _service = service;
 
         // GET: Payee
         public async Task<IActionResult> Index() {

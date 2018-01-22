@@ -14,6 +14,7 @@ namespace ExpenseTracker.Controllers
         private readonly ITransactionManagerService _service;
 
         public TransactionController(IBudgetRepo repo) => _service = new TransactionManagerService(repo);
+        public TransactionController(ITransactionManagerService service) => _service = service;
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
