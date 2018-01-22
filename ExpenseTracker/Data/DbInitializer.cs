@@ -9,8 +9,8 @@ namespace ExpenseTracker.Data
 {
     public static class DbInitializer
     {
-        public static async Task Initialize(IDataRepo context) {
-            if (context.HasCategories()) {
+        public static async Task Initialize(IBudgetRepo context) {
+            if (context.GetCategories().Any()) {
                 return; // Db Already has data
             }
 
@@ -169,7 +169,7 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var c in categories) {
-                await context.AddCategoryAsync(c);
+                context.AddBudgetCategory(c);
             }
 
             // Populate Payees
@@ -273,7 +273,7 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var p in payees) {
-                await context.AddPayeeAsync(p);
+                context.AddPayee(p);
             }
 
             // Create Aliases
@@ -321,8 +321,10 @@ namespace ExpenseTracker.Data
             };
 
             foreach (var a in aliases) {
-                await context.AddAliasAsync(a);
+                context.AddAlias(a);
             }
+
+            await context.SaveChangesAsync();
         }
     }
 }
