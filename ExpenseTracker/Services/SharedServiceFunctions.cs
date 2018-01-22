@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 
-namespace ExpenseTracker.Repository
+namespace ExpenseTracker.Services
 {
-    public class SharedServiceFunctions
+    public abstract class SharedServiceFunctions
     {
         protected IQueryable<T> SortQueryableByProperty<T>(IQueryable<T> queryable, string propertyName, bool descending) {
             if (typeof(T).GetProperty(propertyName) == null) {
