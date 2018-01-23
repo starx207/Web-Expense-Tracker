@@ -1,14 +1,15 @@
 // using ExpenseTracker.Controllers;
 // using ExpenseTracker.Exceptions;
-using ExpenseTracker.Repository;
-// using ExpenseTracker.Services;
+// using ExpenseTracker.Repository;
+using ExpenseTracker.Repository.Extensions;
+using ExpenseTracker.Services;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 // using System;
-// using System.Collections.Generic;
-// using System.Linq;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers.Tests
@@ -19,7 +20,7 @@ namespace ExpenseTracker.Controllers.Tests
 //         private IBudgetService budget;
 //         private Dictionary<int, string> categoryReference;
          private BudgetCategoryController controller;
-         private Mock<IBudgetRepo> mockRepo;
+         private Mock<ICategoryManagerService> mockService;
 //         private Mock<IBudgetService> mockBudget;
 
 //         [TestInitialize]
@@ -39,15 +40,11 @@ namespace ExpenseTracker.Controllers.Tests
 
 //             controller = new BudgetCategoryController(budget);
 //         }
-            [TestInitialize]
-            public void Initialize_test_objects() {
-                mockRepo = new Mock<IBudgetRepo>();
-                controller = new BudgetCategoryController(mockRepo.Object);
-            }
-
-
-
-
+        [TestInitialize]
+        public void Initialize_test_objects() {
+            mockService = new Mock<ICategoryManagerService>();
+            controller = new BudgetCategoryController(mockService.Object);
+        }
 
         #region "Index Method Tests"
             [TestMethod]
@@ -59,6 +56,22 @@ namespace ExpenseTracker.Controllers.Tests
                 // Assert
                 Assert.IsNotNull(result);
                 Assert.AreEqual("Index", result.ViewName);
+            }
+
+            [TestMethod]
+            public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
+                // Arrange
+                var categories = new List<BudgetCategory>();
+                var mockCategoryExt = new Mock<ICategoryExtMask>();
+                mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
+                ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
+
+                // Act
+                var result = (ViewResult)(await controller.Index());
+                var model = result.Model;
+
+                // Assert
+                Assert.AreSame(categories, model);
             }
         #endregion
 
