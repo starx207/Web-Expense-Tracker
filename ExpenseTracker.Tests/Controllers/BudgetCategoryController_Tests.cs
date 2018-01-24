@@ -71,27 +71,40 @@ namespace ExpenseTracker.Controllers.Tests
                 var model = result.Model;
 
                 // Assert
+                mockService.Verify(m => m.GetOrderedCategories(nameof(BudgetCategory.Name), It.IsAny<bool>()), Times.Once());
                 Assert.AreSame(categories, model);
             }
         #endregion
 
+        #region "Details Method Tests"
+            [TestMethod]
+            public async Task Details_GET_returns_details_view() {
+                // Arrange
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(new BudgetCategory());
 
+                // Act
+                var actionResult = await controller.Details(1);
+                var result = actionResult as ViewResult;
 
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Details", result.ViewName);
+            }
 
+            [TestMethod]
+            public async Task Details_GET_passes_category_to_view() {
+                // Arrange
+                var category = new BudgetCategory { ID = 1 };
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(category);
 
+                // Act
+                var result = (ViewResult)(await controller.Details(1));
+                var model = (BudgetCategory)result.Model;
 
-
-//         #region "Details Method Tests"
-//             [TestMethod]
-//             public async Task DetailsMethodReturnsView() {
-//                 int id = budget.GetCategories().First().ID;
-
-//                 IActionResult actionResult = await controller.Details(id);
-//                 var result = actionResult as ViewResult;
-                
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Details", result.ViewName, $"Details method returned '{result.ViewName}' instead of 'Details'");
-//             }
+                // Assert
+                mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+                Assert.AreEqual(category.ID, model.ID);
+            }
 
 //             [DataTestMethod]
 //             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
@@ -122,7 +135,7 @@ namespace ExpenseTracker.Controllers.Tests
 
 //                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
 //             }
-//         #endregion
+        #endregion
         
 
 
