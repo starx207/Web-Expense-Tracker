@@ -1,5 +1,5 @@
 // using ExpenseTracker.Controllers;
-// using ExpenseTracker.Exceptions;
+using ExpenseTracker.Exceptions;
 // using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
@@ -7,7 +7,7 @@ using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-// using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -106,35 +106,38 @@ namespace ExpenseTracker.Controllers.Tests
                 Assert.AreEqual(category.ID, model.ID);
             }
 
-//             [DataTestMethod]
-//             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-//             public async Task DetailsMethodReturnsCorrectBudgetCategory(int id) {
-//                 IActionResult actionResult;
+            [TestMethod]
+            public async Task Details_GET_returns_NotFound_When_IdNotFoundException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
 
-//                 if (!categoryReference.ContainsKey(id)) {
-//                     GetCategoryAsync_ShouldThrow(new IdNotFoundException());
+                // Act
+                var result = await controller.Details(1);
 
-//                     actionResult = await controller.Details(id);
-//                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-//                 } else {
-//                     actionResult = await controller.Details(id);
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//                     string categoryName = categoryReference[id];
+            [TestMethod]
+            public async Task Details_GET_returns_NotFound_when_NullIdException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
 
-//                     var result = actionResult as ViewResult;
-//                     BudgetCategory model = (BudgetCategory)result.ViewData.Model;
+                // Act
+                var result = await controller.Details(null);
 
-//                     Assert.AreEqual(categoryName, model.Name, $"The wrong BudgetCategory was returned by for ID = {id}");
-//                 }
-//             }
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//             [TestMethod]
-//             public async Task DetailsMethodReturnsNotFoundForNullIndex() {
-//                 GetCategoryAsync_ShouldThrow(new NullIdException());
-//                 IActionResult actionResult = await controller.Details(null);
+            [TestMethod]
+            public async Task Details_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+                // Arrange
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
 
-//                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
-//             }
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Details(1));
+            }
         #endregion
         
 
