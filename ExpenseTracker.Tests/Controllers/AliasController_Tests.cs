@@ -1,23 +1,25 @@
-// using ExpenseTracker.Controllers;
-// using ExpenseTracker.Services;
-// using ExpenseTracker.Models;
-// using Microsoft.AspNetCore.Mvc;
+using ExpenseTracker.TestResources;
+using ExpenseTracker.Services;
+using ExpenseTracker.Models;
+using Microsoft.AspNetCore.Mvc;
 // using Microsoft.EntityFrameworkCore;
-// using Microsoft.VisualStudio.TestTools.UnitTesting;
-// using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 // using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-// namespace ExpenseTracker.Tests.Controllers
-// {
-//     [TestClass]
-//     public class AliasController_Tests : TestCommon
-//     {
+namespace ExpenseTracker.Controllers.Tests
+{
+    [TestClass]
+    public class AliasController_Tests : TestCommon
+    {
 //         private IBudgetService budget;
 //         private Dictionary<int, string> aliasReference;
-//         private AliasController controller;
+        private AliasController controller;
+        private Mock<IAliasManagerService> mockService;
+        private readonly string payeeListKey = "PayeeList";
 //         private readonly string payeeSelectListKey = "PayeeList";
 
 //         private Mock<IBudgetService> mockBudget;
@@ -40,8 +42,41 @@
 
 //             controller = new AliasController(budget);
 //         }
+        [TestInitialize]
+        public void Initialize_test_objects() {
+            mockService = new Mock<IAliasManagerService>();
+            controller = new AliasController(mockService.Object);
+        }
 
-//         #region Create Tests
+        #region Create Tests
+            [TestMethod]
+            public void Create_GET_returns_create_view() {
+                // Act
+                var result = controller.Create();
+                var viewResult = result as ViewResult;
+
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+            }
+
+            [TestMethod]
+            public void Create_GET_correctly_populates_payee_select_list() {
+                // Arrange
+                var payees = new List<Payee> {
+                    new Payee { ID = 1 },
+                    new Payee { ID = 2 }
+                }.AsQueryable();
+                int testID = 1;
+                mockService.Setup(m => m.GetOrderedPayees(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(payees);
+                
+                // Act
+                var result = (ViewResult)controller.Create(testID);
+
+                // Assert
+                AssertThatViewDataIsSelectList(result.ViewData, payeeListKey, payees.Select(p => p.ID.ToString()), testID.ToString());
+            }
 //             [TestMethod]
 //             public void CreateGETReturnsView() {
 //                 IActionResult actionResult = controller.Create();
@@ -120,7 +155,7 @@
 //                 // Check that ViewData is not null
 //                 AssertThatViewDataIsSelectList(result.ViewData, payeeSelectListKey, budget.GetPayees().Select(p => p.ID.ToString()), newAlias.PayeeID.ToString());
 //             }
-//         #endregion
+        #endregion
 
 //         #region "Delete Method Tests"
 //             [TestMethod]
@@ -296,5 +331,5 @@
 
 //             // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
 //         #endregion
-//     }
-// }
+    }
+}
