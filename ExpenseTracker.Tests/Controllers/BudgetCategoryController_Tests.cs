@@ -140,73 +140,52 @@ namespace ExpenseTracker.Controllers.Tests
             }
         #endregion
         
+        #region "Create Method Tests"
+            [TestMethod]
+            public void Create_GET_returns_create_view() {
+                // Act
+                var actionResult = controller.Create();
+                var result = actionResult as ViewResult;
 
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual("Create", result.ViewName);
+            }
 
+            [TestMethod]
+            public async Task Create_POST_calls_AddCategoryAsync_and_redirects_to_index() {
+                // Arrange
+                var category = new BudgetCategory();
 
+                // Act
+                var result = await controller.Create(category);
+                var redirectResult = result as RedirectToActionResult;
 
+                // Assert
+                mockService.Verify(m => m.AddCategoryAsync(category), Times.Once());
+                Assert.IsNotNull(redirectResult);
+                Assert.AreEqual("Index", redirectResult.ActionName);
+            }
 
+            [TestMethod]
+            public async Task Create_POST_with_Invalid_model_state_returns_category_to_create_view() {
+                // Arrange
+                var category = new BudgetCategory();
+                controller.ModelState.AddModelError("test", "test");
 
-//         #region "Create Method Tests"
-//             [TestMethod]
-//             public void CreateGETReturnsView() {
-//                 IActionResult actionResult = controller.Create();
-//                 var result = actionResult as ViewResult;
+                // Act
+                var result = await controller.Create(category);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as BudgetCategory;
 
-//                 Assert.AreEqual("Create", result.ViewName, $"Create method returned '{result.ViewName}' instead of 'Create'");
-//             }
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+                Assert.AreSame(category, model);
+            }
+        #endregion    
 
-//             [TestMethod]
-//             public async Task CreatePOSTWithAValidModelState() {
-//                 int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
-//                 BudgetCategory newCategory = new BudgetCategory {
-//                     ID = testID,
-//                     Name = "New Test Category",
-//                     Amount = 700,
-//                     Type = BudgetType.Expense,
-//                     BeginEffectiveDate = new DateTime(2016, 09, 01),
-//                     EndEffectiveDate = null
-//                 };
-
-//                 IActionResult actionResult = await controller.Create(newCategory);
-//                 var result = actionResult as RedirectToActionResult;
-                
-//                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
-
-//                 mockBudget.Verify(m => m.AddBudgetCategoryAsync(It.IsAny<BudgetCategory>()), Times.Once());
-//             }
-
-//             [TestMethod]
-//             public async Task CreatePOSTWithInvalidModelState() {
-//                 int testID = budget.GetCategories().OrderByDescending(c => c.ID).Select(c => c.ID).First() + 1;
-//                 BudgetCategory newCategory = new BudgetCategory {
-//                     ID = testID,
-//                     Name = "New Test Category",
-//                     Type = BudgetType.Expense,
-//                     Amount = 389,
-//                     BeginEffectiveDate = new DateTime(2016, 12, 31),
-//                     EndEffectiveDate = null
-//                 };
-
-//                 controller.ModelState.AddModelError("test", "test");
-
-//                 IActionResult actionResult = await controller.Create(newCategory);
-//                 var viewResult = actionResult as ViewResult;
-
-//                 Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
-
-//                 BudgetCategory model = (BudgetCategory)viewResult.Model;
-
-//                 Assert.AreEqual(testID, model.ID, "The BudgetCategory was not sent back to the view");
-//             }
-//         #endregion
-        
-
-
-
-
-
-
-//         #region "Delete Method Tests"
+        #region "Delete Method Tests"
 //             [TestMethod]
 //             public async Task DeleteGETReturnsView() {
 //                 int id = budget.GetCategories().Select(c => c.ID).First();
@@ -273,7 +252,7 @@ namespace ExpenseTracker.Controllers.Tests
 
 //                 Assert.AreEqual(preCount, budget.GetCategories().Count(), "No category should have been removed");
 //             }
-//         #endregion
+        #endregion
 
 
 
