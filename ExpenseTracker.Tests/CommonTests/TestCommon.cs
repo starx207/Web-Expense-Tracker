@@ -3,19 +3,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ExpenseTracker.Tests
+namespace ExpenseTracker.TestResources
 {
     public abstract class TestCommon
     {
         protected void AssertThatViewDataIsSelectList(ViewDataDictionary viewData, string viewDataKey, IQueryable<string> expectedValues, string selectedValue = null) {
-            
+            // Check viewData key is not null
             Assert.IsNotNull(viewData[viewDataKey], $"ViewData.{viewDataKey} should not be null");
             
+            // Check that all expected items are in list
             SelectList list = (SelectList)viewData[viewDataKey];
             int expectedCount = expectedValues.Count();
 
             Assert.AreEqual(expectedCount, list.Count(), "There are missing items in the select list");
 
+            // Check all items in list are correct
             string errorMsg = "The following IDs are missing from the Select List: ";
             int missingItems = 0;
             foreach (var item in expectedValues) {
@@ -28,6 +30,7 @@ namespace ExpenseTracker.Tests
 
             Assert.AreEqual(0, missingItems, errorMsg);
 
+            // Check that the correct item is pre-selected
             if (selectedValue != null) {
                 bool isSelected = list.Where(i => i.Value == selectedValue).FirstOrDefault().Selected;
 
