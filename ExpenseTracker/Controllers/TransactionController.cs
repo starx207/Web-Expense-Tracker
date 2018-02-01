@@ -5,6 +5,7 @@ using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -23,9 +24,14 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Details/5
         public async Task<IActionResult> Details(int? id) {
-            var transaction = await _service.GetSingleTransactionAsync(id, true);
-            if (transaction == null) {
-                return NotFound();
+            Transaction transaction;
+            try {
+                transaction = await _service.GetSingleTransactionAsync(id, true);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             return View(nameof(Details), transaction);
         }
@@ -52,9 +58,14 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var transaction = await _service.GetSingleTransactionAsync(id);
-            if (transaction == null) {
-                return NotFound();
+            Transaction transaction;
+            try {
+                transaction = await _service.GetSingleTransactionAsync(id);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
             return View(nameof(Edit), transaction);
@@ -66,21 +77,14 @@ namespace ExpenseTracker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Date,Amount,OverrideCategoryID,PayeeID")] Transaction transaction) {
-            if (id != transaction.ID) {
-                return NotFound();
-            }
-
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateTransactionAsync(id, transaction);
-                }
-                catch (ConcurrencyException) {
-                    if (!_service.TransactionExists(transaction.ID)) {
+                } catch (Exception ex) {
+                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.TransactionExists(transaction.ID)))) {
                         return NotFound();
                     }
-                    else {
-                        throw;
-                    }
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -90,11 +94,15 @@ namespace ExpenseTracker.Controllers
 
         // GET: Transaction/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-            var transaction = await _service.GetSingleTransactionAsync(id, true);
-            if (transaction == null) {
-                return NotFound();
+            Transaction transaction;
+            try {
+                transaction = await _service.GetSingleTransactionAsync(id, true);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
-
             return View(nameof(Delete), transaction);
         }
 
@@ -102,10 +110,7 @@ namespace ExpenseTracker.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var transaction = await _service.GetSingleTransactionAsync(id);
-            if (transaction != null) {
-                await _service.RemoveTransactionAsync(id);
-            }
+            await _service.RemoveTransactionAsync(id);
             return RedirectToAction(nameof(Index));
         }
 

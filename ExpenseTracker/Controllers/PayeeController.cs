@@ -25,9 +25,14 @@ namespace ExpenseTracker.Controllers
         // GET: Payee/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            var payee = await _service.GetSinglePayeeAsync(id, true);
-            if (payee == null) {
-                return NotFound();
+            Payee payee;
+            try {
+                payee = await _service.GetSinglePayeeAsync(id, true);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             return View(nameof(Details), payee);
         }
@@ -54,9 +59,14 @@ namespace ExpenseTracker.Controllers
 
         // GET: Payee/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var payee = await _service.GetSinglePayeeAsync(id);
-            if (payee == null) {
-                return NotFound();
+            Payee payee;
+            try {
+                payee = await _service.GetSinglePayeeAsync(id);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             CreateCategorySelectList(payee);
             return View(nameof(Edit), payee);
@@ -71,8 +81,7 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdatePayeeAsync(id, payee);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.PayeeExists(payee.ID)))) {
                         return NotFound();
                     }
@@ -86,9 +95,14 @@ namespace ExpenseTracker.Controllers
 
         // GET: Payee/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-            var payee = await _service.GetSinglePayeeAsync(id, true);
-            if (payee == null) {
-                return NotFound();
+            Payee payee;
+            try {
+                payee = await _service.GetSinglePayeeAsync(id, true);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             return View(nameof(Delete), payee);
         }

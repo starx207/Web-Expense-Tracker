@@ -3,6 +3,7 @@ using ExpenseTracker.Repository;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Models
@@ -28,8 +29,6 @@ namespace ExpenseTracker.Models
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,PayeeID")] Alias alias) {
             if (ModelState.IsValid) {
-                // var payee = await _context.GetPayees().Where(p => p.ID == alias.PayeeID).SingleOrDefaultAsync();
-                // alias.AliasForPayee = payee;
                 await _service.AddAliasAsync(alias);
                 return RedirectToAction(payeeIndex, nameof(Payee));
             }
@@ -39,9 +38,14 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Edit/5
         public async Task<IActionResult> Edit(int? id) {
-            var alias = await _service.GetSingleAliasAsync(id);
-            if (alias == null) {
-                return NotFound();
+            Alias alias;
+            try {
+                alias = await _service.GetSingleAliasAsync(id);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
             }
             CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Edit), alias);
@@ -53,19 +57,14 @@ namespace ExpenseTracker.Models
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,PayeeID")] Alias alias) {
-            if (id != alias.ID) {
-                return NotFound();
-            }
-
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateAliasAsync(id, alias);
-                } catch (ConcurrencyException) {
-                    if (!_service.AliasExists(alias.ID)) {
+                } catch (Exception ex) {
+                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.AliasExists(alias.ID)))) {
                         return NotFound();
-                    } else {
-                        throw;
                     }
+                    throw;
                 }
                 return RedirectToAction(payeeIndex, nameof(Payee));
             }
@@ -75,22 +74,23 @@ namespace ExpenseTracker.Models
 
         // GET: Alias/Delete/5
         public async Task<IActionResult> Delete(int? id) {
-             var alias = await _service.GetSingleAliasAsync(id, true);
-             if (alias == null) {
-                 return NotFound();
-             }
-
-             return View(nameof(Delete), alias);
+            Alias alias;
+            try {
+                alias = await _service.GetSingleAliasAsync(id, true);
+            } catch (Exception ex) {
+                if (ex is NullIdException || ex is IdNotFoundException) {
+                    return NotFound();
+                }
+                throw;
+            }
+            return View(nameof(Delete), alias);
         }
 
         // POST: Alias/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            var alias = await _service.GetSingleAliasAsync(id);
-            if (alias != null) {
-                await _service.RemoveAliasAsync(id);
-            }
+            await _service.RemoveAliasAsync(id);
             return RedirectToAction(payeeIndex, nameof(Payee));
         }
 
