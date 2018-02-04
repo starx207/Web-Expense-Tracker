@@ -1,26 +1,28 @@
 // using ExpenseTracker.Controllers;
-// using ExpenseTracker.Exceptions;
-// using ExpenseTracker.Repository;
-// using ExpenseTracker.Services;
-// using ExpenseTracker.Models;
-// using Microsoft.AspNetCore.Mvc;
+using ExpenseTracker.Exceptions;
+using ExpenseTracker.Repository.Extensions;
+using ExpenseTracker.Services;
+using ExpenseTracker.TestResources;
+using ExpenseTracker.Models;
+using Microsoft.AspNetCore.Mvc;
 // using Microsoft.EntityFrameworkCore;
-// using Microsoft.VisualStudio.TestTools.UnitTesting;
-// using Moq;
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-// namespace ExpenseTracker.Tests.Controllers
-// {
-//     [TestClass]
-//     public class PayeeController_Tests : TestCommon
-//     {
+namespace ExpenseTracker.Controllers.Tests
+{
+    [TestClass]
+    public class PayeeController_Tests : TestCommon
+    {
+        private Mock<IPayeeManagerService> mockService;
 //         private IBudgetService budget;
 //         private Dictionary<int, string> payeeReference;
-//         private PayeeController controller;
-//         private readonly string categorySelectListKey = "CategoryList";
+        private PayeeController controller;
+        private readonly string categorySelectListKey = "CategoryList";
 //         private Mock<IBudgetService> mockBudget;
 
 //         [TestInitialize]
@@ -41,242 +43,311 @@
 //             controller = new PayeeController(budget);
 //         }
 
-//         #region Index Tests
-//             [TestMethod]
-//             public async Task IndexGETReturnsView() {
-//                 IActionResult actionResult = await controller.Index();
-//                 var result = actionResult as ViewResult;
+        [TestInitialize]
+        public void InitializeTestObjects() {
+            mockService = new Mock<IPayeeManagerService>();
+            controller = new PayeeController(mockService.Object);
+        }
 
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Index", result.ViewName, $"Index method returned '{result.ViewName}' instead of 'Index'");
-//             }    
-//         #endregion
+        #region Index Tests
+            [TestMethod]
+            public async Task Index_GET_returns_view() {
+                // Act
+                var result = await controller.Index();
+                var viewResult = result as ViewResult;
 
-//         #region Details Tests
-//             [TestMethod]
-//             public async Task DetailsGETReturnsView() {
-//                 int id = budget.GetPayees().First().ID;
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Index", viewResult.ViewName);
+            }
 
-//                 IActionResult actionResult = await controller.Details(id);
-//                 var result = actionResult as ViewResult;
+            [TestMethod]
+            public async Task Index_GET_passes_list_of_payees_to_viewmodel() {
+                // Arrange
+                var payees = new List<Payee>();
+                var mockPayeeExt = new Mock<IPayeeExtMask>();
+                mockPayeeExt.Setup(m => m.ToListAsync()).ReturnsAsync(payees);
+                ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
+
+                // Act
+                var result = (ViewResult)(await controller.Index());
+                var model = result.Model;
+
+                // Assert
+                mockService.Verify(m => m.GetOrderedPayees(nameof(Payee.Name), It.IsAny<bool>(), true), Times.Once());
+                Assert.AreSame(payees, model);
+            }  
+        #endregion
+
+        #region Details Tests
+            [TestMethod]
+            public async Task Details_GET_returns_view_with_correct_model() {
+                // Arrange
+                var payee = new Payee();
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
+
+                // Act
+                var result = await controller.Details(1);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
+
+                // Assert
+                mockService.Verify(m => m.GetSinglePayeeAsync(1, true), Times.Once());
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Details", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
+
+            [TestMethod]
+            public async Task Details_GET_returns_NotFound_when_NullIdException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new NullIdException());
+
+                // Act
+                var result = await controller.Details(null);
+
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
+
+            [TestMethod]
+            public async Task Details_GET_returns_NotFound_when_IdNotFoundException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new IdNotFoundException());
+
+                // Act
+                var result = await controller.Details(1);
+
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
+
+            [TestMethod]
+            public async Task Details_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
+
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Details(1));
+            }
+        #endregion
+
+        #region Create Tests
+            [TestMethod]
+            public void Create_GET_returns_view() {
+                // Act
+                var result = controller.Create();
+                var viewResult = result as ViewResult;
+
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+            }
+
+            [TestMethod]
+            public void Create_GET_populates_category_select_list() {
+                // Arrange
+                var categories = new List<BudgetCategory> {
+                    new BudgetCategory { ID = 1 },
+                    new BudgetCategory { ID = 2 },
+                    new BudgetCategory { ID = 3 }
+                }.AsQueryable();
+                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+
+                // Act
+                var result = (ViewResult)controller.Create();
+
+                // Assert
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, categories.Select(c => c.ID.ToString()));
+            }
+
+            [TestMethod]
+            public async Task Create_POST_calls_AddPayeeAsync_and_redirects_to_index() {
+                // Arrange
+                var payee = new Payee();
+
+                // Act
+                var result = await controller.Create(payee);
+                var redirectResult = result as RedirectToActionResult;
+
+                // Assert
+                mockService.Verify(m => m.AddPayeeAsync(payee), Times.Once());
+                Assert.IsNotNull(redirectResult);
+                Assert.AreEqual("Index", redirectResult.ActionName);
+            }
+
+            [TestMethod]
+            public async Task Create_POST_returns_view_with_payee_for_invalid_modelstate() {
+                // Arrange
+                var payee = new Payee();
+                controller.ModelState.AddModelError("test", "test");
+
+                // Act
+                var result = await controller.Create(payee);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
+
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
+
+            [TestMethod]
+            public async Task Create_POST_correctly_populates_category_select_on_invalid_modelstate() {
+                // Arrange
+                var categories = new List<BudgetCategory> {
+                    new BudgetCategory { ID = 1 },
+                    new BudgetCategory { ID = 2 },
+                    new BudgetCategory { ID = 3 }
+                }.AsQueryable();
+                var payee = new Payee { BudgetCategoryID = 3 };
+                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                controller.ModelState.AddModelError("test", "test");
                 
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Details", result.ViewName, $"Details method returned '{result.ViewName}' instead of 'Details'");
-//             }
+                // Act
+                var result = (ViewResult)(await controller.Create(payee));
 
-//             [DataTestMethod]
-//             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-//             public async Task DetailsGETReturnsCorrectPayee(int id) {
-//                 IActionResult actionResult = await controller.Details(id);
+                // Assert
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+            }
+        #endregion
 
-//                 if (!payeeReference.ContainsKey(id)) {
-//                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-//                 } else {
-//                     string payeeName = payeeReference[id];
+        #region "Delete Method Tests"
+            [TestMethod]
+            public async Task Delete_GET_calls_GetSinglePayeeAsync_and_returns_view() {
+                // Arrange
+                var payee = new Payee();
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
 
-//                     var result = actionResult as ViewResult;
-//                     Payee model = (Payee)result.ViewData.Model;
+                // Act
+                var result = await controller.Delete(1);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
 
-//                     Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
-//                 }
-//             }
+                // Assert
+                mockService.Verify(m => m.GetSinglePayeeAsync(1, true), Times.Once());
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Delete", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
 
-//             [TestMethod]
-//             public async Task DetailsGETReturnsNotFoundForNullIndex() {
-//                 IActionResult actionResult = await controller.Details(null);
+            [TestMethod]
+            public async Task Delete_GET_returns_NotFound_when_NullIdException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new NullIdException());
 
-//                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
-//             }
-//         #endregion
+                // Act
+                var result = await controller.Delete(null);
 
-//         #region Create Tests
-//             [TestMethod]
-//             public void CreateGETReturnsView() {
-//                 IActionResult actionResult = controller.Create();
-//                 var result = actionResult as ViewResult;
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//                 Assert.AreEqual("Create", result.ViewName, $"Create method returned '{result.ViewName}' instead of 'Create'");
-//             }
+            [TestMethod]
+            public async Task Delete_GET_returns_NotFound_when_IdNotFoundException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new IdNotFoundException());
 
-//             [TestMethod]
-//             public void CreateGETCreatesSelectListInViewData() {
-//                 IActionResult actionResult = controller.Create();
-//                 var result = actionResult as ViewResult;
+                // Act
+                var result = await controller.Delete(1);
 
-//                 // Check that ViewData is not null
-//                 AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()));
-//             }
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//             [TestMethod]
-//             public async Task CreatePOSTWithAValidModelState() {
-//                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
-//                 Payee newPayee = new Payee {
-//                     ID = testID,
-//                     Name = "New Test Payee",
-//                     BeginEffectiveDate = new DateTime(2016, 09, 01)
-//                 };
+            [TestMethod]
+            public async Task Delete_GET_throws_Exceptions_not_of_type_NullId_or_IdNotFound() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
-//                 IActionResult actionResult = await controller.Create(newPayee);
-//                 var result = actionResult as RedirectToActionResult;
-                
-//                 Assert.AreEqual("Index", result.ActionName, "Create should redirect to Index after successful create");
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Delete(1));
+            }
 
-//                 mockBudget.Verify(m => m.AddPayeeAsync(It.IsAny<Payee>()), Times.Once());
-//             }
+            [TestMethod]
+            public async Task Delete_POST_calls_RemovePayeeAsync_and_redirects_to_index() {
+                // Act
+                var result = await controller.DeleteConfirmed(1);
+                var redirectResult = result as RedirectToActionResult;
 
-//             [TestMethod]
-//             public async Task CreatePOSTWithInvalidModelState() {
-//                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 1;
-//                 Payee newPayee = new Payee {
-//                     ID = testID,
-//                     Name = "New Test Payee",
-//                     BeginEffectiveDate = new DateTime(2016, 09, 01)
-//                 };
+                // Assert
+                mockService.Verify(m => m.RemovePayeeAsync(1), Times.Once());
+                Assert.IsNotNull(redirectResult);
+                Assert.AreEqual("Index", redirectResult.ActionName);
+            }
+        #endregion
 
-//                 controller.ModelState.AddModelError("test", "test");
+        #region Edit Method Tests
+            [TestMethod]
+            public async Task Edit_GET_calls_GetSinglePayeeAsync_and_returns_view_with_model() {
+                // Arrange
+                var payee = new Payee();
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
 
-//                 IActionResult actionResult = await controller.Create(newPayee);
-//                 var viewResult = actionResult as ViewResult;
+                // Act
+                var result = await controller.Edit(1);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
 
-//                 Assert.AreEqual("Create", viewResult.ViewName, "Create should return to itself if ModelState is invalid");
+                // Assert
+                mockService.Verify(m => m.GetSinglePayeeAsync(1, false), Times.Once());
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Edit", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
 
-//                 Payee model = (Payee)viewResult.Model;
+            [TestMethod]
+            public async Task Edit_GET_correctly_populates_category_select_list() {
+                // Arrange
+                var categories = new List<BudgetCategory> {
+                    new BudgetCategory { ID = 1 },
+                    new BudgetCategory { ID = 2 },
+                    new BudgetCategory { ID = 3 }
+                }.AsQueryable();
+                var payee = new Payee { BudgetCategoryID = 1 };
+                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
 
-//                 Assert.AreEqual(testID, model.ID, "The Payee was not sent back to the view");
-//             }
+                // Act
+                var result = (ViewResult)(await controller.Edit(1));
 
-//             [TestMethod]
-//             public async Task CreatePOSTWithInvalidModelStatePopulatesCategorySelectWithCorrectDefault() {
-//                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).First().ID + 1;
-//                 BudgetCategory testCategory = budget.GetCategories().First();
-//                 Payee newPayee = new Payee {
-//                     ID = testID,
-//                     Name = "New Test Payee",
-//                     BeginEffectiveDate = new DateTime(2017,12,12),
-//                     Category = testCategory,
-//                     BudgetCategoryID = testCategory.ID
-//                 };
+                // Assert
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+            }
 
-//                 controller.ModelState.AddModelError("test", "test");
+            [TestMethod]
+            public async Task Edit_GET_returns_NotFound_when_NullIdException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new NullIdException());
 
-//                 IActionResult actionResult = await controller.Create(newPayee);
-//                 var result = actionResult as ViewResult;
-//                 // Check that ViewData is not null
-//                 AssertThatViewDataIsSelectList(result.ViewData, 
-//                     categorySelectListKey, 
-//                     budget.GetCategories().Select(c => c.ID.ToString()), 
-//                     newPayee.BudgetCategoryID.ToString());
-//             }
-//         #endregion
+                // Act
+                var result = await controller.Edit(null);
 
-//         #region "Delete Method Tests"
-//             [TestMethod]
-//             public async Task DeleteGETReturnsView() {
-//                 int id = budget.GetPayees().Select(p => p.ID).First();
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//                 IActionResult actionResult = await controller.Delete(id);
-//                 var result = actionResult as ViewResult;
-                
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Delete", result.ViewName, $"Delete method returned '{result.ViewName}' instead of 'Delete'");
-//             }
+            [TestMethod]
+            public async Task Edit_GET_returns_NotFound_when_IdNotFoundException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new IdNotFoundException());
 
-//             [DataTestMethod]
-//             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-//             public async Task DeleteGETReturnsCorrectPayee(int id) {
-//                 IActionResult actionResult = await controller.Delete(id);
+                // Act
+                var result = await controller.Edit(1);
 
-//                 if (!payeeReference.ContainsKey(id)) {
-//                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-//                 } else {
-//                     string payeeName = payeeReference[id];
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//                     var result = actionResult as ViewResult;
-//                     Payee model = (Payee)result.ViewData.Model;
+            [TestMethod]
+            public async Task Edit_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+                // Arrange
+                mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
-//                     Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
-//                 }
-//             }
-
-//             [TestMethod]
-//             public async Task DeleteGETReturnsNotFoundForNullIndex() {
-//                 IActionResult actionResult = await controller.Delete(null);
-
-//                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "A NULL id should result in 404 Not Found");
-//             }
-
-//             [TestMethod]
-//             public async Task DeletePOSTRemoveExistingPayee() {
-//                 int testID = budget.GetPayees().Select(p => p.ID).First();
-
-//                 IActionResult actionResult = await controller.DeleteConfirmed(testID);
-//                 var result = actionResult as RedirectToActionResult;
-
-//                 Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
-
-//                 Payee payeeShouldntBeThere = budget.GetPayees().Where(p => p.ID == testID).SingleOrDefault();
-
-//                 mockBudget.Verify(m => m.RemovePayeeAsync(It.IsAny<int>()), Times.Once());
-//             }
-
-//             [TestMethod]
-//             public async Task DeletePOSTRemoveNonExistantCategory() {
-//                 int testID = budget.GetPayees().OrderByDescending(p => p.ID).Select(p => p.ID).First() + 10;
-//                 int preCount = budget.GetPayees().Count();
-
-//                 IActionResult actionResult = await controller.DeleteConfirmed(testID);
-//                 var result = actionResult as RedirectToActionResult;
-
-//                 Assert.AreEqual("Index", result.ActionName, "DeletePOST should redirect to Index");
-
-//                 Assert.AreEqual(preCount, budget.GetPayees().Count(), "No payee should have been removed");
-//             }
-//         #endregion
-
-//         #region Edit Method Tests
-//             [TestMethod]
-//             public async Task EditGETReturnsView() {
-//                 int testID = budget.GetPayees().First().ID;
-
-//                 IActionResult actionResult = await controller.Edit(testID);
-//                 var result = actionResult as ViewResult;
-
-//                 Assert.IsNotNull(result);
-//                 Assert.AreEqual("Edit", result.ViewName, $"Edit method returned '{result.ViewName}' instead of 'Edit'");
-//             }
-
-//             [DataTestMethod]
-//             [DataRow(1), DataRow(2), DataRow(3), DataRow(-1), DataRow(300)]
-//             public async Task EditGETReturnsCorrectPayee(int id) {
-//                 IActionResult actionResult = await controller.Edit(id);
-
-//                 if (!payeeReference.ContainsKey(id)) {
-//                     Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), $"The id ({id}) doesn't exist. 404 Not Found should have been called");
-//                 } else {
-//                     string payeeName = payeeReference[id];
-//                     var result = actionResult as ViewResult;
-//                     Payee model = (Payee)result.Model;
-
-//                     Assert.AreEqual(payeeName, model.Name, $"The wrong Payee was returned by for ID = {id}");
-//                 }
-//             }
-
-//             [TestMethod]
-//             public async Task EditGETReturnsNotFoundForNULLId() {
-//                 IActionResult actionResult = await controller.Edit(null);
-
-//                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "404 Not Found should be returned for a NULL id");
-//             }
-
-//             [TestMethod]
-//             public async Task EditGETPopulatesViewDataWithCategories() {
-//                 Payee testPayee = budget.GetPayees().First();
-//                 IActionResult actionResult = await controller.Edit(testPayee.ID);
-//                 var result = actionResult as ViewResult;
-
-//                 // Check that ViewData is not null
-//                 AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()), testPayee.BudgetCategoryID.ToString());
-//             }
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1));
+            }
 
 //             [TestMethod]
 //             public async Task EditPOSTWithValidModelState() {
@@ -343,6 +414,6 @@
 //             }
 
 //             // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
-//         #endregion
-//     }
-// }
+        #endregion
+    }
+}
