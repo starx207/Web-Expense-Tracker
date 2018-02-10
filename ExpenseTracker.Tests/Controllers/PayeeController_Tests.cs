@@ -1,11 +1,9 @@
-// using ExpenseTracker.Controllers;
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using ExpenseTracker.TestResources;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
-// using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -19,29 +17,8 @@ namespace ExpenseTracker.Controllers.Tests
     public class PayeeController_Tests : TestCommon
     {
         private Mock<IPayeeManagerService> mockService;
-//         private IBudgetService budget;
-//         private Dictionary<int, string> payeeReference;
         private PayeeController controller;
         private readonly string categorySelectListKey = "CategoryList";
-//         private Mock<IBudgetService> mockBudget;
-
-//         [TestInitialize]
-//         public void InitializeTestData() {
-//             List<BudgetCategory> categories = TestInitializer.CreateTestCategories();
-//             List<Payee> payees = TestInitializer.CreateTestPayees(categories.AsQueryable());
-//             mockBudget = new Mock<IBudgetService>();
-//             mockBudget.Setup(m => m.GetPayees()).Returns(new TestAsyncEnumerable<Payee>(payees));
-//             mockBudget.Setup(m => m.GetCategories()).Returns(new TestAsyncEnumerable<BudgetCategory>(categories));
-
-//             budget = mockBudget.Object;
-
-//             payeeReference = new Dictionary<int, string>();
-//             foreach (var payee in budget.GetPayees()) {
-//                 payeeReference.Add(payee.ID, payee.Name);
-//             }
-
-//             controller = new PayeeController(budget);
-//         }
 
         [TestInitialize]
         public void InitializeTestObjects() {
@@ -349,71 +326,93 @@ namespace ExpenseTracker.Controllers.Tests
                 await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1));
             }
 
-//             [TestMethod]
-//             public async Task EditPOSTWithValidModelState() {
-//                 Payee payeeToEdit = budget.GetPayees().First();
-//                 int testID = payeeToEdit.ID;
-//                 string newName = payeeToEdit.Name + "_modified";
-//                 payeeToEdit.Name = newName;
-//                 IActionResult actionResult = await controller.Edit(payeeToEdit.ID, payeeToEdit);
-//                 var result = actionResult as RedirectToActionResult;
+            [TestMethod]
+            public async Task Edit_POST_calls_UpdatePayeeAsync_and_redirects_to_index() {
+                // Arrange
+                var payee = new Payee();
 
-//                 Assert.IsNotNull(result, "Edit POST did not return a RedirectToActionResult");
-//                 Assert.AreEqual("Index", result.ActionName, $"Edit POST should redirect to 'Index', not {result.ActionName}");
+                // Act
+                var result = await controller.Edit(1, payee);
+                var redirectResult = result as RedirectToActionResult;
 
-//                 Payee editedPayee = budget.GetPayees().Where(p => p.ID == testID).First();
+                // Assert
+                mockService.Verify(m => m.UpdatePayeeAsync(1, payee), Times.Once());
+                Assert.IsNotNull(redirectResult);
+                Assert.AreEqual("Index", redirectResult.ActionName);
+            }
 
-//                 Assert.AreEqual(newName, editedPayee.Name, "The changes for the payee were not saved");
-//             }
+            [TestMethod]
+            public async Task Edit_POST_returns_payee_to_view_when_modelstate_invalid() {
+                // Arrange
+                var payee = new Payee();
+                controller.ModelState.AddModelError("test", "test");
 
-//             [TestMethod]
-//             public async Task EditPOSTWithMismatchedIDReturnsNotFound() {
-//                 mockBudget.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new IdMismatchException());
-                
-//                 Payee editedPayee = budget.GetPayees().First();
-//                 editedPayee.Name += "_modified";
-//                 IActionResult actionResult = await controller.Edit(editedPayee.ID + 1, editedPayee);
+                // Act
+                var result = await controller.Edit(1, payee);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
 
-//                 Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult), "If the ID doesn't match the ID of the edited Payee, Not Found should be called");
-//             }
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Edit", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
 
-//             [TestMethod]
-//             public async Task EditPOSTWithInvalidModelStateReturnsToEditView() {
-//                 Payee editedPayee = budget.GetPayees().First();
-//                 string newName = editedPayee.Name + "_modified";
-//                 editedPayee.Name = newName;
+            [TestMethod]
+            public async Task Edit_POST_correctly_populates_category_list_when_ModelState_invalid() {
+                // Arrange
+                var categories = new List<BudgetCategory> {
+                    new BudgetCategory { ID = 1 },
+                    new BudgetCategory { ID = 2 },
+                    new BudgetCategory { ID = 3 }
+                }.AsQueryable();
+                var payee = new Payee { BudgetCategoryID = 1 };
+                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                controller.ModelState.AddModelError("test", "test");
 
-//                 controller.ModelState.AddModelError("test", "test");
-//                 IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
+                // Act
+                var result = (ViewResult)(await controller.Edit(1, payee));
 
-//                 var result = actionResult as ViewResult;
-//                 Assert.IsNotNull(result, "Edit POST with invalid model state should return a ViewResult");
-//                 Assert.AreEqual("Edit", result.ViewName, $"Edit POST with invalid model state should return to 'Edit' view, not '{result.ViewName}'");
+                // Assert
+                AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+            }
 
-//                 Payee model = (Payee)result.Model;
+            [TestMethod]
+            public async Task Edit_POST_returns_NotFound_when_IdMismatchException_thrown() {
+                // Arrange
+                mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new IdMismatchException());
+                var payee = new Payee();
 
-//                 Assert.AreEqual(editedPayee.ID, model.ID, "The wrong payee was passed back to the View");
+                // Act
+                var result = await controller.Edit(1, payee);
 
-//                 Assert.AreEqual(newName, model.Name, "The updated values were not preserved when returning to the View");
-//             }
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//             [TestMethod]
-//             public async Task EditPOSTWithInvalidModelStatePopulatesCategorySelect() {
-//                 Payee editedPayee = budget.GetPayees().Where(p => p.BudgetCategoryID != null).First();
-//                 BudgetCategory newCategory = budget.GetCategories().Where(c => c.ID != editedPayee.BudgetCategoryID).First();
-//                 editedPayee.Name += "_modified";
-//                 editedPayee.Category = newCategory;
-//                 editedPayee.BudgetCategoryID = newCategory.ID;
+            [TestMethod]
+            public async Task Edit_POST_returns_NotFound_when_ConcurrencyException_thrown_and_payee_does_not_exist() {
+                // Arrange
+                var payee = new Payee();
+                mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new ConcurrencyException());
+                mockService.Setup(m => m.PayeeExists(It.IsAny<int>())).Returns(false);
 
-//                 controller.ModelState.AddModelError("test", "test");
-//                 IActionResult actionResult = await controller.Edit(editedPayee.ID, editedPayee);
-//                 var result = actionResult as ViewResult;
+                // Act
+                var result = await controller.Edit(1, payee);
 
-//                 // Check that ViewData is not null
-//                 AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, budget.GetCategories().Select(c => c.ID.ToString()), newCategory.ID.ToString());
-//             }
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
 
-//             // TODO: Figure out how to test the DbUpdateConcurrencyException portion of Edit POST
+            [TestMethod]
+            public async Task Edit_POST_thows_exceptions_not_of_type_IdMismatch() {
+                // Arrange
+                var payee = new Payee();
+                mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new Exception());
+
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1, payee));
+            }
         #endregion
     }
 }
