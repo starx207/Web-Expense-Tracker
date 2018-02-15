@@ -1,4 +1,5 @@
 using ExpenseTracker.Exceptions;
+using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Models
+namespace ExpenseTracker.Controllers
 {
   public class AliasController : Controller
     {
