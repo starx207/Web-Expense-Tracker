@@ -37,6 +37,9 @@ namespace ExpenseTracker.Services
             if (id != alias.ID) {
                 throw new IdMismatchException($"Id = {id} does not match alias Id of {alias.ID}");
             }
+            if (_context.GetAliases().Any(a => a.ID != id && a.Name == alias.Name)) {
+                throw new UniqueConstraintViolationException($"There is already and alias with name = {alias.Name}");
+            }
             try {
                 _context.EditAlias(alias);
                 return await _context.SaveChangesAsync();
@@ -46,6 +49,9 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddAliasAsync(Alias alias) {
+            if (_context.GetAliases().Any(a => a.Name == alias.Name)) {
+                throw new UniqueConstraintViolationException($"There is already and alias with name = {alias.Name}");
+            }
             _context.AddAlias(alias);
             return await _context.SaveChangesAsync();
         }
