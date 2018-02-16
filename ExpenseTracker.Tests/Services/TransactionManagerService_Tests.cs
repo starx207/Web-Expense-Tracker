@@ -163,41 +163,13 @@ namespace ExpenseTracker.Services.Tests
             , $"No exception thrown for Id = {testID} and Transaction.ID = {transaction.ID}");
         }
 
-        [DataTestMethod]
-        [DataRow(true), DataRow(false)]
-        public void GetOrderedTransactions_orders_by_specified_property(bool descending) {
-            // Arrange
-            string property = nameof(Transaction.Amount);
-            var transactions = new List<Transaction> {
-                new Transaction { Amount = 20 },
-                new Transaction { Amount = 30 },
-                new Transaction { Amount = 10 }
-            }.AsQueryable();
-            int pos10 = descending ? 2 : 0;
-            int pos30 = descending ? 0 : 2;
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
-
+        [TestMethod]
+        public void GetTransactions_calls_repo_GetTransactions() {
             // Act
-            var result = testService.GetOrderedTransactions(property, descending).ToArray();
+            var result = testService.GetTransactions();
 
             // Assert
-            Assert.AreEqual(10, result[pos10].Amount, "Transaction not ordered correctly");
-            Assert.AreEqual(20, result[1].Amount, "Transaction not ordered correctly");
-            Assert.AreEqual(30, result[pos30].Amount, "Transaction not ordered correctly");
-        }
-
-        [TestMethod]
-        public void GetOrderedPayees_throws_ArgumentException_when_ordering_by_non_existant_property() {
-            // Arrange
-            string property = nameof(Transaction.Amount) + "FAKE";
-            var transactions = new List<Transaction>().AsQueryable();
-
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
-            
-            // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() =>
-                testService.GetOrderedTransactions(property)
-            , $"ArgumentException should be thrown when attempting to sort by Transaction.{property}");
+            mockRepo.Verify(m => m.GetTransactions(false, false), Times.Once());
         }
     }
 }

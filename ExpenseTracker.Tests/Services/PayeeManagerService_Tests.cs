@@ -92,7 +92,7 @@ namespace ExpenseTracker.Services.Tests
             var payee = new Payee { ID = 1 };
             var payees = new List<Payee> { payee }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
             mockRepo.InSequence(sequence).Setup(m => m.DeletePayee(It.IsAny<Payee>()));
             mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
@@ -108,7 +108,7 @@ namespace ExpenseTracker.Services.Tests
         public async Task RemovePayeeAsync_skips_delete_if_id_not_present() {
             // Arrange
             var payees = new List<Payee>().AsQueryable();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
             await testService.RemovePayeeAsync(20);
@@ -124,7 +124,7 @@ namespace ExpenseTracker.Services.Tests
             var payees = new List<Payee> {
                 new Payee { ID = 1 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
             var result = testService.PayeeExists(testId);
