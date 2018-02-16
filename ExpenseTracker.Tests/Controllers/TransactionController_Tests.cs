@@ -52,7 +52,7 @@ namespace ExpenseTracker.Controllers.Tests
                 var model = result.Model;
 
                 // Assert
-                mockService.Verify(m => m.GetOrderedTransactions(nameof(Transaction.Date), true, true), Times.Once());
+                mockService.Verify(m => m.GetTransactions(true, true), Times.Once());
                 Assert.AreSame(transactions, model);
             }  
         #endregion
@@ -130,14 +130,14 @@ namespace ExpenseTracker.Controllers.Tests
                     new BudgetCategory { ID = 2 },
                     new BudgetCategory { ID = 3 }
                 }.AsQueryable();
-                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                mockService.Setup(m => m.GetCategories()).Returns(categories);
 
                 var payees = new List<Payee> {
                     new Payee { ID = 1 },
                     new Payee { ID = 2 },
                     new Payee { ID = 3 }
                 }.AsQueryable();
-                mockService.Setup(m => m.GetOrderedPayees(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
                 // Act
                 var result = (ViewResult)controller.Create();
@@ -196,8 +196,8 @@ namespace ExpenseTracker.Controllers.Tests
                     OverrideCategoryID = 3,
                     PayeeID = 1
                 };
-                mockService.Setup(m => m.GetOrderedPayees(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
-                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetCategories()).Returns(categories);
                 controller.ModelState.AddModelError("test", "test");
                 
                 // Act
@@ -310,8 +310,8 @@ namespace ExpenseTracker.Controllers.Tests
                     OverrideCategoryID = 1,
                     PayeeID = 3
                 };
-                mockService.Setup(m => m.GetOrderedPayees(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
-                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetCategories()).Returns(categories);
                 mockService.Setup(m => m.GetSingleTransactionAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(transaction);
 
                 // Act
@@ -404,8 +404,8 @@ namespace ExpenseTracker.Controllers.Tests
                     OverrideCategoryID = 1,
                     PayeeID = 1
                 };
-                mockService.Setup(m => m.GetOrderedPayees(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
-                mockService.Setup(m => m.GetOrderedCategories(It.IsAny<string>(), It.IsAny<bool>())).Returns(categories);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetCategories()).Returns(categories);
                 controller.ModelState.AddModelError("test", "test");
 
                 // Act

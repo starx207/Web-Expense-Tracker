@@ -49,7 +49,7 @@ namespace ExpenseTracker.Controllers.Tests
                 var model = result.Model;
 
                 // Assert
-                mockService.Verify(m => m.GetOrderedCategories(nameof(BudgetCategory.Name), It.IsAny<bool>()), Times.Once());
+                mockService.Verify(m => m.GetCategories(), Times.Once());
                 Assert.AreSame(categories, model);
             }
         #endregion
