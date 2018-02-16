@@ -19,13 +19,16 @@ namespace ExpenseTracker.Repository
 
         #region Get Methods
             public IQueryable<BudgetCategory> GetCategories() => _context.BudgetCategories.AsQueryable();
-            public IQueryable<Payee> GetPayees(bool includeCategory = false, bool includeAliases = false) {
+            public IQueryable<Payee> GetPayees(bool includeCategory = false, bool includeAliases = false, bool includeTransactions = false) {
                 var payees = _context.Payees.AsQueryable();
                 if (includeCategory) {
                     payees = payees.Include(p => p.Category);
                 }
                 if (includeAliases) {
                     payees = payees.Include(p => p.Aliases);
+                }
+                if (includeTransactions) {
+                    payees = payees.Include(p => p.Transactions);
                 }
                 return payees;
             }
