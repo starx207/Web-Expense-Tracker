@@ -6,6 +6,7 @@ using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -14,12 +15,11 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ITransactionManagerService _service;
 
-        public TransactionController(IBudgetRepo repo) => _service = new TransactionManagerService(repo);
         public TransactionController(ITransactionManagerService service) => _service = service;
 
         // GET: Transaction
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _service.GetOrderedTransactions(orderBy: nameof(Transaction.Date), orderByDescending: true, includeAll: true).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetTransactions(true, true).OrderByDescending(t => t.Date).Extension().ToListAsync());
         }
 
         // GET: Transaction/Details/5
@@ -115,8 +115,8 @@ namespace ExpenseTracker.Controllers
         }
 
         private void PopulateSelectLists(int? selectedCategoryID = null, int? selectedPayeeID = null) {
-            ViewData["CategoryList"] = new SelectList(_service.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", selectedCategoryID);
-            ViewData["PayeeList"] = new SelectList(_service.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", selectedPayeeID);
+            ViewData["CategoryList"] = new SelectList(_service.GetCategories().OrderBy(c => c.Name), "ID", "Name", selectedCategoryID);
+            ViewData["PayeeList"] = new SelectList(_service.GetPayees().OrderBy(p => p.Name), "ID", "Name", selectedPayeeID);
         }
     }
 }

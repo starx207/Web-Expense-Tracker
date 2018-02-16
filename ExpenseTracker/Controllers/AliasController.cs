@@ -5,6 +5,7 @@ using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -14,7 +15,6 @@ namespace ExpenseTracker.Controllers
         private readonly IAliasManagerService _service;
         private readonly string payeeIndex = "Index";
 
-        public AliasController(IBudgetRepo repo) => _service = new AliasManagerService(repo);
         public AliasController(IAliasManagerService service) => _service = service;
 
         // GET: Alias/Create
@@ -96,7 +96,7 @@ namespace ExpenseTracker.Controllers
         }
 
         private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_service.GetOrderedPayees(nameof(Payee.Name)), "ID", "Name", idToSelect);
+            ViewData["PayeeList"] = new SelectList(_service.GetPayees().OrderBy(p => p.Name), "ID", "Name", idToSelect);
         }
     }
 }

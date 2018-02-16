@@ -6,6 +6,7 @@ using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -14,12 +15,11 @@ namespace ExpenseTracker.Controllers
     {
         private readonly IPayeeManagerService _service;
 
-        public PayeeController(IBudgetRepo repo) => _service = new PayeeManagerService(repo);
         public PayeeController(IPayeeManagerService service) => _service = service;
 
         // GET: Payee
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _service.GetOrderedPayees(orderBy: nameof(Payee.Name), includeAll: true).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetPayees(true, true).OrderBy(p => p.Name).Extension().ToListAsync());
         }
 
         // GET: Payee/Details/5
@@ -116,7 +116,7 @@ namespace ExpenseTracker.Controllers
         }
 
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_service.GetOrderedCategories(nameof(BudgetCategory.Name)), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_service.GetCategories().OrderBy(c => c.Name), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
     }
 }

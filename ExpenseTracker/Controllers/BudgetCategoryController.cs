@@ -5,6 +5,7 @@ using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
@@ -13,12 +14,11 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ICategoryManagerService _service;
 
-        public BudgetCategoryController(IBudgetRepo repo) => _service = new CategoryManagerService(repo);
         public BudgetCategoryController(ICategoryManagerService service) => _service = service;
 
         // GET: BudgetCategory
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _service.GetOrderedCategories(nameof(BudgetCategory.Name)).Extension().ToListAsync());
+            return View(nameof(Index), await _service.GetCategories().OrderBy(c => c.Name).Extension().ToListAsync());
         }
 
         // GET: BudgetCategory/Details/5
