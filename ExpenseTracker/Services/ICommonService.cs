@@ -5,7 +5,7 @@ namespace ExpenseTracker.Services
 {
     public interface ICommonService
     {
-        IQueryable<Payee> GetOrderedPayees(string orderBy, bool orderByDescending = false, bool includeAll = false);
-        IQueryable<BudgetCategory> GetOrderedCategories(string orderBy, bool orderByDescending = false);
+        IQueryable<Payee> GetPayees(bool includeCategory = false, bool includeAliases = false, bool includeTransaction = false);
+        IQueryable<BudgetCategory> GetCategories();
     }
 }

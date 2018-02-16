@@ -20,10 +20,8 @@ namespace ExpenseTracker.Services
             return _context.GetTransactions().Any(t => t.ID == id);
         }
 
-        public IQueryable<Transaction> GetOrderedTransactions(string orderBy, bool orderByDescending = false, bool includeAll = false) {
-            var transactions = _context.GetTransactions(includeAll, includeAll);
-
-            return SortQueryableByProperty(transactions, orderBy, orderByDescending);
+        public IQueryable<Transaction> GetTransactions(bool includeOverride = false, bool includePayee = false) {
+            return _context.GetTransactions(includePayee, includeOverride);
         }
 
         public async Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false) {

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ExpenseTracker.Services
 {
-    public class CommonService : SharedServiceFunctions, ICommonService
+    public class CommonService : ICommonService
     {
         private readonly IBudgetRepo _context;
 
@@ -12,13 +12,12 @@ namespace ExpenseTracker.Services
             _context = context;
         }
 
-        public IQueryable<BudgetCategory> GetOrderedCategories(string orderBy, bool orderByDescending = false) {
-            return SortQueryableByProperty(_context.GetCategories(), orderBy, orderByDescending);
+        public IQueryable<BudgetCategory> GetCategories() {
+            return _context.GetCategories();
         }
         
-        public IQueryable<Payee> GetOrderedPayees(string orderBy, bool orderByDescending = false, bool includeAll = false) {
-            var retVals = _context.GetPayees(includeAll, includeAll).AsQueryable();
-            return SortQueryableByProperty(retVals, orderBy, orderByDescending);
+        public IQueryable<Payee> GetPayees(bool includeCategory = false, bool includeAliases = false, bool includeTransactions = false) {
+            return _context.GetPayees(includeCategory, includeAliases, includeTransactions);
         }
     }
 }

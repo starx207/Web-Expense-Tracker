@@ -7,7 +7,7 @@ namespace ExpenseTracker.Services
 {
     public interface ITransactionManagerService : ICommonService
     {
-        IQueryable<Transaction> GetOrderedTransactions(string orderBy, bool orderByDescending = false, bool includeAll = false);
+        IQueryable<Transaction> GetTransactions(bool includeOverride = false, bool includePayee = false);
         Task<Transaction> GetSingleTransactionAsync(int? id, bool includeAll = false);
         Task<int> AddTransactionAsync(Transaction transaction);
         Task<int> UpdateTransactionAsync(int id, Transaction transaction);
