@@ -38,4 +38,13 @@ namespace ExpenseTracker.Exceptions
         public ConcurrencyException(string message, Exception inner) : base(message, inner) { }
         protected ConcurrencyException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
+
+    [Serializable]
+    public class UniqueConstraintViolationException : Exception
+    {
+        public UniqueConstraintViolationException() { }
+        public UniqueConstraintViolationException(string message) : base(message) { }
+        public UniqueConstraintViolationException(string message, Exception inner) : base(message, inner) { }
+        protected UniqueConstraintViolationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
 }
