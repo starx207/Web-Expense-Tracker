@@ -38,45 +38,45 @@ namespace ExpenseTracker.Tests
             Assert.IsNotNull(repo, "No repository is available through the service provider");
         }
 
-        // [TestMethod]
-        // public void AliasManagerService_is_injected_with_IBudgetRepo() {
-        //     // Act
-        //     var serviceProvider = services.BuildServiceProvider();
-        //     var service = serviceProvider.GetService<IAliasManagerService>();
+        [TestMethod]
+        public void AliasManagerService_is_injected_with_IBudgetRepo() {
+            // Act
+            var serviceProvider = services.BuildServiceProvider();
+            var service = serviceProvider.GetService<IAliasManagerService>();
 
-        //     // Assert
-        //     Assert.IsNotNull(service, "No AliasManagerService is available through the service provider");
-        // }
+            // Assert
+            Assert.IsNotNull(service, "No AliasManagerService is available through the service provider");
+        }
 
-        // [TestMethod]
-        // public void CategoryManagerService_is_injected_with_IBudgetRepo() {
-        //     // Act
-        //     var serviceProvider = services.BuildServiceProvider();
-        //     var service = serviceProvider.GetService<ICategoryManagerService>();
+        [TestMethod]
+        public void CategoryManagerService_is_injected_with_IBudgetRepo() {
+            // Act
+            var serviceProvider = services.BuildServiceProvider();
+            var service = serviceProvider.GetService<ICategoryManagerService>();
 
-        //     // Assert
-        //     Assert.IsNotNull(service, "No CategoryManagerService is available through the service provider");
-        // }
+            // Assert
+            Assert.IsNotNull(service, "No CategoryManagerService is available through the service provider");
+        }
 
-        // [TestMethod]
-        // public void PayeeManagerService_is_injected_with_IBudgetRepo() {
-        //     // Act
-        //     var serviceProvider = services.BuildServiceProvider();
-        //     var service = serviceProvider.GetService<IPayeeManagerService>();
+        [TestMethod]
+        public void PayeeManagerService_is_injected_with_IBudgetRepo() {
+            // Act
+            var serviceProvider = services.BuildServiceProvider();
+            var service = serviceProvider.GetService<IPayeeManagerService>();
 
-        //     // Assert
-        //     Assert.IsNotNull(service, "No PayeeManagerService is available through the service provider");
-        // }
+            // Assert
+            Assert.IsNotNull(service, "No PayeeManagerService is available through the service provider");
+        }
 
-        // [TestMethod]
-        // public void TransactionManagerService_is_injected_with_IBudgetRepo() {
-        //     // Act
-        //     var serviceProvider = services.BuildServiceProvider();
-        //     var service = serviceProvider.GetService<ITransactionManagerService>();
+        [TestMethod]
+        public void TransactionManagerService_is_injected_with_IBudgetRepo() {
+            // Act
+            var serviceProvider = services.BuildServiceProvider();
+            var service = serviceProvider.GetService<ITransactionManagerService>();
 
-        //     // Assert
-        //     Assert.IsNotNull(service, "No TransactionManagerService is available through the service provider");
-        // }
+            // Assert
+            Assert.IsNotNull(service, "No TransactionManagerService is available through the service provider");
+        }
 
         [TestMethod]
         public void AliasController_is_injected_with_IAliasManagerService() {
