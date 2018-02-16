@@ -73,7 +73,9 @@ namespace ExpenseTracker.Services.Tests
             // Arrange
             var testID = 1;
             var alias = new Alias { ID = testID };
+            var aliases = new List<Alias>().AsQueryable();
             var sequence = new MockSequence();
+            mockRepo.InSequence(sequence).Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
             mockRepo.InSequence(sequence).Setup(m => m.EditAlias(It.IsAny<Alias>()));
             mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
@@ -98,10 +100,26 @@ namespace ExpenseTracker.Services.Tests
         }
 
         [TestMethod]
+        public async Task UpdateAliasAsync_throw_UniqueConstraintViolationException_when_duplicate_name() {
+            // Arrange
+            var aliases = new List<Alias> {
+                new Alias { ID = 1, Name = "test" }
+            }.AsQueryable();
+            var alias = new Alias { ID = 2, Name = "test" };
+            mockRepo.Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+                testService.UpdateAliasAsync(2, alias) );
+        }
+
+        [TestMethod]
         public async Task AddAliasAsync_adds_alias_then_saves() {
             // Arrange
             var alias = new Alias { Name = "Test" };
+            var aliases = new List<Alias>().AsQueryable();
             var sequence = new MockSequence();
+            mockRepo.InSequence(sequence).Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
             mockRepo.InSequence(sequence).Setup(m => m.AddAlias(It.IsAny<Alias>()));
             mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
@@ -111,6 +129,20 @@ namespace ExpenseTracker.Services.Tests
             // Assert
             mockRepo.Verify(m => m.AddAlias(alias), Times.Once());
             mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+        }
+
+        [TestMethod]
+        public async Task AddAliasAsync_throw_UniqueConstraintViolationException_when_duplicate_name() {
+            // Arrange
+            var aliases = new List<Alias> {
+                new Alias { Name = "test" }
+            }.AsQueryable();
+            var alias = new Alias { Name = "test" };
+            mockRepo.Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+                testService.AddAliasAsync(alias) );
         }
 
         [TestMethod]
