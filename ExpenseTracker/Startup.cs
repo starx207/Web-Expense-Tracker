@@ -1,5 +1,6 @@
 ﻿using ExpenseTracker.Data;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,10 @@ namespace ExpenseTracker
             services.AddDbContext<BudgetContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IBudgetRepo, BudgetRepo>();
+            services.AddScoped<IAliasManagerService, AliasManagerService>();
+            services.AddScoped<ICategoryManagerService, CategoryManagerService>();
+            services.AddScoped<IPayeeManagerService, PayeeManagerService>();
+            services.AddScoped<ITransactionManagerService, TransactionManagerService>();
             services.AddMvc();
         }
 
