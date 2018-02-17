@@ -4,7 +4,16 @@ using System.Runtime.Serialization;
 namespace ExpenseTracker.Exceptions
 {
     [Serializable]
-    public class IdNotFoundException : Exception
+    public class ExpenseTrackerException : Exception
+    {
+        public ExpenseTrackerException() { }
+        public ExpenseTrackerException(string message) : base(message) { }
+        public ExpenseTrackerException(string message, Exception inner) : base(message, inner) { }
+        protected ExpenseTrackerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
+
+    [Serializable]
+    public class IdNotFoundException : ExpenseTrackerException
     {
         public IdNotFoundException() { }
         public IdNotFoundException(string message) : base(message) { }
@@ -13,7 +22,7 @@ namespace ExpenseTracker.Exceptions
     }
 
     [Serializable]
-    public class NullIdException : Exception
+    public class NullIdException : ExpenseTrackerException
     {
         public NullIdException() { }
         public NullIdException(string message) : base(message) { }
@@ -22,7 +31,7 @@ namespace ExpenseTracker.Exceptions
     }
 
     [Serializable]
-    public class IdMismatchException : Exception
+    public class IdMismatchException : ExpenseTrackerException
     {
         public IdMismatchException() { }
         public IdMismatchException(string message) : base(message) { }
@@ -31,7 +40,7 @@ namespace ExpenseTracker.Exceptions
     }
 
     [Serializable]
-    public class ConcurrencyException : Exception
+    public class ConcurrencyException : ExpenseTrackerException
     {
         public ConcurrencyException() { }
         public ConcurrencyException(string message) : base(message) { }
@@ -40,11 +49,20 @@ namespace ExpenseTracker.Exceptions
     }
 
     [Serializable]
-    public class UniqueConstraintViolationException : Exception
+    public class UniqueConstraintViolationException : ExpenseTrackerException
     {
         public UniqueConstraintViolationException() { }
         public UniqueConstraintViolationException(string message) : base(message) { }
         public UniqueConstraintViolationException(string message, Exception inner) : base(message, inner) { }
         protected UniqueConstraintViolationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
+
+    [Serializable]
+    public class InvalidDateExpection : ExpenseTrackerException
+    {
+        public InvalidDateExpection() { }
+        public InvalidDateExpection(string message) : base(message) { }
+        public InvalidDateExpection(string message, Exception inner) : base(message, inner) { }
+        protected InvalidDateExpection(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 }
