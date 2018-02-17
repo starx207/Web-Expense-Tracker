@@ -76,10 +76,10 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _service.UpdatePayeeAsync(id, payee);
                 } catch (ExpenseTrackerException ex) {
-                    if ((!(ex is ConcurrencyException)) || (!_service.PayeeExists(payee.ID))) {
-                        return NotFound();
+                    if (ex is ConcurrencyException && _service.PayeeExists(payee.ID)) {
+                        throw;
                     }
-                    throw;
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Index));
             }

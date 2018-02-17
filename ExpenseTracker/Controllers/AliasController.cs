@@ -66,10 +66,10 @@ namespace ExpenseTracker.Controllers
                 } catch (UniqueConstraintViolationException) {
                     ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
                 } catch (ExpenseTrackerException ex) {
-                    if ((!(ex is ConcurrencyException)) || (!_service.AliasExists(alias.ID))) {
-                        return NotFound();
+                    if (ex is ConcurrencyException && _service.AliasExists(alias.ID)) {
+                        throw;
                     }
-                    throw;
+                    return NotFound();
                 }
             }
             CreatePayeeSelectList(alias.PayeeID);

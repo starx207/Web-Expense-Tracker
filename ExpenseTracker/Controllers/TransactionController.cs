@@ -75,10 +75,10 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _service.UpdateTransactionAsync(id, transaction);
                 } catch (ExpenseTrackerException ex) {
-                    if ((!(ex is ConcurrencyException)) || (!_service.TransactionExists(transaction.ID))) {
-                        return NotFound();
+                    if (ex is ConcurrencyException && _service.TransactionExists(transaction.ID)) {
+                        throw;
                     }
-                    throw;
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Index));
             }
