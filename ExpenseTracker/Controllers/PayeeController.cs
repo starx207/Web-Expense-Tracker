@@ -28,11 +28,8 @@ namespace ExpenseTracker.Controllers
             Payee payee;
             try {
                 payee = await _service.GetSinglePayeeAsync(id, true);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             return View(nameof(Details), payee);
         }
@@ -62,11 +59,8 @@ namespace ExpenseTracker.Controllers
             Payee payee;
             try {
                 payee = await _service.GetSinglePayeeAsync(id);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             CreateCategorySelectList(payee);
             return View(nameof(Edit), payee);
@@ -81,8 +75,8 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdatePayeeAsync(id, payee);
-                } catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.PayeeExists(payee.ID)))) {
+                } catch (ExpenseTrackerException ex) {
+                    if ((!(ex is ConcurrencyException)) || (!_service.PayeeExists(payee.ID))) {
                         return NotFound();
                     }
                     throw;
@@ -98,11 +92,8 @@ namespace ExpenseTracker.Controllers
             Payee payee;
             try {
                 payee = await _service.GetSinglePayeeAsync(id, true);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             return View(nameof(Delete), payee);
         }

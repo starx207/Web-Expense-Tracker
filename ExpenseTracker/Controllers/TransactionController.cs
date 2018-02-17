@@ -27,11 +27,8 @@ namespace ExpenseTracker.Controllers
             Transaction transaction;
             try {
                 transaction = await _service.GetSingleTransactionAsync(id, true);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             return View(nameof(Details), transaction);
         }
@@ -61,11 +58,8 @@ namespace ExpenseTracker.Controllers
             Transaction transaction;
             try {
                 transaction = await _service.GetSingleTransactionAsync(id);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             PopulateSelectLists(transaction.OverrideCategoryID, transaction.PayeeID);
             return View(nameof(Edit), transaction);
@@ -80,8 +74,8 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateTransactionAsync(id, transaction);
-                } catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.TransactionExists(transaction.ID)))) {
+                } catch (ExpenseTrackerException ex) {
+                    if ((!(ex is ConcurrencyException)) || (!_service.TransactionExists(transaction.ID))) {
                         return NotFound();
                     }
                     throw;
@@ -97,11 +91,8 @@ namespace ExpenseTracker.Controllers
             Transaction transaction;
             try {
                 transaction = await _service.GetSingleTransactionAsync(id, true);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             return View(nameof(Delete), transaction);
         }
