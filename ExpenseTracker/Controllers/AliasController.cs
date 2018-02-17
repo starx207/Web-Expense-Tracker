@@ -30,8 +30,12 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,PayeeID")] Alias alias) {
             if (ModelState.IsValid) {
-                await _service.AddAliasAsync(alias);
-                return RedirectToAction(payeeIndex, nameof(Payee));
+                try {
+                    await _service.AddAliasAsync(alias);
+                    return RedirectToAction(payeeIndex, nameof(Payee));
+                } catch (UniqueConstraintViolationException) {
+                    ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
+                }
             }
             CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Create), alias);
@@ -61,13 +65,16 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateAliasAsync(id, alias);
+                    return RedirectToAction(payeeIndex, nameof(Payee));
                 } catch (Exception ex) {
                     if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.AliasExists(alias.ID)))) {
                         return NotFound();
+                    } else if (ex is UniqueConstraintViolationException) {
+                        ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
+                    } else {
+                        throw;
                     }
-                    throw;
                 }
-                return RedirectToAction(payeeIndex, nameof(Payee));
             }
             CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Edit), alias);
