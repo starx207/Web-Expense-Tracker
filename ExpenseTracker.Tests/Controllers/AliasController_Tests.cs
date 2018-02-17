@@ -102,6 +102,24 @@ namespace ExpenseTracker.Controllers.Tests
                 // Assert
                 AssertThatViewDataIsSelectList(result.ViewData, payeeListKey, payees.Select(p => p.ID.ToString()), alias.PayeeID.ToString());
             }
+
+            [TestMethod]
+            public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+                // Arrange
+                var alias = new Alias { Name = "test" };
+                mockService.Setup(m => m.AddAliasAsync(It.IsAny<Alias>())).ThrowsAsync(new UniqueConstraintViolationException());
+
+                // Act
+                var result = await controller.Create(alias);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Alias;
+
+                // Assert
+                Assert.AreEqual(1, controller.ModelState.ErrorCount);
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+                Assert.AreSame(alias, model);
+            }
         #endregion
 
         #region "Delete Method Tests"
@@ -342,6 +360,24 @@ namespace ExpenseTracker.Controllers.Tests
 
                 // Assert
                 AssertThatViewDataIsSelectList(result.ViewData, payeeListKey, payees.Select(p => p.ID.ToString()), alias.PayeeID.ToString());
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+                // Arrange
+                var alias = new Alias { Name = "test" };
+                mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new UniqueConstraintViolationException());
+
+                // Act
+                var result = await controller.Edit(1, alias);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Alias;
+
+                // Assert
+                Assert.AreEqual(1, controller.ModelState.ErrorCount);
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Edit", viewResult.ViewName);
+                Assert.AreSame(alias, model);
             }
         #endregion
     }
