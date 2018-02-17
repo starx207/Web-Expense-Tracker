@@ -142,9 +142,9 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Delete_GET_returns_NotFound_if_NullIdException_thrown() {
+            public async Task Delete_GET_returns_NotFound_if_ExpenseTrackerException_thrown() {
                 // Arrange
-                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new NullIdException());
+                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
 
                 // Act
                 var result = await controller.Delete(null);
@@ -154,19 +154,7 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Delete_GET_returns_NotFound_if_IdNotFoundException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new IdNotFoundException());
-
-                // Act
-                var result = await controller.Delete(1);
-
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
-
-            [TestMethod]
-            public async Task Delete_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+            public async Task Delete_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
                 // Arrange
                 mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
@@ -227,9 +215,9 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Edit_GET_returns_NotFound_when_NullIdException_thrown() {
+            public async Task Edit_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
                 // Arrange
-                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new NullIdException());
+                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
 
                 // Act
                 var result = await controller.Edit(null);
@@ -239,19 +227,7 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Edit_GET_returns_NotFound_when_IdNotFoundException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new IdNotFoundException());
-
-                // Act
-                var result = await controller.Edit(1);
-
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
-
-            [TestMethod]
-            public async Task Edit_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+            public async Task Edit_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
                 // Arrange
                 mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
