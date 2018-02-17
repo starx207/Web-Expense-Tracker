@@ -74,8 +74,10 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory,
+            DateTime? EffectiveFrom)
         {
+            var effectiveDate = (DateTime)(EffectiveFrom ?? DateTime.Now);
             throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
             // if (id != budgetCategory.ID)
             // {
