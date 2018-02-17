@@ -46,11 +46,8 @@ namespace ExpenseTracker.Controllers
             Alias alias;
             try {
                 alias = await _service.GetSingleAliasAsync(id);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Edit), alias);
@@ -66,14 +63,13 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _service.UpdateAliasAsync(id, alias);
                     return RedirectToAction(payeeIndex, nameof(Payee));
-                } catch (Exception ex) {
-                    if (ex is IdMismatchException || (ex is ConcurrencyException && (!_service.AliasExists(alias.ID)))) {
+                } catch (UniqueConstraintViolationException) {
+                    ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
+                } catch (ExpenseTrackerException ex) {
+                    if ((!(ex is ConcurrencyException)) || (!_service.AliasExists(alias.ID))) {
                         return NotFound();
-                    } else if (ex is UniqueConstraintViolationException) {
-                        ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
-                    } else {
-                        throw;
                     }
+                    throw;
                 }
             }
             CreatePayeeSelectList(alias.PayeeID);
@@ -85,11 +81,8 @@ namespace ExpenseTracker.Controllers
             Alias alias;
             try {
                 alias = await _service.GetSingleAliasAsync(id, true);
-            } catch (Exception ex) {
-                if (ex is NullIdException || ex is IdNotFoundException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             return View(nameof(Delete), alias);
         }
