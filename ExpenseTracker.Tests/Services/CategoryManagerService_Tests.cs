@@ -4,6 +4,7 @@ using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace ExpenseTracker.Services.Tests
             switch (TestContext.TestName) {
                 case nameof(AddCategoryAsync_adds_category_then_saves):
                 case nameof(RemoveCategoryAsync_removes_category_then_saves):
+                case nameof(UpdateCategoryAsync_edits_category_then_saves):
                     mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
                     break;
                 default:
@@ -148,6 +150,142 @@ namespace ExpenseTracker.Services.Tests
 
             // Assert
             Assert.AreEqual(expectedResult, result);
+        }
+
+        [TestMethod]
+        public async Task UpdateCategoryAsync_edits_category_then_saves() {
+            // Arrange
+            var testID = 1;
+            var category = new BudgetCategory { ID = testID };
+            var sequence = new MockSequence();
+            mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
+            mockRepo.InSequence(sequence).Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()));
+            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+
+            // Act
+            await testService.UpdateCategoryAsync(testID, category, DateTime.Now);
+
+            // Assert
+            mockRepo.Verify(m => m.EditBudgetCategory(category), Times.Once());
+            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+        }
+        [TestMethod]
+        public async Task UpdateCategoryAsync_sets_Begin_and_End_EffectiveDates() {
+            // Arrange
+            var categoryToEdit = new BudgetCategory {
+                ID = 1,
+                BeginEffectiveDate = DateTime.Today.AddDays(-5),
+                EndEffectiveDate = DateTime.Today.AddDays(-2)
+            };
+            var effectiveDate = DateTime.Today;
+            var result = new BudgetCategory();
+            mockRepo.Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()))
+                .Callback<BudgetCategory>(c => result = c);
+
+            // Act
+            await testService.UpdateCategoryAsync(1, categoryToEdit, effectiveDate);
+
+            // Assert
+            Assert.AreEqual(effectiveDate, result.BeginEffectiveDate, "BeginEffectiveDate not set correctly");
+            Assert.IsNull(result.EndEffectiveDate, "EndEffectiveDate should be null");
+        }
+
+        [TestMethod]
+        public async Task UpdateCategoryAsync_correctly_splits_BudgetCategory_based_on_date() {
+            // Arrange
+            var categoryName = "Split Category";
+            var testCategories = new List<BudgetCategory> {
+                new BudgetCategory {
+                    ID = 1,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2001")
+                },
+                new BudgetCategory {
+                    ID = 2,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2017")
+                },
+                new BudgetCategory {
+                    ID = 3,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+                    EndEffectiveDate = null
+                }
+            }.AsQueryable();
+            var categoryToEdit = testCategories.Single(c => c.ID == 3);
+            var effectiveDate = DateTime.Parse("11/1/2016");
+            var testPayees = new List<Payee> {
+                new Payee {
+                    ID = 1,
+                    Name = "Unchanged Payee",
+                    BudgetCategoryID = 2,
+                    BeginEffectiveDate = DateTime.Parse("10/1/2016")
+                },
+                new Payee {
+                    ID = 2,
+                    Name = "Changed Payee",
+                    BudgetCategoryID = 2,
+                    BeginEffectiveDate = DateTime.Parse("11/5/2016")
+                }
+            }.AsQueryable();
+            var testTransactions = new List<Transaction> {
+                new Transaction {
+                    ID = 1,
+                    Amount = 100,
+                    Date = DateTime.Parse("10/31/2016"),
+                    OverrideCategoryID = 2
+                },
+                new Transaction {
+                    ID = 2,
+                    Amount = 200,
+                    Date = DateTime.Parse("11/25/2016"),
+                    OverrideCategoryID = 2
+                }
+            }.AsQueryable();
+            var splitCategory = new BudgetCategory();
+            var reassignedPayees = new List<Payee>();
+            var reassignedTransactions = new List<Transaction>();
+            mockRepo.Setup(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == 2)))
+                .Callback<BudgetCategory>(c => splitCategory = c);
+            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()))
+                .Callback<Payee>(p => reassignedPayees.Add(p));
+            mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()))
+                .Callback<Transaction>(t => reassignedTransactions.Add(t));
+
+            // Act
+            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+
+            // Assert
+            // TODO: add assertions
+            // TODO: split this into 3 tests. 1 for splitting the category,
+            //       1 for reassigning the payees, 1 for reassigning the transactions
+        }
+
+        [TestMethod]
+        public async Task UpdateCategoryAsync_throws_IdMismatchException_when_id_doesnt_match_CategoryID() {
+            // Arrange
+            var testID = 1;
+            var category = new BudgetCategory { ID = testID + 1 };
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
+                testService.UpdateCategoryAsync(testID, category, DateTime.Now)
+            , $"No exception thrown for Id = {testID} and BudgetCategory.ID = {category.ID}");
+        }
+
+        [TestMethod]
+        public async Task UpdateCategoryAsync_throws_InvalidDateException_when_effectiveDateFrom_is_future_date() {
+            // Arrange
+            var testID = 1;
+            var category = new BudgetCategory { ID = testID };
+            var futureDate = new DateTime(DateTime.Today.Year + 1, 1, 1);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
+                testService.UpdateCategoryAsync(testID, category, futureDate)
+            , $"No exception thrown for effective date = '{futureDate.ToString()}'");
         }
     }
 }
