@@ -66,6 +66,7 @@ namespace ExpenseTracker.Controllers
                 }
                 throw;
             }
+            SetEffectiveFromViewBag();
             return View(nameof(Edit) ,budgetCategory);
         }
 
@@ -78,7 +79,20 @@ namespace ExpenseTracker.Controllers
             DateTime? EffectiveFrom)
         {
             var effectiveDate = (DateTime)(EffectiveFrom ?? DateTime.Now);
-            throw new NotImplementedException("There is not yet a method for updating a BudgetCategory");
+            string effectiveDateError = "";
+            if (ModelState.IsValid) {
+                try {
+                    await _service.UpdateCategoryAsync(id, budgetCategory, effectiveDate);
+                } catch (ExpenseTrackerException ex) {
+                    if (ex is ConcurrencyException && (_service.CategoryExists(budgetCategory.ID))) {
+                        throw;
+                    }
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            SetEffectiveFromViewBag(effectiveDateError);
+            return View(nameof(Edit), budgetCategory);
             // if (id != budgetCategory.ID)
             // {
             //     return NotFound();
@@ -130,6 +144,10 @@ namespace ExpenseTracker.Controllers
         {
             await _service.RemoveCategoryAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        private void SetEffectiveFromViewBag(string message = "") {
+            @ViewBag.EffectiveFromError = message;
         }
     }
 }
