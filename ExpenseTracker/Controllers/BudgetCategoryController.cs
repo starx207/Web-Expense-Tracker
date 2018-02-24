@@ -60,11 +60,8 @@ namespace ExpenseTracker.Controllers
             BudgetCategory budgetCategory;
             try {
                 budgetCategory = await _service.GetSingleCategoryAsync(id);
-            } catch (Exception ex) {
-                if (ex is IdNotFoundException || ex is NullIdException) {
-                    return NotFound();
-                }
-                throw;
+            } catch (ExpenseTrackerException) {
+                return NotFound();
             }
             SetEffectiveFromViewBag();
             return View(nameof(Edit) ,budgetCategory);
@@ -78,11 +75,10 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory,
             DateTime? EffectiveFrom)
         {
-            var effectiveDate = (DateTime)(EffectiveFrom ?? DateTime.Now);
             string effectiveDateError = "";
             if (ModelState.IsValid) {
                 try {
-                    await _service.UpdateCategoryAsync(id, budgetCategory, effectiveDate);
+                    await _service.UpdateCategoryAsync(id, budgetCategory, EffectiveFrom);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
                     effectiveDateError = dteex.Message;

@@ -247,9 +247,9 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Edit_GET_returns_NotFound_when_IdNotFoundException_thrown() {
+            public async Task Edit_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
                 // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
+                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new ExpenseTrackerException());
 
                 // Act
                 var result = await controller.Edit(1);
@@ -259,19 +259,7 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Edit_GET_returns_NotFound_when_NullIdException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
-
-                // Act
-                var result = await controller.Edit(null);
-
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
-
-            [TestMethod]
-            public async Task Edit_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+            public async Task Edit_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
                 // Arrange
                 mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
 
