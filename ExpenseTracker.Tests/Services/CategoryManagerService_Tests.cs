@@ -216,41 +216,128 @@ namespace ExpenseTracker.Services.Tests
             }.AsQueryable();
             var categoryToEdit = testCategories.Single(c => c.ID == 3);
             var effectiveDate = DateTime.Parse("11/1/2016");
+            var splitCategory = new BudgetCategory();
+            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+            mockRepo.Setup(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == 2)))
+                .Callback<BudgetCategory>(c => splitCategory = c);
+
+            // Act
+            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+            // Assert
+            Assert.AreEqual(DateTime.Parse("10/31/2016"), splitCategory.EndEffectiveDate, "End Effective Date not set correctly");
+        }
+        
+        [TestMethod]
+        public async Task UpdateCategoryAsync_correctly_reassigns_payees() {
+            // Arrange
+            var categoryName = "Split Category";
+            var testCategories = new List<BudgetCategory> {
+                new BudgetCategory {
+                    ID = 1,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2001")
+                },
+                new BudgetCategory {
+                    ID = 2,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2017")
+                },
+                new BudgetCategory {
+                    ID = 3,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+                    EndEffectiveDate = null
+                }
+            }.AsQueryable();
+            var categoryToEdit = testCategories.Single(c => c.ID == 3);
+            var effectiveDate = DateTime.Parse("5/1/2000");
             var testPayees = new List<Payee> {
                 new Payee {
                     ID = 1,
                     Name = "Unchanged Payee",
-                    BudgetCategoryID = 2,
-                    BeginEffectiveDate = DateTime.Parse("10/1/2016")
+                    BudgetCategoryID = 1,
+                    BeginEffectiveDate = DateTime.Parse("3/1/2000")
                 },
                 new Payee {
                     ID = 2,
-                    Name = "Changed Payee",
+                    Name = "Changed Payee 1",
+                    BudgetCategoryID = 1,
+                    BeginEffectiveDate = DateTime.Parse("12/1/2000")
+                },
+                new Payee {
+                    ID = 3,
+                    Name = "Changed Payee 2",
                     BudgetCategoryID = 2,
                     BeginEffectiveDate = DateTime.Parse("11/5/2016")
                 }
             }.AsQueryable();
+            var reassignedPayees = new List<Payee>();
+            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(testPayees);
+            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()))
+                .Callback<Payee>(p => reassignedPayees.Add(p));
+
+            // Act
+            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+
+            // Assert
+            Assert.AreEqual(2, reassignedPayees.Count);
+            foreach (var payee in reassignedPayees) {
+                Assert.AreEqual(3, payee.BudgetCategoryID);
+            }
+        }
+
+        [TestMethod]
+        public async Task UpdateCategoryAsync_correctly_reassigns_transactions() {
+            // Arrange
+            var categoryName = "Split Category";
+            var testCategories = new List<BudgetCategory> {
+                new BudgetCategory {
+                    ID = 1,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2001")
+                },
+                new BudgetCategory {
+                    ID = 2,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+                    EndEffectiveDate = DateTime.Parse("1/1/2017")
+                },
+                new BudgetCategory {
+                    ID = 3,
+                    Name = categoryName,
+                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+                    EndEffectiveDate = null
+                }
+            }.AsQueryable();
+            var categoryToEdit = testCategories.Single(c => c.ID == 3);
+            var effectiveDate = DateTime.Parse("12/1/2000");
             var testTransactions = new List<Transaction> {
                 new Transaction {
                     ID = 1,
                     Amount = 100,
-                    Date = DateTime.Parse("10/31/2016"),
-                    OverrideCategoryID = 2
+                    Date = DateTime.Parse("10/31/2000"),
+                    OverrideCategoryID = 1
                 },
                 new Transaction {
                     ID = 2,
                     Amount = 200,
-                    Date = DateTime.Parse("11/25/2016"),
+                    Date = DateTime.Parse("12/25/2000"),
+                    OverrideCategoryID = 1
+                },
+                new Transaction {
+                    ID = 3,
+                    Amount = 300,
+                    Date = DateTime.Parse("12/25/2010"),
                     OverrideCategoryID = 2
                 }
             }.AsQueryable();
-            var splitCategory = new BudgetCategory();
-            var reassignedPayees = new List<Payee>();
             var reassignedTransactions = new List<Transaction>();
-            mockRepo.Setup(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == 2)))
-                .Callback<BudgetCategory>(c => splitCategory = c);
-            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()))
-                .Callback<Payee>(p => reassignedPayees.Add(p));
+            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(testTransactions);
             mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()))
                 .Callback<Transaction>(t => reassignedTransactions.Add(t));
 
@@ -258,9 +345,10 @@ namespace ExpenseTracker.Services.Tests
             await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
 
             // Assert
-            // TODO: add assertions
-            // TODO: split this into 3 tests. 1 for splitting the category,
-            //       1 for reassigning the payees, 1 for reassigning the transactions
+            Assert.AreEqual(2, reassignedTransactions.Count);
+            foreach (var tran in reassignedTransactions) {
+                Assert.AreEqual(3, tran.OverrideCategoryID);
+            }
         }
 
         [TestMethod]
