@@ -266,6 +266,92 @@ namespace ExpenseTracker.Controllers.Tests
                 // Act & Assert
                 await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1));
             }
+
+            [TestMethod]
+            public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
+                // Arrange
+                var category = new BudgetCategory();
+
+                // Act
+                var result = await controller.Edit(1, category, null);
+                var redirectResult = result as RedirectToActionResult;
+
+                // Assert
+                mockService.Verify(m => m.UpdateCategoryAsync(1, category, null), Times.Once());
+                Assert.IsNotNull(redirectResult);
+                Assert.AreEqual("Index", redirectResult.ActionName);
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_returns_to_view_for_invalid_model_state() {
+                // Arrange
+                var category = new BudgetCategory();
+                controller.ModelState.AddModelError("test", "test");
+
+                // Act
+                var result = await controller.Edit(1, category, null);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as BudgetCategory;
+
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Edit", viewResult.ViewName);
+                Assert.AreSame(category, model);
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
+                // Arrange
+                var category = new BudgetCategory();
+                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>(), It.IsAny<DateTime?>())).ThrowsAsync(new ExpenseTrackerException());
+
+                // Act
+                var result = await controller.Edit(1, category, null);
+
+                // Assert
+                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
+                // Arrange
+                var category = new BudgetCategory();
+                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>(), It.IsAny<DateTime?>())).ThrowsAsync(new ConcurrencyException());
+                mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
+
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => controller.Edit(1, category, null));
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
+                // Arrange
+                var category = new BudgetCategory();
+                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>(), It.IsAny<DateTime?>())).ThrowsAsync(new Exception());
+
+                // Act & Assert
+                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1, category, null));
+            }
+
+            [TestMethod]
+            public async Task Edit_POST_returns_to_Edit_and_sets_ViewBag_Error_when_InvalidDateException_thrown() {
+                // Arrange
+                string testMessage = "ViewBag Message";
+                var category = new BudgetCategory();
+                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>(), It.IsAny<DateTime?>()))
+                    .ThrowsAsync(new InvalidDateExpection(testMessage));
+
+                // Act
+                var result = await controller.Edit(1, category, null);
+                var viewResult = result as ViewResult;
+                var viewBag = viewResult.ViewData["EffectiveFromError"] as string;
+
+                // Assert
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Edit", viewResult.ViewName);
+                Assert.IsNotNull(viewBag);
+                Assert.AreEqual(testMessage, viewBag);
+            }
         #endregion
     }
 }
