@@ -83,42 +83,18 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateCategoryAsync(id, budgetCategory, effectiveDate);
+                    return RedirectToAction(nameof(Index));
+                } catch (InvalidDateExpection dteex) {
+                    effectiveDateError = dteex.Message;
                 } catch (ExpenseTrackerException ex) {
                     if (ex is ConcurrencyException && (_service.CategoryExists(budgetCategory.ID))) {
                         throw;
                     }
                     return NotFound();
                 }
-                return RedirectToAction(nameof(Index));
             }
             SetEffectiveFromViewBag(effectiveDateError);
             return View(nameof(Edit), budgetCategory);
-            // if (id != budgetCategory.ID)
-            // {
-            //     return NotFound();
-            // }
-
-            // if (ModelState.IsValid)
-            // {
-            //     try
-            //     {
-            //         _context.UpdateBudgetCategory(budgetCategory);
-            //         await _context.SaveChangesAsync();
-            //     }
-            //     catch (DbUpdateConcurrencyException)
-            //     {
-            //         if (!BudgetCategoryExists(budgetCategory.ID))
-            //         {
-            //             return NotFound();
-            //         }
-            //         else
-            //         {
-            //             throw;
-            //         }
-            //     }
-            //     return RedirectToAction(nameof(Index));
-            // }
-            // return View(nameof(Edit), budgetCategory);
         }
 
         // GET: BudgetCategory/Delete/5
