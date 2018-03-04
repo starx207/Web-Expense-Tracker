@@ -48,8 +48,13 @@ namespace ExpenseTracker.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _service.AddCategoryAsync(budgetCategory);
-                return RedirectToAction(nameof(Index));
+                try {
+                    await _service.AddCategoryAsync(budgetCategory);
+                    return RedirectToAction(nameof(Index));
+                } catch (UniqueConstraintViolationException) {
+                    ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Budget Category");
+                }
+                
             }
             return View(nameof(Create), budgetCategory);
         }

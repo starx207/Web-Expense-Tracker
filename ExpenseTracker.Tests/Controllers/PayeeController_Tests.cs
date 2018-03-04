@@ -176,6 +176,24 @@ namespace ExpenseTracker.Controllers.Tests
                 // Assert
                 AssertThatViewDataIsSelectList(result.ViewData, categorySelectListKey, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
             }
+
+            [TestMethod]
+            public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+                // Arrange
+                var payee = new Payee { Name = "test" };
+                mockService.Setup(m => m.AddPayeeAsync(It.IsAny<Payee>())).ThrowsAsync(new UniqueConstraintViolationException());
+
+                // Act
+                var result = await controller.Create(payee);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as Payee;
+
+                // Assert
+                Assert.AreEqual(1, controller.ModelState.ErrorCount);
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+                Assert.AreSame(payee, model);
+            }
         #endregion
 
         #region "Delete Method Tests"

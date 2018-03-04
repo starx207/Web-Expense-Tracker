@@ -75,6 +75,7 @@ namespace ExpenseTracker.Services.Tests
             // Arrange
             var payee = new Payee { Name = "Test" };
             var sequence = new MockSequence();
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Payee>().AsQueryable());
             mockRepo.InSequence(sequence).Setup(m => m.AddPayee(It.IsAny<Payee>()));
             mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
@@ -84,6 +85,20 @@ namespace ExpenseTracker.Services.Tests
             // Assert
             mockRepo.Verify(m => m.AddPayee(payee), Times.Once());
             mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+        }
+
+        [TestMethod]
+        public async Task AddPayeeAsync_throw_UniqueConstraintViolationException_when_duplicate_name() {
+            // Arrange
+            var payees = new List<Payee> {
+                new Payee { Name = "test" }
+            }.AsQueryable();
+            var payee = new Payee { Name = "test" };
+            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+                testService.AddPayeeAsync(payee) );
         }
 
         [TestMethod]

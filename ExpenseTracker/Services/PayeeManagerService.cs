@@ -31,6 +31,9 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddPayeeAsync(Payee payee) {
+            if (_context.GetPayees().Any(p => p.Name == payee.Name)) {
+                throw new UniqueConstraintViolationException($"There is already a payee with Name = {payee.Name}");
+            }
             _context.AddPayee(payee);
             return await _context.SaveChangesAsync();
         }

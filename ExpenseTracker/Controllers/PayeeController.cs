@@ -47,8 +47,12 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
-                await _service.AddPayeeAsync(payee);
-                return RedirectToAction(nameof(Index));
+                try {
+                    await _service.AddPayeeAsync(payee);
+                    return RedirectToAction(nameof(Index));
+                } catch (UniqueConstraintViolationException) {
+                    ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Payee");
+                }
             }
             CreateCategorySelectList(payee);
             return View(nameof(Create), payee);

@@ -94,6 +94,7 @@ namespace ExpenseTracker.Services.Tests
             // Arrange
             var category = new BudgetCategory { Name = "Test" };
             var sequence = new MockSequence();
+            mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
             mockRepo.InSequence(sequence).Setup(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()));
             mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
@@ -103,6 +104,20 @@ namespace ExpenseTracker.Services.Tests
             // Assert
             mockRepo.Verify(m => m.AddBudgetCategory(category), Times.Once());
             mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+        }
+
+        [TestMethod]
+        public async Task AddCategoryAsync_throw_UniqueConstraintViolationException_when_duplicate_name() {
+            // Arrange
+            var categories = new List<BudgetCategory> {
+                new BudgetCategory { Name = "test" }
+            }.AsQueryable();
+            var category = new BudgetCategory { Name = "test" };
+            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+                testService.AddCategoryAsync(category) );
         }
 
         [TestMethod]

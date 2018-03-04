@@ -79,6 +79,9 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddCategoryAsync(BudgetCategory category) {
+            if (_context.GetCategories().Any(c => c.Name == category.Name)) {
+                throw new UniqueConstraintViolationException($"There is already a Budget Category with Name = {category.Name}");
+            }
             _context.AddBudgetCategory(category);
             return await _context.SaveChangesAsync();
         }

@@ -161,6 +161,24 @@ namespace ExpenseTracker.Controllers.Tests
                 Assert.AreEqual("Create", viewResult.ViewName);
                 Assert.AreSame(category, model);
             }
+
+            [TestMethod]
+            public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+                // Arrange
+                var category = new BudgetCategory { Name = "test" };
+                mockService.Setup(m => m.AddCategoryAsync(It.IsAny<BudgetCategory>())).ThrowsAsync(new UniqueConstraintViolationException());
+
+                // Act
+                var result = await controller.Create(category);
+                var viewResult = result as ViewResult;
+                var model = viewResult.Model as BudgetCategory;
+
+                // Assert
+                Assert.AreEqual(1, controller.ModelState.ErrorCount);
+                Assert.IsNotNull(viewResult);
+                Assert.AreEqual("Create", viewResult.ViewName);
+                Assert.AreSame(category, model);
+            }
         #endregion    
 
         #region "Delete Method Tests"
