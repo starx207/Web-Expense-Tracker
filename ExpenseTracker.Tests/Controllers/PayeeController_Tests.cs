@@ -51,7 +51,7 @@ namespace ExpenseTracker.Controllers.Tests
                 var model = result.Model;
 
                 // Assert
-                mockService.Verify(m => m.GetPayees(true, true, false), Times.Once());
+                mockService.Verify(m => m.GetPayees(true, true, false, true), Times.Once());
                 Assert.AreSame(payees, model);
             }  
         #endregion
@@ -117,7 +117,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new BudgetCategory { ID = 2 },
                     new BudgetCategory { ID = 3 }
                 }.AsQueryable();
-                mockService.Setup(m => m.GetCategories()).Returns(categories);
+                mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
 
                 // Act
                 var result = (ViewResult)controller.Create();
@@ -167,7 +167,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new BudgetCategory { ID = 3 }
                 }.AsQueryable();
                 var payee = new Payee { BudgetCategoryID = 3 };
-                mockService.Setup(m => m.GetCategories()).Returns(categories);
+                mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
                 controller.ModelState.AddModelError("test", "test");
                 
                 // Act
@@ -277,7 +277,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new BudgetCategory { ID = 3 }
                 }.AsQueryable();
                 var payee = new Payee { BudgetCategoryID = 1 };
-                mockService.Setup(m => m.GetCategories()).Returns(categories);
+                mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
                 mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
 
                 // Act
@@ -349,7 +349,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new BudgetCategory { ID = 3 }
                 }.AsQueryable();
                 var payee = new Payee { BudgetCategoryID = 1 };
-                mockService.Setup(m => m.GetCategories()).Returns(categories);
+                mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
                 controller.ModelState.AddModelError("test", "test");
 
                 // Act

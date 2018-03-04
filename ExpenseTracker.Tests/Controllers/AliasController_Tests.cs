@@ -45,7 +45,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new Payee { ID = 2 }
                 }.AsQueryable();
                 int testID = 1;
-                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()))
                     .Returns(payees);
                 
                 // Act
@@ -92,7 +92,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new Payee { ID = 1 },
                     new Payee { ID = 2 }
                 }.AsQueryable();
-                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
                 var alias = new Alias { PayeeID = 1 };
                 controller.ModelState.AddModelError("test", "test");
 
@@ -204,7 +204,7 @@ namespace ExpenseTracker.Controllers.Tests
                     new Payee { ID = 3 }
                 }.AsQueryable();
                 var alias = new Alias { PayeeID = 2 };
-                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
                 mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(alias);
 
                 // Act
@@ -329,7 +329,7 @@ namespace ExpenseTracker.Controllers.Tests
                 }.AsQueryable();
                 var alias = new Alias { PayeeID = 3 };
                 controller.ModelState.AddModelError("test", "test");
-                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+                mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
                 // Act
                 var result = (ViewResult)(await controller.Edit(1, alias));
