@@ -4,8 +4,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ExpenseTracker.Models
 {
-    public class Payee : DbCommon
+    public class Payee
     {
+        [Key]
+        public int ID { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Effective From")]
+        public DateTime EffectiveFrom { get; set; }
+
         [StringLength(50)]
         [Required]
         public string Name { get; set; }

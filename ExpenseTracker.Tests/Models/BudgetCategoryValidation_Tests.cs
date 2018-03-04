@@ -18,8 +18,7 @@ namespace ExpenseTracker.Tests.Models
                 Name = "Valid category name",
                 Amount = 200,
                 Type = BudgetType.Income,
-                BeginEffectiveDate = new DateTime(2017, 12, 12),
-                EndEffectiveDate = new DateTime(2017, 12, 30)
+                EffectiveFrom = new DateTime(2017, 12, 12)
             };
         }
 

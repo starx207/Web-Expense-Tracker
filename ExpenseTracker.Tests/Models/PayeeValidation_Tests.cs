@@ -16,8 +16,7 @@ namespace ExpenseTracker.Tests.Models
             _model = new Payee {
                 ID = 1,
                 Name = "Valid payee name",
-                BeginEffectiveDate = new DateTime(2017, 12, 12),
-                EndEffectiveDate = new DateTime(2017, 12, 30)
+                EffectiveFrom = new DateTime(2017, 12, 12)
             };
         }
 

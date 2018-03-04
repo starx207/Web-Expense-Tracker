@@ -8,8 +8,16 @@ namespace ExpenseTracker.Models
         Income, Expense
     }
 
-    public class BudgetCategory : DbCommon
+    public class BudgetCategory
     {
+        [Key]
+        public int ID { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Effective From")]
+        public DateTime EffectiveFrom { get; set; }
+        
         [Required]
         [StringLength(100)]
         public string Name { get; set; }

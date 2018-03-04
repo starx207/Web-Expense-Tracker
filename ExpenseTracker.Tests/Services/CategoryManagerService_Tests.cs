@@ -184,187 +184,188 @@ namespace ExpenseTracker.Services.Tests
             mockRepo.Verify(m => m.EditBudgetCategory(category), Times.Once());
             mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
-        [TestMethod]
-        public async Task UpdateCategoryAsync_sets_Begin_and_End_EffectiveDates() {
-            // Arrange
-            var categoryToEdit = new BudgetCategory {
-                ID = 1,
-                BeginEffectiveDate = DateTime.Today.AddDays(-5),
-                EndEffectiveDate = DateTime.Today.AddDays(-2)
-            };
-            var effectiveDate = DateTime.Today;
-            var result = new BudgetCategory();
-            mockRepo.Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()))
-                .Callback<BudgetCategory>(c => result = c);
 
-            // Act
-            await testService.UpdateCategoryAsync(1, categoryToEdit, effectiveDate);
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_sets_Begin_and_End_EffectiveDates() {
+        //     // Arrange
+        //     var categoryToEdit = new BudgetCategory {
+        //         ID = 1,
+        //         BeginEffectiveDate = DateTime.Today.AddDays(-5),
+        //         EndEffectiveDate = DateTime.Today.AddDays(-2)
+        //     };
+        //     var effectiveDate = DateTime.Today;
+        //     var result = new BudgetCategory();
+        //     mockRepo.Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()))
+        //         .Callback<BudgetCategory>(c => result = c);
 
-            // Assert
-            Assert.AreEqual(effectiveDate, result.BeginEffectiveDate, "BeginEffectiveDate not set correctly");
-            Assert.IsNull(result.EndEffectiveDate, "EndEffectiveDate should be null");
-        }
+        //     // Act
+        //     await testService.UpdateCategoryAsync(1, categoryToEdit, effectiveDate);
 
-        [TestMethod]
-        public async Task UpdateCategoryAsync_correctly_splits_BudgetCategory_based_on_date() {
-            // Arrange
-            var categoryName = "Split Category";
-            var testCategories = new List<BudgetCategory> {
-                new BudgetCategory {
-                    ID = 1,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2001")
-                },
-                new BudgetCategory {
-                    ID = 2,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2017")
-                },
-                new BudgetCategory {
-                    ID = 3,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
-                    EndEffectiveDate = null
-                }
-            }.AsQueryable();
-            var categoryToEdit = testCategories.Single(c => c.ID == 3);
-            var effectiveDate = DateTime.Parse("11/1/2016");
-            var splitCategory = new BudgetCategory();
-            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
-            mockRepo.Setup(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == 2)))
-                .Callback<BudgetCategory>(c => splitCategory = c);
+        //     // Assert
+        //     Assert.AreEqual(effectiveDate, result.BeginEffectiveDate, "BeginEffectiveDate not set correctly");
+        //     Assert.IsNull(result.EndEffectiveDate, "EndEffectiveDate should be null");
+        // }
 
-            // Act
-            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
-            // Assert
-            Assert.AreEqual(DateTime.Parse("10/31/2016"), splitCategory.EndEffectiveDate, "End Effective Date not set correctly");
-        }
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_correctly_splits_BudgetCategory_based_on_date() {
+        //     // Arrange
+        //     var categoryName = "Split Category";
+        //     var testCategories = new List<BudgetCategory> {
+        //         new BudgetCategory {
+        //             ID = 1,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2001")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 2,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2017")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 3,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+        //             EndEffectiveDate = null
+        //         }
+        //     }.AsQueryable();
+        //     var categoryToEdit = testCategories.Single(c => c.ID == 3);
+        //     var effectiveDate = DateTime.Parse("11/1/2016");
+        //     var splitCategory = new BudgetCategory();
+        //     mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+        //     mockRepo.Setup(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == 2)))
+        //         .Callback<BudgetCategory>(c => splitCategory = c);
+
+        //     // Act
+        //     await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+        //     // Assert
+        //     Assert.AreEqual(DateTime.Parse("10/31/2016"), splitCategory.EndEffectiveDate, "End Effective Date not set correctly");
+        // }
         
-        [TestMethod]
-        public async Task UpdateCategoryAsync_correctly_reassigns_payees() {
-            // Arrange
-            var categoryName = "Split Category";
-            var testCategories = new List<BudgetCategory> {
-                new BudgetCategory {
-                    ID = 1,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2001")
-                },
-                new BudgetCategory {
-                    ID = 2,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2017")
-                },
-                new BudgetCategory {
-                    ID = 3,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
-                    EndEffectiveDate = null
-                }
-            }.AsQueryable();
-            var categoryToEdit = testCategories.Single(c => c.ID == 3);
-            var effectiveDate = DateTime.Parse("5/1/2000");
-            var testPayees = new List<Payee> {
-                new Payee {
-                    ID = 1,
-                    Name = "Unchanged Payee",
-                    BudgetCategoryID = 1,
-                    BeginEffectiveDate = DateTime.Parse("3/1/2000")
-                },
-                new Payee {
-                    ID = 2,
-                    Name = "Changed Payee 1",
-                    BudgetCategoryID = 1,
-                    BeginEffectiveDate = DateTime.Parse("12/1/2000")
-                },
-                new Payee {
-                    ID = 3,
-                    Name = "Changed Payee 2",
-                    BudgetCategoryID = 2,
-                    BeginEffectiveDate = DateTime.Parse("11/5/2016")
-                }
-            }.AsQueryable();
-            var reassignedPayees = new List<Payee>();
-            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(testPayees);
-            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()))
-                .Callback<Payee>(p => reassignedPayees.Add(p));
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_correctly_reassigns_payees() {
+        //     // Arrange
+        //     var categoryName = "Split Category";
+        //     var testCategories = new List<BudgetCategory> {
+        //         new BudgetCategory {
+        //             ID = 1,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2001")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 2,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2017")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 3,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+        //             EndEffectiveDate = null
+        //         }
+        //     }.AsQueryable();
+        //     var categoryToEdit = testCategories.Single(c => c.ID == 3);
+        //     var effectiveDate = DateTime.Parse("5/1/2000");
+        //     var testPayees = new List<Payee> {
+        //         new Payee {
+        //             ID = 1,
+        //             Name = "Unchanged Payee",
+        //             BudgetCategoryID = 1,
+        //             BeginEffectiveDate = DateTime.Parse("3/1/2000")
+        //         },
+        //         new Payee {
+        //             ID = 2,
+        //             Name = "Changed Payee 1",
+        //             BudgetCategoryID = 1,
+        //             BeginEffectiveDate = DateTime.Parse("12/1/2000")
+        //         },
+        //         new Payee {
+        //             ID = 3,
+        //             Name = "Changed Payee 2",
+        //             BudgetCategoryID = 2,
+        //             BeginEffectiveDate = DateTime.Parse("11/5/2016")
+        //         }
+        //     }.AsQueryable();
+        //     var reassignedPayees = new List<Payee>();
+        //     mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+        //     mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(testPayees);
+        //     mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()))
+        //         .Callback<Payee>(p => reassignedPayees.Add(p));
 
-            // Act
-            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+        //     // Act
+        //     await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
 
-            // Assert
-            Assert.AreEqual(2, reassignedPayees.Count);
-            foreach (var payee in reassignedPayees) {
-                Assert.AreEqual(3, payee.BudgetCategoryID);
-            }
-        }
+        //     // Assert
+        //     Assert.AreEqual(2, reassignedPayees.Count);
+        //     foreach (var payee in reassignedPayees) {
+        //         Assert.AreEqual(3, payee.BudgetCategoryID);
+        //     }
+        // }
 
-        [TestMethod]
-        public async Task UpdateCategoryAsync_correctly_reassigns_transactions() {
-            // Arrange
-            var categoryName = "Split Category";
-            var testCategories = new List<BudgetCategory> {
-                new BudgetCategory {
-                    ID = 1,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/1/2000"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2001")
-                },
-                new BudgetCategory {
-                    ID = 2,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2001"),
-                    EndEffectiveDate = DateTime.Parse("1/1/2017")
-                },
-                new BudgetCategory {
-                    ID = 3,
-                    Name = categoryName,
-                    BeginEffectiveDate = DateTime.Parse("1/2/2017"),
-                    EndEffectiveDate = null
-                }
-            }.AsQueryable();
-            var categoryToEdit = testCategories.Single(c => c.ID == 3);
-            var effectiveDate = DateTime.Parse("12/1/2000");
-            var testTransactions = new List<Transaction> {
-                new Transaction {
-                    ID = 1,
-                    Amount = 100,
-                    Date = DateTime.Parse("10/31/2000"),
-                    OverrideCategoryID = 1
-                },
-                new Transaction {
-                    ID = 2,
-                    Amount = 200,
-                    Date = DateTime.Parse("12/25/2000"),
-                    OverrideCategoryID = 1
-                },
-                new Transaction {
-                    ID = 3,
-                    Amount = 300,
-                    Date = DateTime.Parse("12/25/2010"),
-                    OverrideCategoryID = 2
-                }
-            }.AsQueryable();
-            var reassignedTransactions = new List<Transaction>();
-            mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(testTransactions);
-            mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()))
-                .Callback<Transaction>(t => reassignedTransactions.Add(t));
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_correctly_reassigns_transactions() {
+        //     // Arrange
+        //     var categoryName = "Split Category";
+        //     var testCategories = new List<BudgetCategory> {
+        //         new BudgetCategory {
+        //             ID = 1,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/1/2000"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2001")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 2,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2001"),
+        //             EndEffectiveDate = DateTime.Parse("1/1/2017")
+        //         },
+        //         new BudgetCategory {
+        //             ID = 3,
+        //             Name = categoryName,
+        //             BeginEffectiveDate = DateTime.Parse("1/2/2017"),
+        //             EndEffectiveDate = null
+        //         }
+        //     }.AsQueryable();
+        //     var categoryToEdit = testCategories.Single(c => c.ID == 3);
+        //     var effectiveDate = DateTime.Parse("12/1/2000");
+        //     var testTransactions = new List<Transaction> {
+        //         new Transaction {
+        //             ID = 1,
+        //             Amount = 100,
+        //             Date = DateTime.Parse("10/31/2000"),
+        //             OverrideCategoryID = 1
+        //         },
+        //         new Transaction {
+        //             ID = 2,
+        //             Amount = 200,
+        //             Date = DateTime.Parse("12/25/2000"),
+        //             OverrideCategoryID = 1
+        //         },
+        //         new Transaction {
+        //             ID = 3,
+        //             Amount = 300,
+        //             Date = DateTime.Parse("12/25/2010"),
+        //             OverrideCategoryID = 2
+        //         }
+        //     }.AsQueryable();
+        //     var reassignedTransactions = new List<Transaction>();
+        //     mockRepo.Setup(m => m.GetCategories()).Returns(testCategories);
+        //     mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(testTransactions);
+        //     mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()))
+        //         .Callback<Transaction>(t => reassignedTransactions.Add(t));
 
-            // Act
-            await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
+        //     // Act
+        //     await testService.UpdateCategoryAsync(categoryToEdit.ID, categoryToEdit, effectiveDate);
 
-            // Assert
-            Assert.AreEqual(2, reassignedTransactions.Count);
-            foreach (var tran in reassignedTransactions) {
-                Assert.AreEqual(3, tran.OverrideCategoryID);
-            }
-        }
+        //     // Assert
+        //     Assert.AreEqual(2, reassignedTransactions.Count);
+        //     foreach (var tran in reassignedTransactions) {
+        //         Assert.AreEqual(3, tran.OverrideCategoryID);
+        //     }
+        // }
 
         [TestMethod]
         public async Task UpdateCategoryAsync_throws_IdMismatchException_when_id_doesnt_match_CategoryID() {

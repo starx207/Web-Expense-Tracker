@@ -13,32 +13,28 @@ namespace ExpenseTracker.Tests
                     ID = 1,
                     Name = "Rent",
                     Amount = 575,
-                    BeginEffectiveDate = new DateTime(2015, 02, 01),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2015, 02, 01),
                     Type = BudgetType.Expense
                 },
                 new BudgetCategory {
                     ID = 2,
                     Name = "Groceries",
                     Amount = 750,
-                    BeginEffectiveDate = new DateTime(2017, 10, 01),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2017, 10, 01),
                     Type = BudgetType.Expense
                 },
                 new BudgetCategory {
                     ID = 3,
                     Name = "Old Groceries",
                     Amount = 700,
-                    BeginEffectiveDate = new DateTime(2016, 10, 01),
-                    EndEffectiveDate = new DateTime(2017, 09, 30),
+                    EffectiveFrom = new DateTime(2016, 10, 01),
                     Type = BudgetType.Expense
                 },
                 new BudgetCategory {
                     ID = 4,
                     Name = "Income",
                     Amount = 0,
-                    BeginEffectiveDate = new DateTime(2016, 06, 27),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2016, 06, 27),
                     Type = BudgetType.Income
                 }
             };
@@ -51,47 +47,42 @@ namespace ExpenseTracker.Tests
                 new Payee {
                     ID = 1,
                     Name = "Appraisal Research Corp",
-                    BeginEffectiveDate = new DateTime(2016, 7, 1),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2016, 7, 1),
                     BudgetCategoryID = 4,
                     Category = categories.Where(c => c.ID == 4).FirstOrDefault()
                 },
                 new Payee {
                     ID = 2,
                     Name = "Drum Lessons",
-                    BeginEffectiveDate = new DateTime(2017, 4, 1),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2017, 4, 1),
                     BudgetCategoryID = 4,
                     Category = categories.Where(c => c.ID == 4).FirstOrDefault()
                 },
                 new Payee {
                     ID = 3,
                     Name = "Kroger",
-                    BeginEffectiveDate = new DateTime(2014, 6, 14),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2014, 6, 14),
                     BudgetCategoryID = 2,
                     Category = categories.Where(c => c.ID == 2).FirstOrDefault()
                 },
                 new Payee {
                     ID = 4,
                     Name = "Wal Mart",
-                    BeginEffectiveDate = new DateTime(2014, 8, 1),
-                    EndEffectiveDate = new DateTime(2016, 5, 1),
+                    EffectiveFrom = new DateTime(2014, 8, 1),
                     BudgetCategoryID = 3,
                     Category = categories.Where(c => c.ID == 3).FirstOrDefault()
                 },
                 new Payee {
                     ID = 5,
                     Name = "Money Pit",
-                    BeginEffectiveDate = new DateTime(2017, 1, 1),
-                    EndEffectiveDate = null,
+                    EffectiveFrom = new DateTime(2017, 1, 1),
                     BudgetCategoryID = null,
                     Category = null
                 },
                 new Payee {
                     ID = 6,
                     Name = "Payee with Aliases",
-                    BeginEffectiveDate = new DateTime(2017, 1, 1),
+                    EffectiveFrom = new DateTime(2017, 1, 1),
                     BudgetCategoryID = 2,
                     Category = categories.Where(c => c.ID == 2).FirstOrDefault()
                 }
