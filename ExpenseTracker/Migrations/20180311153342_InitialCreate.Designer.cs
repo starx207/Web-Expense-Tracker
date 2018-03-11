@@ -12,8 +12,8 @@ using System;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20171210202323_AddTransactionAmount")]
-    partial class AddTransactionAmount
+    [Migration("20180311153342_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -46,9 +46,7 @@ namespace ExpenseTracker.Migrations
 
                     b.Property<double>("Amount");
 
-                    b.Property<DateTime>("BeginEffectiveDate");
-
-                    b.Property<DateTime?>("EndEffectiveDate");
+                    b.Property<DateTime>("EffectiveFrom");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -66,11 +64,9 @@ namespace ExpenseTracker.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("BeginEffectiveDate");
-
                     b.Property<int?>("BudgetCategoryID");
 
-                    b.Property<DateTime?>("EndEffectiveDate");
+                    b.Property<DateTime>("EffectiveFrom");
 
                     b.Property<string>("Name")
                         .IsRequired()

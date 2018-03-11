@@ -15,8 +15,7 @@ namespace ExpenseTracker.Migrations
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Amount = table.Column<double>(type: "REAL", nullable: false),
-                    BeginEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    EffectiveFrom = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Type = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -31,9 +30,8 @@ namespace ExpenseTracker.Migrations
                 {
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    BeginEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     BudgetCategoryID = table.Column<int>(type: "INTEGER", nullable: true),
-                    EndEffectiveDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    EffectiveFrom = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -73,6 +71,7 @@ namespace ExpenseTracker.Migrations
                 {
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    Amount = table.Column<double>(type: "REAL", nullable: false),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     OverrideCategoryID = table.Column<int>(type: "INTEGER", nullable: true),
                     PayeeID = table.Column<int>(type: "INTEGER", nullable: true)
