@@ -77,13 +77,12 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory,
-            DateTime? EffectiveFrom)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
         {
             string effectiveDateError = "";
             if (ModelState.IsValid) {
                 try {
-                    await _service.UpdateCategoryAsync(id, budgetCategory, EffectiveFrom);
+                    await _service.UpdateCategoryAsync(id, budgetCategory);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
                     effectiveDateError = dteex.Message;

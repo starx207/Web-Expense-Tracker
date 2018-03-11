@@ -45,9 +45,7 @@ namespace ExpenseTracker.Migrations
 
                     b.Property<double>("Amount");
 
-                    b.Property<DateTime>("BeginEffectiveDate");
-
-                    b.Property<DateTime?>("EndEffectiveDate");
+                    b.Property<DateTime>("EffectiveFrom");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -65,11 +63,9 @@ namespace ExpenseTracker.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("BeginEffectiveDate");
-
                     b.Property<int?>("BudgetCategoryID");
 
-                    b.Property<DateTime?>("EndEffectiveDate");
+                    b.Property<DateTime>("EffectiveFrom");
 
                     b.Property<string>("Name")
                         .IsRequired()

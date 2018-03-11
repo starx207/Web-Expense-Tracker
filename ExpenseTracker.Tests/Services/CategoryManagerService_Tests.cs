@@ -24,7 +24,7 @@ namespace ExpenseTracker.Services.Tests
             switch (TestContext.TestName) {
                 case nameof(AddCategoryAsync_adds_category_then_saves):
                 case nameof(RemoveCategoryAsync_removes_category_then_saves):
-                case nameof(UpdateCategoryAsync_edits_category_then_saves):
+                //case nameof(UpdateCategoryAsync_edits_category_then_saves):
                     mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
                     break;
                 default:
@@ -167,23 +167,23 @@ namespace ExpenseTracker.Services.Tests
             Assert.AreEqual(expectedResult, result);
         }
 
-        [TestMethod]
-        public async Task UpdateCategoryAsync_edits_category_then_saves() {
-            // Arrange
-            var testID = 1;
-            var category = new BudgetCategory { ID = testID };
-            var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
-            mockRepo.InSequence(sequence).Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_edits_category_then_saves() {
+        //     // Arrange
+        //     var testID = 1;
+        //     var category = new BudgetCategory { ID = testID };
+        //     var sequence = new MockSequence();
+        //     mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
+        //     mockRepo.InSequence(sequence).Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()));
+        //     mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
-            // Act
-            await testService.UpdateCategoryAsync(testID, category, DateTime.Now);
+        //     // Act
+        //     await testService.UpdateCategoryAsync(testID, category);
 
-            // Assert
-            mockRepo.Verify(m => m.EditBudgetCategory(category), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
-        }
+        //     // Assert
+        //     mockRepo.Verify(m => m.EditBudgetCategory(category), Times.Once());
+        //     mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+        // }
 
         // [TestMethod]
         // public async Task UpdateCategoryAsync_sets_Begin_and_End_EffectiveDates() {
@@ -375,21 +375,21 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
-                testService.UpdateCategoryAsync(testID, category, DateTime.Now)
+                testService.UpdateCategoryAsync(testID, category)
             , $"No exception thrown for Id = {testID} and BudgetCategory.ID = {category.ID}");
         }
 
-        [TestMethod]
-        public async Task UpdateCategoryAsync_throws_InvalidDateException_when_effectiveDateFrom_is_future_date() {
-            // Arrange
-            var testID = 1;
-            var category = new BudgetCategory { ID = testID };
-            var futureDate = new DateTime(DateTime.Today.Year + 1, 1, 1);
+        // [TestMethod]
+        // public async Task UpdateCategoryAsync_throws_InvalidDateException_when_effectiveDateFrom_is_future_date() {
+        //     // Arrange
+        //     var testID = 1;
+        //     var category = new BudgetCategory { ID = testID };
+        //     var futureDate = new DateTime(DateTime.Today.Year + 1, 1, 1);
 
-            // Act & Assert
-            await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
-                testService.UpdateCategoryAsync(testID, category, futureDate)
-            , $"No exception thrown for effective date = '{futureDate.ToString()}'");
-        }
+        //     // Act & Assert
+        //     await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
+        //         testService.UpdateCategoryAsync(testID, category, futureDate)
+        //     , $"No exception thrown for effective date = '{futureDate.ToString()}'");
+        // }
     }
 }

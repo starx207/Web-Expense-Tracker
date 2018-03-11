@@ -10,7 +10,7 @@ namespace ExpenseTracker.Services
         Task<BudgetCategory> GetSingleCategoryAsync(int? id);
         Task<int> AddCategoryAsync(BudgetCategory category);
         Task<int> RemoveCategoryAsync(int id);
-        Task<int> UpdateCategoryAsync(int id, BudgetCategory category, DateTime? effectiveFromDate);
+        Task<int> UpdateCategoryAsync(int id, BudgetCategory category);
         bool HasCategories();
         bool CategoryExists(int id);
     }
