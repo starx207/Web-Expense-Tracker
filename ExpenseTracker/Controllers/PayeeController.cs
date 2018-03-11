@@ -45,7 +45,7 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
+        public async Task<IActionResult> Create([Bind("ID,Name,EffectiveFrom,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
                 try {
                     await _service.AddPayeeAsync(payee);
@@ -75,7 +75,7 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,BeginEffectiveDate,EndEffectiveDate,BudgetCategoryID")] Payee payee) {
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,EffectiveFrom,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdatePayeeAsync(id, payee);

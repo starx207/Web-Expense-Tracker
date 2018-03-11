@@ -44,7 +44,7 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
+        public async Task<IActionResult> Create([Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory)
         {
             if (ModelState.IsValid)
             {
@@ -77,7 +77,7 @@ namespace ExpenseTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,BeginEffectiveDate,EndEffectiveDate,Type")] BudgetCategory budgetCategory)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory)
         {
             string effectiveDateError = "";
             if (ModelState.IsValid) {
