@@ -68,7 +68,6 @@ namespace ExpenseTracker.Controllers
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
-            SetEffectiveFromViewBag();
             return View(nameof(Edit) ,budgetCategory);
         }
 
@@ -79,13 +78,12 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory)
         {
-            string effectiveDateError = "";
             if (ModelState.IsValid) {
                 try {
                     await _service.UpdateCategoryAsync(id, budgetCategory);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
-                    effectiveDateError = dteex.Message;
+                    ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), dteex.Message);
                 } catch (ExpenseTrackerException ex) {
                     if (ex is ConcurrencyException && (_service.CategoryExists(budgetCategory.ID))) {
                         throw;
@@ -93,7 +91,6 @@ namespace ExpenseTracker.Controllers
                     return NotFound();
                 }
             }
-            SetEffectiveFromViewBag(effectiveDateError);
             return View(nameof(Edit), budgetCategory);
         }
 
@@ -120,10 +117,6 @@ namespace ExpenseTracker.Controllers
         {
             await _service.RemoveCategoryAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private void SetEffectiveFromViewBag(string message = "") {
-            @ViewBag.EffectiveFromError = message;
         }
     }
 }
