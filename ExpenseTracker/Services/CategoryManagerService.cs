@@ -47,29 +47,31 @@ namespace ExpenseTracker.Services
                 var uneditedCategory = _context.GetCategories().Where(c => c.ID == category.ID).First();
                 if (category.EffectiveFrom > uneditedCategory.EffectiveFrom) {
                     // Add new category
-                    _context.AddBudgetCategory( new BudgetCategory {
-                        Name = category.Name,
+                    var categoryToAdd = new BudgetCategory {
+                        ID = _context.GetCategories().OrderByDescending(c => c.ID).First().ID + 1,
                         EffectiveFrom = category.EffectiveFrom,
                         Amount = category.Amount,
                         Type = category.Type
-                    });
-                    // Retrieve newly added category and reassign payees and transactinos accordingly
-                    var addedCategory = _context.GetCategories().Where(c => c.Name == category.Name).OrderByDescending(c => c.EffectiveFrom).First();
-                    ReassignPayeesByDate(category, addedCategory);
-                    ReassingTransactionsByDate(category, addedCategory);
+                    };
+                    _context.AddBudgetCategory(categoryToAdd);
+                    
+                    // Reassign payees and transactinos accordingly
+                    ReassignPayeesByDate(category, categoryToAdd);
+                    ReassingTransactionsByDate(category, categoryToAdd);
                 } else {
                     if (category.EffectiveFrom < uneditedCategory.EffectiveFrom) {
                         // Check if there is an older category whose transactions/payees need to be split up
                         var categoryToStealFrom = _context.GetCategories()
                             .Where(c => c.Name == category.Name
                                 && c.EffectiveFrom < category.EffectiveFrom)
+                            .OrderByDescending(c => c.EffectiveFrom)
                             .FirstOrDefault();
                         if (categoryToStealFrom != null) {
                             ReassignPayeesByDate(categoryToStealFrom, category);
                             ReassingTransactionsByDate(categoryToStealFrom, category);
                         }
 
-                        // Reassign payees/transactions from categories with newer EffectiveFrom dates and then delete the categoreis
+                        // Reassign payees/transactions from categories with newer EffectiveFrom dates and then delete the categories
                         foreach (BudgetCategory categoryToDelete in _context.GetCategories()
                             .Where(c => c.Name == category.Name
                                 && c.EffectiveFrom >= category.EffectiveFrom
@@ -110,6 +112,8 @@ namespace ExpenseTracker.Services
         }
 
         private void ReassignPayeesByDate(BudgetCategory fromCategory, BudgetCategory toCategory) {
+            if (fromCategory.Payees == null) { return; }
+
             foreach (Payee payee in fromCategory.Payees.Where(p => p.EffectiveFrom >= toCategory.EffectiveFrom)) {
                 payee.BudgetCategoryID = toCategory.ID;
                 _context.EditPayee(payee);
