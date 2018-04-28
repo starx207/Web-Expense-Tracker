@@ -352,23 +352,20 @@ namespace ExpenseTracker.Controllers.Tests
             }
 
             [TestMethod]
-            public async Task Edit_POST_returns_to_Edit_and_sets_ViewBag_Error_when_InvalidDateException_thrown() {
+            public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
                 // Arrange
-                string testMessage = "ViewBag Message";
                 var category = new BudgetCategory();
                 mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>()))
-                    .ThrowsAsync(new InvalidDateExpection(testMessage));
+                    .ThrowsAsync(new InvalidDateExpection("Test Message"));
 
                 // Act
                 var result = await controller.Edit(1, category);
                 var viewResult = result as ViewResult;
-                var viewBag = viewResult.ViewData["EffectiveFromError"] as string;
 
                 // Assert
                 Assert.IsNotNull(viewResult);
                 Assert.AreEqual("Edit", viewResult.ViewName);
-                Assert.IsNotNull(viewBag);
-                Assert.AreEqual(testMessage, viewBag);
+                Assert.AreEqual(1, controller.ViewData.ModelState.ErrorCount);
             }
         #endregion
     }
