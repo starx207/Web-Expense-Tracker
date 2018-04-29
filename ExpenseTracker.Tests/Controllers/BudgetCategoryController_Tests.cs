@@ -15,358 +15,404 @@ namespace ExpenseTracker.Controllers.Tests
     [TestClass]
     public class BudgetCategoryController_Tests
     {
-        private BudgetCategoryController controller;
-        private Mock<ICategoryManagerService> mockService;
+        #region Private Members
+
+        private BudgetCategoryController _controller;
+        private Mock<ICategoryManagerService> _mockService;
+
+        #endregion // Private Members
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_test_objects() {
-            mockService = new Mock<ICategoryManagerService>();
-            controller = new BudgetCategoryController(mockService.Object);
+            _mockService = new Mock<ICategoryManagerService>();
+            _controller = new BudgetCategoryController(_mockService.Object);
         }
 
-        #region "Index Method Tests"
-            [TestMethod]
-            public async Task Index_GET_returns_index_view() {
-                // Act
-                var actionResult = await controller.Index();
-                var result = actionResult as ViewResult;
+        #endregion // Test Initialization
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.AreEqual("Index", result.ViewName);
-            }
+        #region Tests
 
-            [TestMethod]
-            public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
-                // Arrange
-                var categories = new List<BudgetCategory>();
-                var mockCategoryExt = new Mock<ICategoryExtMask>();
-                mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
-                ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
+        #region Index Tests
 
-                // Act
-                var result = (ViewResult)(await controller.Index());
-                var model = result.Model;
+        [TestMethod]
+        public async Task Index_GET_returns_index_view() {
+            // Act
+            var actionResult = await _controller.Index();
+            var result = actionResult as ViewResult;
 
-                // Assert
-                mockService.Verify(m => m.GetCategories(true), Times.Once());
-                Assert.AreSame(categories, model);
-            }
-        #endregion
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Index", result.ViewName);
+        }
 
-        #region "Details Method Tests"
-            [TestMethod]
-            public async Task Details_GET_returns_details_view() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(new BudgetCategory());
+        [TestMethod]
+        public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
+            // Arrange
+            var categories = new List<BudgetCategory>();
+            var mockCategoryExt = new Mock<ICategoryExtMask>();
+            mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
+            ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
 
-                // Act
-                var actionResult = await controller.Details(1);
-                var result = actionResult as ViewResult;
+            // Act
+            var result = (ViewResult)(await _controller.Index());
+            var model = result.Model;
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.AreEqual("Details", result.ViewName);
-            }
+            // Assert
+            _mockService.Verify(m => m.GetCategories(true), Times.Once());
+            Assert.AreSame(categories, model);
+        }
 
-            [TestMethod]
-            public async Task Details_GET_passes_category_to_view() {
-                // Arrange
-                var category = new BudgetCategory { ID = 1 };
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(category);
+        #endregion // Index Tests
 
-                // Act
-                var result = (ViewResult)(await controller.Details(1));
-                var model = (BudgetCategory)result.Model;
+        #region Details Tests
 
-                // Assert
-                mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
-                Assert.AreEqual(category.ID, model.ID);
-            }
+        [TestMethod]
+        public async Task Details_GET_returns_details_view() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(new BudgetCategory());
 
-            [TestMethod]
-            public async Task Details_GET_returns_NotFound_When_IdNotFoundException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
+            // Act
+            var actionResult = await _controller.Details(1);
+            var result = actionResult as ViewResult;
 
-                // Act
-                var result = await controller.Details(1);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Details", result.ViewName);
+        }
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+        [TestMethod]
+        public async Task Details_GET_passes_category_to_view() {
+            // Arrange
+            var category = new BudgetCategory { ID = 1 };
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int>())).ReturnsAsync(category);
 
-            [TestMethod]
-            public async Task Details_GET_returns_NotFound_when_NullIdException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
+            // Act
+            var result = (ViewResult)(await _controller.Details(1));
+            var model = (BudgetCategory)result.Model;
 
-                // Act
-                var result = await controller.Details(null);
+            // Assert
+            _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+            Assert.AreEqual(category.ID, model.ID);
+        }
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+        [TestMethod]
+        public async Task Details_GET_returns_NotFound_When_IdNotFoundException_thrown() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
 
-            [TestMethod]
-            public async Task Details_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
+            // Act
+            var result = await _controller.Details(1);
 
-                // Act & Assert
-                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Details(1));
-            }
-        #endregion
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task Details_GET_returns_NotFound_when_NullIdException_thrown() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
+
+            // Act
+            var result = await _controller.Details(null);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task Details_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Details(1));
+        }
+
+        #endregion // Details Tests
         
-        #region "Create Method Tests"
-            [TestMethod]
-            public void Create_GET_returns_create_view() {
-                // Act
-                var actionResult = controller.Create();
-                var result = actionResult as ViewResult;
+        #region Create Tests
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.AreEqual("Create", result.ViewName);
-            }
+        #region Create GET
 
-            [TestMethod]
-            public async Task Create_POST_calls_AddCategoryAsync_and_redirects_to_index() {
-                // Arrange
-                var category = new BudgetCategory();
+        [TestMethod]
+        public void Create_GET_returns_create_view() {
+            // Act
+            var actionResult = _controller.Create();
+            var result = actionResult as ViewResult;
 
-                // Act
-                var result = await controller.Create(category);
-                var redirectResult = result as RedirectToActionResult;
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Create", result.ViewName);
+        }
 
-                // Assert
-                mockService.Verify(m => m.AddCategoryAsync(category), Times.Once());
-                Assert.IsNotNull(redirectResult);
-                Assert.AreEqual("Index", redirectResult.ActionName);
-            }
+        #endregion // Create GET
 
-            [TestMethod]
-            public async Task Create_POST_with_Invalid_model_state_returns_category_to_create_view() {
-                // Arrange
-                var category = new BudgetCategory();
-                controller.ModelState.AddModelError("test", "test");
+        #region Create POST
 
-                // Act
-                var result = await controller.Create(category);
-                var viewResult = result as ViewResult;
-                var model = viewResult.Model as BudgetCategory;
+        [TestMethod]
+        public async Task Create_POST_calls_AddCategoryAsync_and_redirects_to_index() {
+            // Arrange
+            var category = new BudgetCategory();
 
-                // Assert
-                Assert.IsNotNull(viewResult);
-                Assert.AreEqual("Create", viewResult.ViewName);
-                Assert.AreSame(category, model);
-            }
+            // Act
+            var result = await _controller.Create(category);
+            var redirectResult = result as RedirectToActionResult;
 
-            [TestMethod]
-            public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
-                // Arrange
-                var category = new BudgetCategory { Name = "test" };
-                mockService.Setup(m => m.AddCategoryAsync(It.IsAny<BudgetCategory>())).ThrowsAsync(new UniqueConstraintViolationException());
+            // Assert
+            _mockService.Verify(m => m.AddCategoryAsync(category), Times.Once());
+            Assert.IsNotNull(redirectResult);
+            Assert.AreEqual("Index", redirectResult.ActionName);
+        }
 
-                // Act
-                var result = await controller.Create(category);
-                var viewResult = result as ViewResult;
-                var model = viewResult.Model as BudgetCategory;
+        [TestMethod]
+        public async Task Create_POST_with_Invalid_model_state_returns_category_to_create_view() {
+            // Arrange
+            var category = new BudgetCategory();
+            _controller.ModelState.AddModelError("test", "test");
 
-                // Assert
-                Assert.AreEqual(1, controller.ModelState.ErrorCount);
-                Assert.IsNotNull(viewResult);
-                Assert.AreEqual("Create", viewResult.ViewName);
-                Assert.AreSame(category, model);
-            }
-        #endregion    
+            // Act
+            var result = await _controller.Create(category);
+            var viewResult = result as ViewResult;
+            var model = viewResult.Model as BudgetCategory;
 
-        #region "Delete Method Tests"
-            [TestMethod]
-            public async Task Delete_GET_returns_delete_view_with_model() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
+            // Assert
+            Assert.IsNotNull(viewResult);
+            Assert.AreEqual("Create", viewResult.ViewName);
+            Assert.AreSame(category, model);
+        }
 
-                // Act
-                var result = await controller.Delete(1);
-                var viewResult = result as ViewResult;
-                var model = viewResult.Model as BudgetCategory;
+        [TestMethod]
+        public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+            // Arrange
+            var category = new BudgetCategory { Name = "test" };
+            _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<BudgetCategory>())).ThrowsAsync(new UniqueConstraintViolationException());
 
-                // Assert
-                mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
-                Assert.IsNotNull(viewResult);
-                Assert.AreSame(category, model);
-            }
+            // Act
+            var result = await _controller.Create(category);
+            var viewResult = result as ViewResult;
+            var model = viewResult.Model as BudgetCategory;
 
-            [TestMethod]
-            public async Task Delete_GET_returns_NotFound_when_IdNotFoundException_is_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
+            // Assert
+            Assert.AreEqual(1, _controller.ModelState.ErrorCount);
+            Assert.IsNotNull(viewResult);
+            Assert.AreEqual("Create", viewResult.ViewName);
+            Assert.AreSame(category, model);
+        }
 
-                // Act
-                var result = await controller.Delete(1);
+        #endregion // Create POST
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+        #endregion // Create Tests
 
-            [TestMethod]
-            public async Task Delete_GET_returns_NotFound_when_NullIdException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
+        #region Delete Tests
 
-                // Act
-                var result = await controller.Delete(null);
+        #region Delete GET
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+        [TestMethod]
+        public async Task Delete_GET_returns_delete_view_with_model() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
 
-            [TestMethod]
-            public async Task Delete_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
+            // Act
+            var result = await _controller.Delete(1);
+            var viewResult = result as ViewResult;
+            var model = viewResult.Model as BudgetCategory;
 
-                // Act & Assert
-                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Delete(1));
-            }
+            // Assert
+            _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+            Assert.IsNotNull(viewResult);
+            Assert.AreSame(category, model);
+        }
 
-            [TestMethod]
-            public async Task Delete_POST_calls_RemoveCategoryAsync_and_redirects_to_Index() {
-                // Act
-                var result = await controller.DeleteConfirmed(1);
-                var redirectResult = result as RedirectToActionResult;
+        [TestMethod]
+        public async Task Delete_GET_returns_NotFound_when_IdNotFoundException_is_thrown() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new IdNotFoundException());
 
-                // Assert
-                mockService.Verify(m => m.RemoveCategoryAsync(1), Times.Once());
-                Assert.IsNotNull(redirectResult);
-                Assert.AreEqual("Index", redirectResult.ActionName);
-            }
-        #endregion
+            // Act
+            var result = await _controller.Delete(1);
 
-        #region "Edit Method Tests"
-            [TestMethod]
-            public async Task Edit_GET_returns_edit_view_with_correct_model() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
 
-                // Act
-                var result = await controller.Edit(1);
-                var viewResult = result as ViewResult;
-                var model = viewResult.Model as BudgetCategory;
+        [TestMethod]
+        public async Task Delete_GET_returns_NotFound_when_NullIdException_thrown() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
 
-                // Assert
-                mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
-                Assert.IsNotNull(viewResult);
-                Assert.AreEqual("Edit", viewResult.ViewName);
-                Assert.AreSame(category, model);
-            }
+            // Act
+            var result = await _controller.Delete(null);
 
-            [TestMethod]
-            public async Task Edit_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new ExpenseTrackerException());
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
 
-                // Act
-                var result = await controller.Edit(1);
+        [TestMethod]
+        public async Task Delete_GET_throws_exceptions_not_of_type_NullId_or_IdNotFound() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Delete(1));
+        }
 
-            [TestMethod]
-            public async Task Edit_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
-                // Arrange
-                mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
+        #endregion // Delete GET
 
-                // Act & Assert
-                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1));
-            }
+        #region Delete POST
 
-            [TestMethod]
-            public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
-                // Arrange
-                var category = new BudgetCategory();
+        [TestMethod]
+        public async Task Delete_POST_calls_RemoveCategoryAsync_and_redirects_to_Index() {
+            // Act
+            var result = await _controller.DeleteConfirmed(1);
+            var redirectResult = result as RedirectToActionResult;
 
-                // Act
-                var result = await controller.Edit(1, category);
-                var redirectResult = result as RedirectToActionResult;
+            // Assert
+            _mockService.Verify(m => m.RemoveCategoryAsync(1), Times.Once());
+            Assert.IsNotNull(redirectResult);
+            Assert.AreEqual("Index", redirectResult.ActionName);
+        }
 
-                // Assert
-                mockService.Verify(m => m.UpdateCategoryAsync(1, category), Times.Once());
-                Assert.IsNotNull(redirectResult);
-                Assert.AreEqual("Index", redirectResult.ActionName);
-            }
+        #endregion // Delete POST
 
-            [TestMethod]
-            public async Task Edit_POST_returns_to_view_for_invalid_model_state() {
-                // Arrange
-                var category = new BudgetCategory();
-                controller.ModelState.AddModelError("test", "test");
+        #endregion // Delete Tests
 
-                // Act
-                var result = await controller.Edit(1, category);
-                var viewResult = result as ViewResult;
-                var model = viewResult.Model as BudgetCategory;
+        #region Edit Tests
 
-                // Assert
-                Assert.IsNotNull(viewResult);
-                Assert.AreEqual("Edit", viewResult.ViewName);
-                Assert.AreSame(category, model);
-            }
+        #region Edit GET
 
-            [TestMethod]
-            public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ExpenseTrackerException());
+        [TestMethod]
+        public async Task Edit_GET_returns_edit_view_with_correct_model() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
 
-                // Act
-                var result = await controller.Edit(1, category);
+            // Act
+            var result = await _controller.Edit(1);
+            var viewResult = result as ViewResult;
+            var model = viewResult.Model as BudgetCategory;
 
-                // Assert
-                Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-            }
+            // Assert
+            _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+            Assert.IsNotNull(viewResult);
+            Assert.AreEqual("Edit", viewResult.ViewName);
+            Assert.AreSame(category, model);
+        }
 
-            [TestMethod]
-            public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ConcurrencyException());
-                mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
+        [TestMethod]
+        public async Task Edit_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new ExpenseTrackerException());
 
-                // Act & Assert
-                await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => controller.Edit(1, category));
-            }
+            // Act
+            var result = await _controller.Edit(1);
 
-            [TestMethod]
-            public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new Exception());
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
 
-                // Act & Assert
-                await Assert.ThrowsExceptionAsync<Exception>(() => controller.Edit(1, category));
-            }
+        [TestMethod]
+        public async Task Edit_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
+            // Arrange
+            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new Exception());
 
-            [TestMethod]
-            public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
-                // Arrange
-                var category = new BudgetCategory();
-                mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>()))
-                    .ThrowsAsync(new InvalidDateExpection("Test Message"));
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(1));
+        }
 
-                // Act
-                var result = await controller.Edit(1, category);
-                var viewResult = result as ViewResult;
+        #endregion // Edit GET
 
-                // Assert
-                Assert.IsNotNull(viewResult);
-                Assert.AreEqual("Edit", viewResult.ViewName);
-                Assert.AreEqual(1, controller.ViewData.ModelState.ErrorCount);
-            }
-        #endregion
+        #region Edit POST
+
+        [TestMethod]
+        public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
+            // Arrange
+            var category = new BudgetCategory();
+
+            // Act
+            var result = await _controller.Edit(1, category);
+            var redirectResult = result as RedirectToActionResult;
+
+            // Assert
+            _mockService.Verify(m => m.UpdateCategoryAsync(1, category), Times.Once());
+            Assert.IsNotNull(redirectResult);
+            Assert.AreEqual("Index", redirectResult.ActionName);
+        }
+
+        [TestMethod]
+        public async Task Edit_POST_returns_to_view_for_invalid_model_state() {
+            // Arrange
+            var category = new BudgetCategory();
+            _controller.ModelState.AddModelError("test", "test");
+
+            // Act
+            var result = await _controller.Edit(1, category);
+            var viewResult = result as ViewResult;
+            var model = viewResult.Model as BudgetCategory;
+
+            // Assert
+            Assert.IsNotNull(viewResult);
+            Assert.AreEqual("Edit", viewResult.ViewName);
+            Assert.AreSame(category, model);
+        }
+
+        [TestMethod]
+        public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ExpenseTrackerException());
+
+            // Act
+            var result = await _controller.Edit(1, category);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ConcurrencyException());
+            _mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => _controller.Edit(1, category));
+        }
+
+        [TestMethod]
+        public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new Exception());
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(1, category));
+        }
+
+        [TestMethod]
+        public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
+            // Arrange
+            var category = new BudgetCategory();
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>()))
+                .ThrowsAsync(new InvalidDateExpection("Test Message"));
+
+            // Act
+            var result = await _controller.Edit(1, category);
+            var viewResult = result as ViewResult;
+
+            // Assert
+            Assert.IsNotNull(viewResult);
+            Assert.AreEqual("Edit", viewResult.ViewName);
+            Assert.AreEqual(1, _controller.ViewData.ModelState.ErrorCount);
+        }
+
+        #endregion // Edit POST
+
+        #endregion // Edit Tests
+    
+        #endregion // Tests
     }
 }

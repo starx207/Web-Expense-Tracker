@@ -9,18 +9,26 @@ namespace ExpenseTracker.Tests.Models
     [TestClass]
     public class BudgetCategoryValidation_Tests
     {
+        #region Private Members
+
         private BudgetCategory _model;
 
+        #endregion // Private Members
+
+        #region Test Initialization
+
         [TestInitialize]
-        public void CreateValidBudgetCategory() {
-            _model = new BudgetCategory {
-                ID = 1,
-                Name = "Valid category name",
-                Amount = 200,
-                Type = BudgetType.Income,
-                EffectiveFrom = new DateTime(2017, 12, 12)
-            };
-        }
+        public void CreateValidBudgetCategory() => _model = new BudgetCategory {
+            ID = 1,
+            Name = "Valid category name",
+            Amount = 200,
+            Type = BudgetType.Income,
+            EffectiveFrom = new DateTime(2017, 12, 12)
+        };
+
+        #endregion // Test Initialization
+
+        #region Tests
 
         [TestMethod]
         public void NamePropertyRequired() {
@@ -51,11 +59,17 @@ namespace ExpenseTracker.Tests.Models
             Assert.IsFalse(isModelStateValid, errorMsg);
         }
 
+        #endregion // Tests
+
+        #region Test Helpers
+
         private bool ValidateModel(BudgetCategory model) {
             var context = new ValidationContext(model, null, null);
             var results = new List<ValidationResult>();
 
             return Validator.TryValidateObject(model, context, results, true);
         }
+
+        #endregion // Test Helpers
     }
 }

@@ -14,9 +14,20 @@ namespace ExpenseTracker.Services.Tests
     [TestClass]
     public class CategoryManagerService_Tests
     {
-        private Mock<IBudgetRepo> mockRepo;
-        private ICategoryManagerService testService;
+        #region Private Members
+
+        private Mock<IBudgetRepo> _mockRepo;
+        private ICategoryManagerService _testService;
+
+        #endregion // Private Members
+
+        #region Public Properties
+
         public TestContext TestContext { get; set; }
+
+        #endregion // Public Properties
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_test_objects() {
@@ -26,14 +37,20 @@ namespace ExpenseTracker.Services.Tests
                 case nameof(RemoveCategoryAsync_removes_category_then_saves):
                 case nameof(UpdateCategoryAsync_addsCategory_then_saves_when_EffectiveFrom_moved_later):
                 case nameof(UpdateCategoryAsync_editsCategory_then_saves_when_EffectiveFrom_unchanged_or_earlier):
-                    mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
+                    _mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
                     break;
                 default:
-                    mockRepo = new Mock<IBudgetRepo>();
+                    _mockRepo = new Mock<IBudgetRepo>();
                     break;
             }
-            testService = new CategoryManagerService(mockRepo.Object);
+            _testService = new CategoryManagerService(_mockRepo.Object);
         }
+
+        #endregion // Test Initialization
+
+        #region Tests
+
+        #region HasCategories Tests
 
         [DataTestMethod]
         [DataRow(true), DataRow(false)]
@@ -44,14 +61,18 @@ namespace ExpenseTracker.Services.Tests
                 temp.Add(new BudgetCategory());
             }
             var queryable = temp.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(queryable);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(queryable);
 
             // Act
-            var result = testService.HasCategories();
+            var result = _testService.HasCategories();
 
             // Assert
             Assert.AreEqual(expectedResult, result);
         }
+
+        #endregion // HasCategories Tests
+
+        #region GetSingleCategoryAsync Tests
 
         [TestMethod]
         public async Task GetSingleCategoryAsync_returns_category() {
@@ -62,7 +83,7 @@ namespace ExpenseTracker.Services.Tests
             ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
 
             // Act
-            var result = await testService.GetSingleCategoryAsync(3);
+            var result = await _testService.GetSingleCategoryAsync(3);
 
             // Assert
             mockCategoryExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
@@ -73,7 +94,7 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleCategoryAsync_throws_NullIdException_when_null_is_passed() {
             // Act & Assert
             await Assert.ThrowsExceptionAsync<NullIdException>(() =>
-                testService.GetSingleCategoryAsync(null)
+                _testService.GetSingleCategoryAsync(null)
             , "No exception was thrown");
         }
 
@@ -86,25 +107,29 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>
-                testService.GetSingleCategoryAsync(40)
+                _testService.GetSingleCategoryAsync(40)
             , "IdNotFoundException should have been thrown");
         }
+
+        #endregion // GetSingleCategoryAsync Tests
+
+        #region AddCategoryAsync Tests
 
         [TestMethod]
         public async Task AddCategoryAsync_adds_category_then_saves() {
             // Arrange
             var category = new BudgetCategory { Name = "Test" };
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
-            mockRepo.InSequence(sequence).Setup(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory>().AsQueryable());
+            _mockRepo.InSequence(sequence).Setup(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.AddCategoryAsync(category);
+            await _testService.AddCategoryAsync(category);
 
             // Assert
-            mockRepo.Verify(m => m.AddBudgetCategory(category), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.AddBudgetCategory(category), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
@@ -114,12 +139,16 @@ namespace ExpenseTracker.Services.Tests
                 new BudgetCategory { Name = "test" }
             }.AsQueryable();
             var category = new BudgetCategory { Name = "test" };
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
-                testService.AddCategoryAsync(category) );
+                _testService.AddCategoryAsync(category) );
         }
+
+        #endregion // AddCategoryAsync Tests
+
+        #region RemoveCategoryAsync Tests
 
         [TestMethod]
         public async Task RemoveCategoryAsync_removes_category_then_saves() {
@@ -127,30 +156,34 @@ namespace ExpenseTracker.Services.Tests
             var category = new BudgetCategory { ID = 1 };
             var categories = new List<BudgetCategory> { category }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.InSequence(sequence).Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.InSequence(sequence).Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.RemoveCategoryAsync(1);
+            await _testService.RemoveCategoryAsync(1);
 
             // Assert
-            mockRepo.Verify(m => m.DeleteBudgetCategory(category), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.DeleteBudgetCategory(category), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
         public async Task RemoveCategoryAsync_skips_delete_if_id_not_present() {
             // Arrange
             var categories = new List<BudgetCategory>().AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
 
             // Act
-            await testService.RemoveCategoryAsync(20);
+            await _testService.RemoveCategoryAsync(20);
 
             // Assert
-            mockRepo.Verify(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()), Times.Never());
+            _mockRepo.Verify(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()), Times.Never());
         }
+
+        #endregion // RemoveCategoryAsync Tests
+
+        #region CategoryExists Tests
 
         [DataTestMethod]
         [DataRow(1, true), DataRow(40, false)]
@@ -159,14 +192,18 @@ namespace ExpenseTracker.Services.Tests
             var categories = new List<BudgetCategory> {
                 new BudgetCategory { ID = 1 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
 
             // Act
-            var result = testService.CategoryExists(testId);
+            var result = _testService.CategoryExists(testId);
 
             // Assert
             Assert.AreEqual(expectedResult, result);
         }
+
+        #endregion // CategoryExists Tests
+
+        #region UpdateCategoryAsync Tests
 
         [TestMethod]
         public async Task UpdateCategoryAsync_addsCategory_then_saves_when_EffectiveFrom_moved_later() {
@@ -182,19 +219,19 @@ namespace ExpenseTracker.Services.Tests
             };
             var categories = new List<BudgetCategory> { originalCategory }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Transaction>().AsQueryable());
-            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()));
-            mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()));
-            mockRepo.InSequence(sequence).Setup(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Transaction>().AsQueryable());
+            _mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>()));
+            _mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            var result = await testService.UpdateCategoryAsync(testID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(testID, editedCategory);
 
             // Assert
-            mockRepo.Verify(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [DataTestMethod]
@@ -236,11 +273,11 @@ namespace ExpenseTracker.Services.Tests
                     Payees = payees.Where(p => p.BudgetCategoryID == 1).ToList()
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
 
             // Act
-            var result = await testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedPayees.Count, "Incorrect number of payees reassigned");
@@ -286,12 +323,12 @@ namespace ExpenseTracker.Services.Tests
                     EffectiveFrom = DateTime.Parse("1/1/2017")
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
-            mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
+            _mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
 
             // Act
-            var result = await testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedTransactions.Count, "Incorrect number of payees reassigned");
@@ -316,18 +353,18 @@ namespace ExpenseTracker.Services.Tests
             };
             var categories = new List<BudgetCategory> { originalCategory }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Transaction>().AsQueryable());
-            mockRepo.Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Transaction>().AsQueryable());
+            _mockRepo.Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.EditBudgetCategory(It.IsAny<BudgetCategory>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            var result = await testService.UpdateCategoryAsync(testID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(testID, editedCategory);
 
             // Assert
-            mockRepo.Verify(m => m.EditBudgetCategory(editedCategory), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.EditBudgetCategory(editedCategory), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [DataTestMethod]
@@ -381,11 +418,11 @@ namespace ExpenseTracker.Services.Tests
                     Payees = payees.Where(p => p.BudgetCategoryID == 3).ToList()
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
 
             // Act
-            var result = await testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedPayees.Count, "Incorrect number of payees reassigned");
@@ -441,12 +478,12 @@ namespace ExpenseTracker.Services.Tests
                     EffectiveFrom = DateTime.Parse("11/1/2016")
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
-            mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
+            _mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
 
             // Act
-            var result = await testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedTransactions.Count, "Incorrect number of transactions reassigned");
@@ -510,10 +547,10 @@ namespace ExpenseTracker.Services.Tests
                     Payees = allPayees.Where(p => p.BudgetCategoryID == 3).ToList()
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(allCategories);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(allCategories);
 
             // Act
-            var result = await testService.UpdateCategoryAsync(editedCategory.ID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(editedCategory.ID, editedCategory);
 
             // Redistribute payees based on what has changed
             allCategories.Single(c => c.ID == 1).Payees = allPayees.Where(p => p.BudgetCategoryID == 1).ToList();
@@ -552,11 +589,11 @@ namespace ExpenseTracker.Services.Tests
                 Name = "test",
                 EffectiveFrom = DateTime.Parse("11/20/2016")
             };
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
-            mockRepo.Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>())).Callback<BudgetCategory>(c => deletedCategories.Add(c));
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>())).Callback<BudgetCategory>(c => deletedCategories.Add(c));
 
             // Act
-            var result = await testService.UpdateCategoryAsync(1, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(1, editedCategory);
 
             // Assert
             Assert.AreEqual(1, deletedCategories.Count, "Wrong number of categories deleted");
@@ -573,7 +610,7 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
-                testService.UpdateCategoryAsync(testID, category)
+                _testService.UpdateCategoryAsync(testID, category)
             , $"No exception thrown for Id = {testID} and BudgetCategory.ID = {category.ID}");
         }
 
@@ -586,8 +623,12 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
-                testService.UpdateCategoryAsync(testID, category)
+                _testService.UpdateCategoryAsync(testID, category)
             , $"No exception thrown for effective date = '{futureDate.ToString()}'");
         }
+
+        #endregion // UpdateCategoryAsync Tests
+
+        #endregion // Tests
     }
 }

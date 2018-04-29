@@ -15,9 +15,20 @@ namespace ExpenseTracker.Services.Tests
     [TestClass]
     public class TransactionManagerService_Tests
     {
-        private Mock<IBudgetRepo> mockRepo;
-        private ITransactionManagerService testService;
+        #region Private Members
+
+        private Mock<IBudgetRepo> _mockRepo;
+        private ITransactionManagerService _testService;
+
+        #endregion // Private Members
+
+        #region Public Properties
+
         public TestContext TestContext { get; set; }
+
+        #endregion // Public Properties
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_test_objects() {
@@ -25,14 +36,20 @@ namespace ExpenseTracker.Services.Tests
                 case nameof(AddTransactionAsync_adds_transaction_then_saves):
                 case nameof(RemoveTransactionAsync_removes_transaction_then_saves):
                 case nameof(UpdateTransactionAsync_edits_transaction_then_saves):
-                    mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
+                    _mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
                     break;
                 default:
-                    mockRepo = new Mock<IBudgetRepo>();
+                    _mockRepo = new Mock<IBudgetRepo>();
                     break;
             }
-            testService = new TransactionManagerService(mockRepo.Object);
+            _testService = new TransactionManagerService(_mockRepo.Object);
         }
+
+        #endregion // Test Initialization
+
+        #region Tests
+
+        #region GetSingleTransactionAsync Tests
 
         [TestMethod]
         public async Task GetSingleTransactionAsync_returns_transaction() {
@@ -43,7 +60,7 @@ namespace ExpenseTracker.Services.Tests
             ExtensionFactory.TransactionExtFactory = ext => mockTransExt.Object;
 
             // Act
-            var result = await testService.GetSingleTransactionAsync(3);
+            var result = await _testService.GetSingleTransactionAsync(3);
 
             // Assert
             mockTransExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
@@ -54,7 +71,7 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleTransactionAsync_throws_NullIdException_when_null_is_passed() {
             // Act & Assert
             await Assert.ThrowsExceptionAsync<NullIdException>(() =>
-                testService.GetSingleTransactionAsync(null)
+                _testService.GetSingleTransactionAsync(null)
             , "No exception was thrown");
         }
 
@@ -67,25 +84,33 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>
-                testService.GetSingleTransactionAsync(40)
+                _testService.GetSingleTransactionAsync(40)
             , "IdNotFoundException should have been thrown");
         }
+
+        #endregion // GetSingleTransactionAsync Tests
+
+        #region AddTransactionAsync Tests
 
         [TestMethod]
         public async Task AddTransactionAsync_adds_transaction_then_saves() {
             // Arrange
             var transaction = new Transaction { Amount = 10 };
             var sequence = new MockSequence();
-            mockRepo.InSequence(sequence).Setup(m => m.AddTransaction(It.IsAny<Transaction>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.InSequence(sequence).Setup(m => m.AddTransaction(It.IsAny<Transaction>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.AddTransactionAsync(transaction);
+            await _testService.AddTransactionAsync(transaction);
 
             // Assert
-            mockRepo.Verify(m => m.AddTransaction(transaction), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.AddTransaction(transaction), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
+
+        #endregion // AddTransactionAsync Tests
+
+        #region RemoveTransactionAsync Tests
 
         [TestMethod]
         public async Task RemoveTransactionAsync_removes_transaction_then_saves() {
@@ -93,30 +118,34 @@ namespace ExpenseTracker.Services.Tests
             var transaction = new Transaction { ID = 1 };
             var transactions = new List<Transaction> { transaction }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
-            mockRepo.InSequence(sequence).Setup(m => m.DeleteTransaction(It.IsAny<Transaction>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
+            _mockRepo.InSequence(sequence).Setup(m => m.DeleteTransaction(It.IsAny<Transaction>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.RemoveTransactionAsync(1);
+            await _testService.RemoveTransactionAsync(1);
 
             // Assert
-            mockRepo.Verify(m => m.DeleteTransaction(transaction), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.DeleteTransaction(transaction), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
         public async Task RemoveTransactionAsync_skips_delete_if_id_not_present() {
             // Arrange
             var transactions = new List<Transaction>().AsQueryable();
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
 
             // Act
-            await testService.RemoveTransactionAsync(20);
+            await _testService.RemoveTransactionAsync(20);
 
             // Assert
-            mockRepo.Verify(m => m.DeleteTransaction(It.IsAny<Transaction>()), Times.Never());
+            _mockRepo.Verify(m => m.DeleteTransaction(It.IsAny<Transaction>()), Times.Never());
         }
+
+        #endregion // RemoveTransactionAsync Tests
+
+        #region TransactionExists Tests
 
         [DataTestMethod]
         [DataRow(1, true), DataRow(40, false)]
@@ -125,14 +154,18 @@ namespace ExpenseTracker.Services.Tests
             var transactions = new List<Transaction> {
                 new Transaction { ID = 1 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
+            _mockRepo.Setup(m => m.GetTransactions(It.IsAny<bool>(), It.IsAny<bool>())).Returns(transactions);
 
             // Act
-            var result = testService.TransactionExists(testId);
+            var result = _testService.TransactionExists(testId);
 
             // Assert
             Assert.AreEqual(expectedResult, result);
         }
+
+        #endregion // TransactionExists Tests
+
+        #region UpdateTransactionAsync Tests
 
         [TestMethod]
         public async Task UpdateTransactionAsync_edits_transaction_then_saves() {
@@ -140,15 +173,15 @@ namespace ExpenseTracker.Services.Tests
             var testID = 1;
             var transaction = new Transaction { ID = testID };
             var sequence = new MockSequence();
-            mockRepo.InSequence(sequence).Setup(m => m.EditTransaction(It.IsAny<Transaction>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.InSequence(sequence).Setup(m => m.EditTransaction(It.IsAny<Transaction>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.UpdateTransactionAsync(testID, transaction);
+            await _testService.UpdateTransactionAsync(testID, transaction);
 
             // Assert
-            mockRepo.Verify(m => m.EditTransaction(transaction), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.EditTransaction(transaction), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
@@ -159,17 +192,25 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
-                testService.UpdateTransactionAsync(testID, transaction)
+                _testService.UpdateTransactionAsync(testID, transaction)
             , $"No exception thrown for Id = {testID} and Transaction.ID = {transaction.ID}");
         }
+
+        #endregion // UpdateTransactionAsync Tests
+
+        #region GetTransactions Tests
 
         [TestMethod]
         public void GetTransactions_calls_repo_GetTransactions() {
             // Act
-            var result = testService.GetTransactions();
+            var result = _testService.GetTransactions();
 
             // Assert
-            mockRepo.Verify(m => m.GetTransactions(false, false), Times.Once());
+            _mockRepo.Verify(m => m.GetTransactions(false, false), Times.Once());
         }
+
+        #endregion // GetTransactions Tests
+
+        #endregion // Tests
     }
 }

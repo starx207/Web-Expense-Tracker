@@ -12,204 +12,226 @@ namespace ExpenseTracker.Repository.Tests
     [TestClass]
     public class BudgetRepo_Tests
     {
-        private Mock<BudgetContext> mockContext;
-        private IBudgetRepo testRepo;
-        private List<BudgetCategory> categories;
-        private List<Payee> payees;
-        private List<Alias> aliases;
-        private List<Transaction> transactions;
+        #region Private Members
+
+        private Mock<BudgetContext> _mockContext;
+        private IBudgetRepo _testRepo;
+        private List<BudgetCategory> _categories;
+        private List<Payee> _payees;
+        private List<Alias> _aliases;
+        private List<Transaction> _transactions;
+
+        #endregion // Private Members
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_Test_Objects() {
-            mockContext = new Mock<BudgetContext>();
-            testRepo = new BudgetRepo(mockContext.Object);
-            categories = new List<BudgetCategory>();
-            payees = new List<Payee>();
-            aliases = new List<Alias>();
-            transactions = new List<Transaction>();
+            _mockContext = new Mock<BudgetContext>();
+            _testRepo = new BudgetRepo(_mockContext.Object);
+            _categories = new List<BudgetCategory>();
+            _payees = new List<Payee>();
+            _aliases = new List<Alias>();
+            _transactions = new List<Transaction>();
         }
 
-        #region Delete Method Tests
-            [TestMethod]
-            public void DeleteTransaction_calls_EfCore_Remove() {
-                // Arrange
-                var mockTransactionSet = new Mock<DbSet<Transaction>>();
-                mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
-                var testTransaction = new Transaction();
+        #endregion // Test Initialization
 
-                // Act
-                testRepo.DeleteTransaction(testTransaction);
+        #region Tests
 
-                // Assert
-                mockTransactionSet.Verify(m => m.Remove(testTransaction), Times.Once());
-            }
+        #region Delete Tests
 
-            [TestMethod]
-            public void DeletePayee_calls_EfCore_Remove() {
-                // Arrange
-                var mockPayeeSet = new Mock<DbSet<Payee>>();
-                mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
-                var testPayee = new Payee();
+        [TestMethod]
+        public void DeleteTransaction_calls_EfCore_Remove() {
+            // Arrange
+            var mockTransactionSet = new Mock<DbSet<Transaction>>();
+            _mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
+            var testTransaction = new Transaction();
 
-                // Act
-                testRepo.DeletePayee(testPayee);
+            // Act
+            _testRepo.DeleteTransaction(testTransaction);
 
-                // Assert
-                mockPayeeSet.Verify(m => m.Remove(testPayee), Times.Once());
-            }
+            // Assert
+            mockTransactionSet.Verify(m => m.Remove(testTransaction), Times.Once());
+        }
 
-            [TestMethod]
-            public void DeleteAlias_calls_EfCore_Remove() {
-                // Arrange
-                var mockAliasSet = new Mock<DbSet<Alias>>();
-                mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
-                var testAlias = new Alias();
+        [TestMethod]
+        public void DeletePayee_calls_EfCore_Remove() {
+            // Arrange
+            var mockPayeeSet = new Mock<DbSet<Payee>>();
+            _mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
+            var testPayee = new Payee();
 
-                // Act
-                testRepo.DeleteAlias(testAlias);
+            // Act
+            _testRepo.DeletePayee(testPayee);
 
-                // Assert
-                mockAliasSet.Verify(m => m.Remove(testAlias), Times.Once());
-            }
+            // Assert
+            mockPayeeSet.Verify(m => m.Remove(testPayee), Times.Once());
+        }
 
-            [TestMethod]
-            public void DeleteBudgetCategory_calls_EfCore_Remove() {
-                // Arrange
-                var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
-                mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
-                var testBudgetCategory = new BudgetCategory();
+        [TestMethod]
+        public void DeleteAlias_calls_EfCore_Remove() {
+            // Arrange
+            var mockAliasSet = new Mock<DbSet<Alias>>();
+            _mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
+            var testAlias = new Alias();
 
-                // Act
-                testRepo.DeleteBudgetCategory(testBudgetCategory);
+            // Act
+            _testRepo.DeleteAlias(testAlias);
 
-                // Assert
-                mockBudgetCategorySet.Verify(m => m.Remove(testBudgetCategory), Times.Once());
-            }
-        #endregion
+            // Assert
+            mockAliasSet.Verify(m => m.Remove(testAlias), Times.Once());
+        }
 
-        #region Add Method Tests
-            [TestMethod]
-            public void AddTransaction_calls_EFCore_Add() {
-                // Arrange
-                var mockTransactionSet = new Mock<DbSet<Transaction>>();
-                mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
-                var testTransaction = new Transaction();
+        [TestMethod]
+        public void DeleteBudgetCategory_calls_EfCore_Remove() {
+            // Arrange
+            var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
+            _mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
+            var testBudgetCategory = new BudgetCategory();
 
-                // Act
-                testRepo.AddTransaction(testTransaction);
+            // Act
+            _testRepo.DeleteBudgetCategory(testBudgetCategory);
 
-                // Assert
-                mockTransactionSet.Verify(m => m.Add(testTransaction), Times.Once());
-            }
+            // Assert
+            mockBudgetCategorySet.Verify(m => m.Remove(testBudgetCategory), Times.Once());
+        }
 
-            [TestMethod]
-            public void AddPayee_calls_EFCore_Add() {
-                // Arrange
-                var mockPayeeSet = new Mock<DbSet<Payee>>();
-                mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
-                var testPayee = new Payee();
+        #endregion // Delete Tests
 
-                // Act
-                testRepo.AddPayee(testPayee);
+        #region Add Tests
 
-                // Assert
-                mockPayeeSet.Verify(m => m.Add(testPayee), Times.Once());
-            }
+        [TestMethod]
+        public void AddTransaction_calls_EFCore_Add() {
+            // Arrange
+            var mockTransactionSet = new Mock<DbSet<Transaction>>();
+            _mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
+            var testTransaction = new Transaction();
 
-            [TestMethod]
-            public void AddBudgetCategory_calls_EFCore_Add() {
-                // Arrange
-                var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
-                mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
-                var testBudgetCategory = new BudgetCategory();
+            // Act
+            _testRepo.AddTransaction(testTransaction);
 
-                // Act
-                testRepo.AddBudgetCategory(testBudgetCategory);
+            // Assert
+            mockTransactionSet.Verify(m => m.Add(testTransaction), Times.Once());
+        }
 
-                // Assert
-                mockBudgetCategorySet.Verify(m => m.Add(testBudgetCategory), Times.Once());
-            }
+        [TestMethod]
+        public void AddPayee_calls_EFCore_Add() {
+            // Arrange
+            var mockPayeeSet = new Mock<DbSet<Payee>>();
+            _mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
+            var testPayee = new Payee();
 
-            [TestMethod]
-            public void AddAlias_calls_EFCore_Add() {
-                // Arrange
-                var mockAliasSet = new Mock<DbSet<Alias>>();
-                mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
-                var testAlias = new Alias();
+            // Act
+            _testRepo.AddPayee(testPayee);
 
-                // Act
-                testRepo.AddAlias(testAlias);
+            // Assert
+            mockPayeeSet.Verify(m => m.Add(testPayee), Times.Once());
+        }
 
-                // Assert
-                mockAliasSet.Verify(m => m.Add(testAlias), Times.Once());
-            }
-        #endregion
+        [TestMethod]
+        public void AddBudgetCategory_calls_EFCore_Add() {
+            // Arrange
+            var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
+            _mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
+            var testBudgetCategory = new BudgetCategory();
 
-        #region Edit Method Tests
-            [TestMethod]
-            public void EditTransaction_calls_EFCore_Update() {
-                // Arrange
-                var mockTransactionSet = new Mock<DbSet<Transaction>>();
-                mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
-                var testTransaction = new Transaction();
+            // Act
+            _testRepo.AddBudgetCategory(testBudgetCategory);
 
-                // Act
-                testRepo.EditTransaction(testTransaction);
+            // Assert
+            mockBudgetCategorySet.Verify(m => m.Add(testBudgetCategory), Times.Once());
+        }
 
-                // Assert
-                mockTransactionSet.Verify(m => m.Update(testTransaction), Times.Once());
-            }
+        [TestMethod]
+        public void AddAlias_calls_EFCore_Add() {
+            // Arrange
+            var mockAliasSet = new Mock<DbSet<Alias>>();
+            _mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
+            var testAlias = new Alias();
 
-            [TestMethod]
-            public void EditPayee_calls_EFCore_Update() {
-                // Arrange
-                var mockPayeeSet = new Mock<DbSet<Payee>>();
-                mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
-                var testPayee = new Payee();
+            // Act
+            _testRepo.AddAlias(testAlias);
 
-                // Act
-                testRepo.EditPayee(testPayee);
+            // Assert
+            mockAliasSet.Verify(m => m.Add(testAlias), Times.Once());
+        }
 
-                // Assert
-                mockPayeeSet.Verify(m => m.Update(testPayee), Times.Once());
-            }
+        #endregion // Add Tests
 
-            [TestMethod]
-            public void EditBudgetCategory_calls_EFCore_Update() {
-                // Arrange
-                var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
-                mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
-                var testBudgetCategory = new BudgetCategory();
+        #region Edit Tests
 
-                // Act
-                testRepo.EditBudgetCategory(testBudgetCategory);
+        [TestMethod]
+        public void EditTransaction_calls_EFCore_Update() {
+            // Arrange
+            var mockTransactionSet = new Mock<DbSet<Transaction>>();
+            _mockContext.SetupGet(m => m.Transactions).Returns(mockTransactionSet.Object);
+            var testTransaction = new Transaction();
 
-                // Assert
-                mockBudgetCategorySet.Verify(m => m.Update(testBudgetCategory), Times.Once());
-            }
+            // Act
+            _testRepo.EditTransaction(testTransaction);
 
-            [TestMethod]
-            public void EditAlias_calls_EFCore_Update() {
-                // Arrange
-                var mockAliasSet = new Mock<DbSet<Alias>>();
-                mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
-                var testAlias = new Alias();
+            // Assert
+            mockTransactionSet.Verify(m => m.Update(testTransaction), Times.Once());
+        }
 
-                // Act
-                testRepo.EditAlias(testAlias);
+        [TestMethod]
+        public void EditPayee_calls_EFCore_Update() {
+            // Arrange
+            var mockPayeeSet = new Mock<DbSet<Payee>>();
+            _mockContext.SetupGet(m => m.Payees).Returns(mockPayeeSet.Object);
+            var testPayee = new Payee();
 
-                // Assert
-                mockAliasSet.Verify(m => m.Update(testAlias), Times.Once());
-            }
-        #endregion
+            // Act
+            _testRepo.EditPayee(testPayee);
+
+            // Assert
+            mockPayeeSet.Verify(m => m.Update(testPayee), Times.Once());
+        }
+
+        [TestMethod]
+        public void EditBudgetCategory_calls_EFCore_Update() {
+            // Arrange
+            var mockBudgetCategorySet = new Mock<DbSet<BudgetCategory>>();
+            _mockContext.SetupGet(m => m.BudgetCategories).Returns(mockBudgetCategorySet.Object);
+            var testBudgetCategory = new BudgetCategory();
+
+            // Act
+            _testRepo.EditBudgetCategory(testBudgetCategory);
+
+            // Assert
+            mockBudgetCategorySet.Verify(m => m.Update(testBudgetCategory), Times.Once());
+        }
+
+        [TestMethod]
+        public void EditAlias_calls_EFCore_Update() {
+            // Arrange
+            var mockAliasSet = new Mock<DbSet<Alias>>();
+            _mockContext.SetupGet(m => m.Aliases).Returns(mockAliasSet.Object);
+            var testAlias = new Alias();
+
+            // Act
+            _testRepo.EditAlias(testAlias);
+
+            // Assert
+            mockAliasSet.Verify(m => m.Update(testAlias), Times.Once());
+        }
+
+        #endregion // Edit Tests
+
+        #region Save Tests
 
         [TestMethod]
         public async Task SaveChangesAsync_calls_EFCore_SaveChangesAsync() {
             // Act
-            await testRepo.SaveChangesAsync();
+            await _testRepo.SaveChangesAsync();
 
             // Assert
-            mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        #endregion // Save Tests
+
+        #endregion // Tests
     }
 }

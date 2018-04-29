@@ -9,16 +9,24 @@ namespace ExpenseTracker.Tests.Models
     [TestClass]
     public class AliasValidation_Tests
     {
+        #region Private Members
+
         private Alias _model;
 
+        #endregion // Private Members
+
+        #region Test Initialization
+
         [TestInitialize]
-        public void CreateValidAlias() {
-            _model = new Alias {
-                ID = 1,
-                Name = "Valid alias name",
-                PayeeID = 4
-            };
-        }
+        public void CreateValidAlias() => _model = new Alias {
+            ID = 1,
+            Name = "Valid alias name",
+            PayeeID = 4
+        };
+
+        #endregion // Test Initialization
+
+        #region Tests
 
         [TestMethod]
         public void NamePropertyRequired() {
@@ -55,5 +63,7 @@ namespace ExpenseTracker.Tests.Models
 
             return Validator.TryValidateObject(model, context, results, true);
         }
+
+        #endregion // Tests
     }
 }

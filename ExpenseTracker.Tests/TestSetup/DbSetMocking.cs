@@ -5,6 +5,7 @@
  using Moq;
  using Moq.Language;
  using Moq.Language.Flow;
+ using System;
  using System.Collections.Generic;
  using System.Linq;
 
@@ -12,46 +13,73 @@
  {
      public static class DbSetMocking
      {
-         public static Mock<DbSet<T>> CreateMockSet<T>(IQueryable<T> data) where T : class {
-             var queryableData = data.AsQueryable();
-             var mockSet = new Mock<DbSet<T>>();
-             mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryableData.Provider);
-             mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryableData.Expression);
-             mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryableData.ElementType);
-             mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryableData.GetEnumerator());
+         #region CreaeMockSet
 
-             return mockSet;
-         }
+        /// <summary>
+        /// Creates a Mock DbSet from an IQueryable data collection
+        /// </summary>
+        /// <param name="data">The data to create a DbSet from</param>
+        /// <returns>A Mock DbSet of the provided data</returns>
+        public static Mock<DbSet<T>> CreateMockSet<T>(IQueryable<T> data) where T : class {
+            var mockSet = new Mock<DbSet<T>>();
+            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns((data ?? throw new ArgumentNullException("data")).Provider);
+            mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
+            mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
+            mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
 
-         public static Mock<DbSet<T>> CreateMockSet<T>(IEnumerable<T> data) where T : class {
-             return CreateMockSet(data.AsQueryable());
-         }
+            return mockSet;
+        }
 
-         public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
-             this IReturns<TContext, DbSet<TEntity>> setup,
-             TEntity[] entities
-         ) where TEntity : class 
-         where TContext : DbContext {
-             var mockSet = CreateMockSet(entities.AsQueryable());
-             return setup.Returns(mockSet.Object);
-         }
+        /// <summary>
+        /// Creates a Mock DbSet from an IEnumerable data collection
+        /// </summary>
+        /// <param name="data">The data to create a DbSet from</param>
+        /// <returns>A Mock DbSet of the provided data</returns>
+        public static Mock<DbSet<T>> CreateMockSet<T>(IEnumerable<T> data) 
+            where T : class => CreateMockSet((data ?? throw new ArgumentNullException("data")).AsQueryable());
 
-         public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
-             this IReturns<TContext, DbSet<TEntity>> setup,
-             IQueryable<TEntity> entities
-         ) where TEntity : class 
-         where TContext : DbContext {
-             var mockSet = CreateMockSet(entities);
-             return setup.Returns(mockSet.Object);
-         }
+        #endregion // CreateMockSet
 
-         public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
-             this IReturns<TContext, DbSet<TEntity>> setup,
-             IEnumerable<TEntity> entities
-         ) where TEntity : class 
-         where TContext : DbContext {
-             var mockSet = CreateMockSet(entities);
-             return setup.Returns(mockSet.Object);
-         }
-     }
+        #region ReturnsDbSet
+
+        /// <summary>
+        /// Mocks the return value of a method that returns a DbSet
+        /// </summary>
+        /// <param name="setup">The Mock setup to return a Mock DbSet</param>
+        /// <param name="entities">The an array to return as a DbSet</param>
+        /// <returns></returns>
+        public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
+            this IReturns<TContext, DbSet<TEntity>> setup,
+            TEntity[] entities
+        ) where TEntity : class
+        where TContext : DbContext => setup.Returns(
+            CreateMockSet((entities ?? throw new ArgumentNullException("entities")).AsQueryable()).Object
+        );
+
+        /// <summary>
+        /// Mocks the return value of a method that returns a DbSet
+        /// </summary>
+        /// <param name="setup">The Mock setup to return a Mock DbSet</param>
+        /// <param name="entities">The an IQueryable to return as a DbSet</param>
+        /// <returns></returns>
+        public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
+            this IReturns<TContext, DbSet<TEntity>> setup,
+            IQueryable<TEntity> entities
+        ) where TEntity : class
+        where TContext : DbContext => setup.Returns(CreateMockSet((entities ?? throw new ArgumentNullException("entites"))).Object);
+
+        /// <summary>
+        /// Mocks the return value of a method that returns a DbSet
+        /// </summary>
+        /// <param name="setup">The Mock setup to return a Mock DbSet</param>
+        /// <param name="entities">The an IEnumerable to return as a DbSet</param>
+        /// <returns></returns>
+        public static IReturnsResult<TContext> ReturnsDbSet<TEntity, TContext>(
+            this IReturns<TContext, DbSet<TEntity>> setup,
+            IEnumerable<TEntity> entities
+        ) where TEntity : class
+        where TContext : DbContext => setup.Returns(CreateMockSet((entities ?? throw new ArgumentNullException("entites"))).Object);
+
+        #endregion // ReturnsDbSet
+    }
  }

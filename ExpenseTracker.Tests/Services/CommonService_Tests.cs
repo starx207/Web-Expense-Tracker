@@ -9,24 +9,37 @@ using System.Linq;
 namespace ExpenseTracker.Services.Tests
 {
     [TestClass]
-    public class CommonService_Tests {
-        private ICommonService testService;
-        private Mock<IBudgetRepo> mockRepo;
+    public class CommonService_Tests 
+    {
+        #region Private Members
+
+        private ICommonService _testService;
+        private Mock<IBudgetRepo> _mockRepo;
+
+        #endregion // Private Members
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_test_objects() {
-            mockRepo = new Mock<IBudgetRepo>();
-            testService = new CommonService(mockRepo.Object);
+            _mockRepo = new Mock<IBudgetRepo>();
+            _testService = new CommonService(_mockRepo.Object);
         }
+
+        #endregion // Test Initialization
+
+        #region Tests
+
+        #region GetCategories Tests
 
         [DataTestMethod]
         [DataRow(true), DataRow(false)]
         public void GetCategories_calls_repo_GetCategories(bool onlyCurrentCategories) {
             // Act
-            var result = testService.GetCategories(currentOnly: onlyCurrentCategories);
+            var result = _testService.GetCategories(currentOnly: onlyCurrentCategories);
 
             // Assert
-            mockRepo.Verify(m => m.GetCategories(), Times.Once());
+            _mockRepo.Verify(m => m.GetCategories(), Times.Once());
         }
 
         [DataTestMethod]
@@ -47,23 +60,27 @@ namespace ExpenseTracker.Services.Tests
                     EffectiveFrom = DateTime.Parse("1/1/2017")
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetCategories()).Returns(categories);
+            _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
 
             // Act
-            var results = testService.GetCategories(currentOnly: onlyCurrentCategories);
+            var results = _testService.GetCategories(currentOnly: onlyCurrentCategories);
 
             // Assert
             Assert.AreEqual(expectedCount, results.Count(), "The wrong number of categories were returned");
         }
 
+        #endregion // GetCategories Tests
+
+        #region GetPayees Tests
+
         [DataTestMethod]
         [DataRow(true), DataRow(false)]
         public void GetPayees_calls_repo_GetPayees(bool onlyCurrentPayees) {
             // Act
-            var result = testService.GetPayees(currentOnly: onlyCurrentPayees);
+            var result = _testService.GetPayees(currentOnly: onlyCurrentPayees);
 
             // Assert
-            mockRepo.Verify(m => m.GetPayees(false, false, false), Times.Once());
+            _mockRepo.Verify(m => m.GetPayees(false, false, false), Times.Once());
         }
 
         [DataTestMethod]
@@ -84,13 +101,17 @@ namespace ExpenseTracker.Services.Tests
                     EffectiveFrom = DateTime.Parse("1/1/2017")
                 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
-            var results = testService.GetPayees(currentOnly: onlyCurrentPayees);
+            var results = _testService.GetPayees(currentOnly: onlyCurrentPayees);
 
             // Assert
             Assert.AreEqual(expectedCount, results.Count(), "The wrong number of payees were returned");
         }
+
+        #endregion // GetPayees Tests
+
+        #endregion // Tests
     }
 }

@@ -14,9 +14,20 @@ namespace ExpenseTracker.Services.Tests
     [TestClass]
     public class PayeeManagerService_Tests
     {
-        private Mock<IBudgetRepo> mockRepo;
-        private IPayeeManagerService testService;
+        #region Private Members
+
+        private Mock<IBudgetRepo> _mockRepo;
+        private IPayeeManagerService _testService;
+
+        #endregion // Private Members
+        
+        #region Public Properties
+        
         public TestContext TestContext { get; set; }
+
+        #endregion // Public Properties
+
+        #region Test Initialization
 
         [TestInitialize]
         public void Initialize_test_objects() {
@@ -24,14 +35,20 @@ namespace ExpenseTracker.Services.Tests
                 case nameof(AddPayeeAsync_adds_payee_then_saves):
                 case nameof(RemovePayeeAsync_removes_payee_then_saves):
                 case nameof(UpdatePayeeAsync_edits_payee_then_saves):
-                    mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
+                    _mockRepo = new Mock<IBudgetRepo>(MockBehavior.Strict);
                     break;
                 default:
-                    mockRepo = new Mock<IBudgetRepo>();
+                    _mockRepo = new Mock<IBudgetRepo>();
                     break;
             }
-            testService = new PayeeManagerService(mockRepo.Object);
+            _testService = new PayeeManagerService(_mockRepo.Object);
         }
+
+        #endregion // Test Initialization
+
+        #region Tests
+
+        #region GetSinglePayeeAsync Tests
 
         [TestMethod]
         public async Task GetSinglePayeeAsync_returns_payee() {
@@ -42,7 +59,7 @@ namespace ExpenseTracker.Services.Tests
             ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
 
             // Act
-            var result = await testService.GetSinglePayeeAsync(3);
+            var result = await _testService.GetSinglePayeeAsync(3);
 
             // Assert
             mockPayeeExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
@@ -53,7 +70,7 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSinglePayeeAsync_throws_NullIdException_when_null_is_passed() {
             // Act & Assert
             await Assert.ThrowsExceptionAsync<NullIdException>(() =>
-                testService.GetSinglePayeeAsync(null)
+                _testService.GetSinglePayeeAsync(null)
             , "No exception was thrown");
         }
 
@@ -66,25 +83,29 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>
-                testService.GetSinglePayeeAsync(40)
+                _testService.GetSinglePayeeAsync(40)
             , "IdNotFoundException should have been thrown");
         }
+
+        #endregion // GetSinglePayeeAsync Tests
+
+        #region AddPayeeAsync Tests
 
         [TestMethod]
         public async Task AddPayeeAsync_adds_payee_then_saves() {
             // Arrange
             var payee = new Payee { Name = "Test" };
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Payee>().AsQueryable());
-            mockRepo.InSequence(sequence).Setup(m => m.AddPayee(It.IsAny<Payee>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(new List<Payee>().AsQueryable());
+            _mockRepo.InSequence(sequence).Setup(m => m.AddPayee(It.IsAny<Payee>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.AddPayeeAsync(payee);
+            await _testService.AddPayeeAsync(payee);
 
             // Assert
-            mockRepo.Verify(m => m.AddPayee(payee), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.AddPayee(payee), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
@@ -94,12 +115,16 @@ namespace ExpenseTracker.Services.Tests
                 new Payee { Name = "test" }
             }.AsQueryable();
             var payee = new Payee { Name = "test" };
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
-                testService.AddPayeeAsync(payee) );
+                _testService.AddPayeeAsync(payee) );
         }
+
+        #endregion // AddPayeeAsync Tests
+
+        #region RemovePayeeAsync Tests
 
         [TestMethod]
         public async Task RemovePayeeAsync_removes_payee_then_saves() {
@@ -107,30 +132,34 @@ namespace ExpenseTracker.Services.Tests
             var payee = new Payee { ID = 1 };
             var payees = new List<Payee> { payee }.AsQueryable();
             var sequence = new MockSequence();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
-            mockRepo.InSequence(sequence).Setup(m => m.DeletePayee(It.IsAny<Payee>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            _mockRepo.InSequence(sequence).Setup(m => m.DeletePayee(It.IsAny<Payee>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.RemovePayeeAsync(1);
+            await _testService.RemovePayeeAsync(1);
 
             // Assert
-            mockRepo.Verify(m => m.DeletePayee(payee), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.DeletePayee(payee), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
         public async Task RemovePayeeAsync_skips_delete_if_id_not_present() {
             // Arrange
             var payees = new List<Payee>().AsQueryable();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
-            await testService.RemovePayeeAsync(20);
+            await _testService.RemovePayeeAsync(20);
 
             // Assert
-            mockRepo.Verify(m => m.DeletePayee(It.IsAny<Payee>()), Times.Never());
+            _mockRepo.Verify(m => m.DeletePayee(It.IsAny<Payee>()), Times.Never());
         }
+
+        #endregion // RemovePayeeAsync Tests
+
+        #region PayeeExists Tests
 
         [DataTestMethod]
         [DataRow(1, true), DataRow(40, false)]
@@ -139,14 +168,18 @@ namespace ExpenseTracker.Services.Tests
             var payees = new List<Payee> {
                 new Payee { ID = 1 }
             }.AsQueryable();
-            mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+            _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
-            var result = testService.PayeeExists(testId);
+            var result = _testService.PayeeExists(testId);
 
             // Assert
             Assert.AreEqual(expectedResult, result);
         }
+
+        #endregion // PayeeExists Tests
+
+        #region UpdatePayeeAsync Tests
 
         [TestMethod]
         public async Task UpdatePayeeAsync_edits_payee_then_saves() {
@@ -154,15 +187,15 @@ namespace ExpenseTracker.Services.Tests
             var testID = 1;
             var payee = new Payee { ID = testID };
             var sequence = new MockSequence();
-            mockRepo.InSequence(sequence).Setup(m => m.EditPayee(It.IsAny<Payee>()));
-            mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
+            _mockRepo.InSequence(sequence).Setup(m => m.EditPayee(It.IsAny<Payee>()));
+            _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await testService.UpdatePayeeAsync(testID, payee);
+            await _testService.UpdatePayeeAsync(testID, payee);
 
             // Assert
-            mockRepo.Verify(m => m.EditPayee(payee), Times.Once());
-            mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
+            _mockRepo.Verify(m => m.EditPayee(payee), Times.Once());
+            _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
         [TestMethod]
@@ -173,8 +206,12 @@ namespace ExpenseTracker.Services.Tests
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
-                testService.UpdatePayeeAsync(testID, payee)
+                _testService.UpdatePayeeAsync(testID, payee)
             , $"No exception thrown for Id = {testID} and Payee.ID = {payee.ID}");
         }
+
+        #endregion // UpdatePayeeAsync Tests
+
+        #endregion // Tests
     }
 }

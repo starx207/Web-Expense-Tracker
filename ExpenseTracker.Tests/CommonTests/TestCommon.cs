@@ -7,6 +7,15 @@ namespace ExpenseTracker.TestResources
 {
     public abstract class TestCommon
     {
+        #region Assertion Helpers
+
+        /// <summary>
+        /// Performs standard Assertions to check that a Select List is passed to ViewData correctly
+        /// </summary>
+        /// <param name="viewData">The View Data that is expected to contain a Select List</param>
+        /// <param name="viewDataKey">The key value to get the Select List from the View Data</param>
+        /// <param name="expectedValues">The string values expected for the Select List values</param>
+        /// <param name="selectedValue">The value that should be selected in the Select List by default. Null, if no default value</param>
         protected void AssertThatViewDataIsSelectList(ViewDataDictionary viewData, string viewDataKey, IQueryable<string> expectedValues, string selectedValue = null) {
             // Check viewData key is not null
             Assert.IsNotNull(viewData[viewDataKey], $"ViewData.{viewDataKey} should not be null");
@@ -37,5 +46,7 @@ namespace ExpenseTracker.TestResources
                 Assert.IsTrue(isSelected, $"The SelectList item with value = '{selectedValue}' is not selected");
             }
         }
+
+        #endregion // Assertion Helpers
     }
 }
