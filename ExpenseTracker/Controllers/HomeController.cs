@@ -8,6 +8,7 @@ using ExpenseTracker.Models;
 
 namespace ExpenseTracker.Controllers
 {
+    // TODO: This page needs customized for the app. It is currently the template default
     public class HomeController : Controller
     {
         public IActionResult Index()

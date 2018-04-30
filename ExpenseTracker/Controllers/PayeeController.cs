@@ -13,21 +13,43 @@ namespace ExpenseTracker.Controllers
 {
     public class PayeeController : Controller
     {
-        private readonly IPayeeManagerService _service;
+        #region Private Members
 
-        public PayeeController(IPayeeManagerService service) => _service = service;
+        private readonly IPayeeManagerService _serviceRO;
 
-        // GET: Payee
+        #endregion // Private Members
+
+        #region Constructors
+
+        /// <summary>
+        /// The default constructor
+        /// </summary>
+        /// <param name="service">The service to use in the controller</param>
+        public PayeeController(IPayeeManagerService service) => _serviceRO = service;
+
+        #endregion // Constructors
+
+        #region Public Methods
+
+        /// <summary>
+        /// Returns the Index view for <see cref="Payee"/>
+        /// GET: Payee
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _service.GetPayees(true, true).OrderBy(p => p.Name).Extension().ToListAsync());
+            return View(nameof(Index), await _serviceRO.GetPayees(true, true).OrderBy(p => p.Name).Extension().ToListAsync());
         }
 
-        // GET: Payee/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
+        /// <summary>
+        /// Returns the Details view for a <see cref="Payee"/>
+        /// GET: Payee/Details/5
+        /// </summary>
+        /// <param name="id">The Id of the <see cref="Payee"/> to show</param>
+        /// <returns></returns>
+        public async Task<IActionResult> Details(int? id) {
             Payee payee;
             try {
-                payee = await _service.GetSinglePayeeAsync(id, true);
+                payee = await _serviceRO.GetSinglePayeeAsync(id, true);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -35,20 +57,29 @@ namespace ExpenseTracker.Controllers
         }
 
         // GET: Payee/Create
+        /// <summary>
+        /// Return the Create view for a <see cref="Payee"/>
+        /// GET: Payee/Create
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Create() {
             CreateCategorySelectList();
             return View(nameof(Create));
         }
 
-        // POST: Payee/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Attempts to create the <see cref="Payee"/> specified in the view
+        /// If the model is not valid, returns to the view
+        /// POST: Payee/Create
+        /// </summary>
+        /// <param name="payee">The <see cref="Payee"/> to create</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,EffectiveFrom,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
                 try {
-                    await _service.AddPayeeAsync(payee);
+                    await _serviceRO.AddPayeeAsync(payee);
                     return RedirectToAction(nameof(Index));
                 } catch (UniqueConstraintViolationException) {
                     ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Payee");
@@ -58,11 +89,16 @@ namespace ExpenseTracker.Controllers
             return View(nameof(Create), payee);
         }
 
-        // GET: Payee/Edit/5
+        /// <summary>
+        /// Returns the Edit view for a <see cref="Payee"/>
+        /// GET: Payee/Edit/5
+        /// </summary>
+        /// <param name="id">The Id of the <see cref="Payee"/> to show/edit</param>
+        /// <returns></returns>
         public async Task<IActionResult> Edit(int? id) {
             Payee payee;
             try {
-                payee = await _service.GetSinglePayeeAsync(id);
+                payee = await _serviceRO.GetSinglePayeeAsync(id);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -70,17 +106,22 @@ namespace ExpenseTracker.Controllers
             return View(nameof(Edit), payee);
         }
 
-        // POST: Payee/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Attempts to edit the <see cref="Payee"/> specified in the view
+        /// If the model is not valid, returns to the view
+        /// POST: Payee/Edit/5
+        /// </summary>
+        /// <param name="id">The Id of the <see cref="Payee"/> to edit</param>
+        /// <param name="payee">The <see cref="Payee"/> to edit</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,EffectiveFrom,BudgetCategoryID")] Payee payee) {
             if (ModelState.IsValid) {
                 try {
-                    await _service.UpdatePayeeAsync(id, payee);
+                    await _serviceRO.UpdatePayeeAsync(id, payee);
                 } catch (ExpenseTrackerException ex) {
-                    if (ex is ConcurrencyException && _service.PayeeExists(payee.ID)) {
+                    if (ex is ConcurrencyException && _serviceRO.PayeeExists(payee.ID)) {
                         throw;
                     }
                     return NotFound();
@@ -91,27 +132,48 @@ namespace ExpenseTracker.Controllers
             return View(nameof(Edit), payee);
         }
 
-        // GET: Payee/Delete/5
+        /// <summary>
+        /// Returns the Delete view for a <see cref="Payee"/>
+        /// GET: Payee/Delete/5
+        /// </summary>
+        /// <param name="id">The Id of the <see cref="Payee"/> to show/delete</param>
+        /// <returns></returns>
         public async Task<IActionResult> Delete(int? id) {
             Payee payee;
             try {
-                payee = await _service.GetSinglePayeeAsync(id, true);
+                payee = await _serviceRO.GetSinglePayeeAsync(id, true);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
             return View(nameof(Delete), payee);
         }
 
-        // POST: Payee/Delete/5
+        /// <summary>
+        /// Attempts to delete the <see cref="Payee"/> specified in the view,
+        /// then redirects to the <see cref="Index"/> action
+        /// POST: Payee/Delete/5
+        /// </summary>
+        /// <param name="id">The Id of the <see cref="Payee"/> to delete</param>
+        /// <returns></returns>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-            await _service.RemovePayeeAsync(id);
+            await _serviceRO.RemovePayeeAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
+        #endregion // Public Methods
+
+        #region Helper Functions
+
+        /// <summary>
+        /// Creates a <see cref="SelectList"/> of <see cref="BudgetCategory"/> objects and adds them to ViewData[CategoryList]
+        /// </summary>
+        /// <param name="payeeToSelect">The <see cref="Payee"/> whose <see cref="BudgetCategory"/> should be pre-selected</param>
         private void CreateCategorySelectList(Payee payeeToSelect = null) {
-            ViewData["CategoryList"] = new SelectList(_service.GetCategories().OrderBy(c => c.Name), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
+            ViewData["CategoryList"] = new SelectList(_serviceRO.GetCategories().OrderBy(c => c.Name), "ID", "Name", payeeToSelect == null ? null : payeeToSelect.BudgetCategoryID);
         }
+
+        #endregion // Helper Functions
     }
 }
