@@ -25,51 +25,18 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="service">The service to use in the controller</param>
         public BudgetCategoryController(ICategoryManagerService service)
-            : base(() => service.GetCategories()) {
+            : base(collectionGetter: () => service.GetCategories(),
+                singleGetter: id => service.GetSingleCategoryAsync(id),
+                singleAdder: category => service.AddCategoryAsync(category),
+                singleDeleter: id => service.RemoveCategoryAsync(id))  {
                 _serviceRO = service;
                 CollectionOrderFunc = category => category.Name;
-                OrderDescending = true;
             } 
 
         #endregion // Constuctors
 
         #region Public Methods
  
-        // /// <summary>
-        // /// Returns the Index view for <see cref="BudgetCategory"/>
-        // /// GET: BudgetCategory
-        // /// </summary>
-        // /// <returns></returns>
-        // public async Task<IActionResult> Index() {
-        //     return View(nameof(Index), await _serviceRO.GetCategories().OrderBy(c => c.Name).Extension().ToListAsync());
-        // }
-
-        /// <summary>
-        /// Returns the Details view for a <see cref="BudgetCategory"/>
-        /// GET: BudgetCategory/Details/5
-        /// </summary>
-        /// <param name="id">The Id of the <see cref="BudgetCategory"/> to show</param>
-        /// <returns></returns>
-        public async Task<IActionResult> Details(int? id) {
-            BudgetCategory budgetCategory;
-            try {
-                budgetCategory = await _serviceRO.GetSingleCategoryAsync(id);
-            } catch (Exception ex) {
-                if (ex is IdNotFoundException || ex is NullIdException) {
-                    return NotFound();
-                }
-                throw;
-            }
-            return View(nameof(Details), budgetCategory);
-        }
-
-        /// <summary>
-        /// Returns the Create view for the <see cref="BudgetCategory"/> class
-        /// GET: BudgetCategory/Create
-        /// </summary>
-        /// <returns></returns>
-        public IActionResult Create() => View(nameof(Create));
-
         /// <summary>
         /// Attempts to create the <see cref="BudgetCategory"/> specified in the view. 
         /// If the model is not valid, returns to the view
@@ -77,9 +44,9 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to add</param>
         /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
+        // [HttpPost]
+        // [ValidateAntiForgeryToken]
+        public override async Task<IActionResult> Create([Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
             if (ModelState.IsValid)
             {
                 try {
@@ -94,22 +61,6 @@ namespace ExpenseTracker.Controllers
         }
 
         /// <summary>
-        /// Returns the Edit view for a <see cref="BudgetCategory"/>
-        /// GET: BudgetCategory/Edit/5
-        /// </summary>
-        /// <param name="id">The Id of the <see cref="BudgetCategory"/> to show/edit</param>
-        /// <returns></returns>
-        public async Task<IActionResult> Edit(int? id) {
-            BudgetCategory budgetCategory;
-            try {
-                budgetCategory = await _serviceRO.GetSingleCategoryAsync(id);
-            } catch (ExpenseTrackerException) {
-                return NotFound();
-            }
-            return View(nameof(Edit) ,budgetCategory);
-        }
-
-        /// <summary>
         /// Attempts to edit the <see cref="BudgetCategory"/> specified in the view. 
         /// If the model is not valid, returns to the view
         /// POST: BudgetCategory/Edit/5
@@ -117,9 +68,9 @@ namespace ExpenseTracker.Controllers
         /// <param name="id">The id of the <see cref="BudgetCategory"/> to edit</param>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to edit</param>
         /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
+        // [HttpPost]
+        // [ValidateAntiForgeryToken]
+        public override async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
             if (ModelState.IsValid) {
                 try {
                     await _serviceRO.UpdateCategoryAsync(id, budgetCategory);
@@ -136,39 +87,19 @@ namespace ExpenseTracker.Controllers
             return View(nameof(Edit), budgetCategory);
         }
 
-        /// <summary>
-        /// Returns the Delete view for a <see cref="BudgetCategory"/>
-        /// GET: BudgetCategory/Delete/5
-        /// </summary>
-        /// <param name="id">The Id of the <see cref="BudgetCategory"/> to show/delete</param>
-        /// <returns></returns>
-        public async Task<IActionResult> Delete(int? id) {
-            BudgetCategory budgetCategory;
-            try {
-                budgetCategory = await _serviceRO.GetSingleCategoryAsync(id);
-            } catch (Exception ex) {
-                if (ex is IdNotFoundException || ex is NullIdException) {
-                    return NotFound();
-                }
-                throw;
-            }
-
-            return View(nameof(Delete), budgetCategory);
-        }
-
-        /// <summary>
-        /// Attempts to delete the <see cref="BudgetCategory"/> specified in the view, 
-        /// then redirects to <see cref="Index"/>
-        /// POST: BudgetCategory/Delete/5
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id) {
-            await _serviceRO.RemoveCategoryAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
+        // /// <summary>
+        // /// Attempts to delete the <see cref="BudgetCategory"/> specified in the view, 
+        // /// then redirects to <see cref="Index"/>
+        // /// POST: BudgetCategory/Delete/5
+        // /// </summary>
+        // /// <param name="id"></param>
+        // /// <returns></returns>
+        // [HttpPost, ActionName("Delete")]
+        // [ValidateAntiForgeryToken]
+        // public async Task<IActionResult> DeleteConfirmed(int id) {
+        //     await _serviceRO.RemoveCategoryAsync(id);
+        //     return RedirectToAction(nameof(Index));
+        // }
 
         #endregion // Public Methods
     }
