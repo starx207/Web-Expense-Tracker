@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-    public class BudgetCategoryController : Controller
+    public class BudgetCategoryController : CRUDController<BudgetCategory>
     { 
         #region Private Members
 
@@ -24,20 +24,25 @@ namespace ExpenseTracker.Controllers
         /// The default Constructor
         /// </summary>
         /// <param name="service">The service to use in the controller</param>
-        public BudgetCategoryController(ICategoryManagerService service) => _serviceRO = service;
+        public BudgetCategoryController(ICategoryManagerService service)
+            : base(() => service.GetCategories()) {
+                _serviceRO = service;
+                CollectionOrderFunc = category => category.Name;
+                OrderDescending = true;
+            } 
 
         #endregion // Constuctors
 
         #region Public Methods
  
-        /// <summary>
-        /// Returns the Index view for <see cref="BudgetCategory"/>
-        /// GET: BudgetCategory
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> Index() {
-            return View(nameof(Index), await _serviceRO.GetCategories().OrderBy(c => c.Name).Extension().ToListAsync());
-        }
+        // /// <summary>
+        // /// Returns the Index view for <see cref="BudgetCategory"/>
+        // /// GET: BudgetCategory
+        // /// </summary>
+        // /// <returns></returns>
+        // public async Task<IActionResult> Index() {
+        //     return View(nameof(Index), await _serviceRO.GetCategories().OrderBy(c => c.Name).Extension().ToListAsync());
+        // }
 
         /// <summary>
         /// Returns the Details view for a <see cref="BudgetCategory"/>
