@@ -44,11 +44,12 @@ namespace ExpenseTracker.Services
             }
 
             try {
-                var uneditedCategory = _context.GetCategories().Where(c => c.ID == category.ID).First();
+                var uneditedCategory = _context.GetCategories().AsNoTracking().Where(c => c.ID == category.ID).First();
                 if (category.EffectiveFrom > uneditedCategory.EffectiveFrom) {
                     // Add new category
                     var categoryToAdd = new BudgetCategory {
                         ID = _context.GetCategories().OrderByDescending(c => c.ID).First().ID + 1,
+                        Name = category.Name,
                         EffectiveFrom = category.EffectiveFrom,
                         Amount = category.Amount,
                         Type = category.Type
