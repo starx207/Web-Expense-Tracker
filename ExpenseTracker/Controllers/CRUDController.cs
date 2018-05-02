@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-    public abstract class CRUDController<T> : Controller
+    public abstract class CRUDController<T> : BaseController
         where T : class
     {
         #region Private Members
@@ -88,7 +88,6 @@ namespace ExpenseTracker.Controllers
             } catch (NullIdException) {
                 return NotFound();
             }
-
             return View(nameof(Details), objectToShow);
         }
 
