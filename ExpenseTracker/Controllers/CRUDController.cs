@@ -16,7 +16,6 @@ namespace ExpenseTracker.Controllers
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
         private Func<T, Task<int>> _addObjectAsyncFunc;
-        private string _createActionBinding;
 
         #endregion // Private Members
 

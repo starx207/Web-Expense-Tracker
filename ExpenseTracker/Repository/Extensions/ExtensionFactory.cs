@@ -10,32 +10,42 @@ namespace ExpenseTracker.Repository.Extensions
 {
     public static class ExtensionFactory
     {
-        public static Func<IQueryable<BudgetCategory>, ICategoryExtMask> CategoryExtFactory { get; set; }
-        public static Func<IQueryable<Payee>, IPayeeExtMask> PayeeExtFactory { get; set; }
-        public static Func<IQueryable<Alias>, IAliasExtMask> AliasExtFactory { get; set; }
-        public static Func<IQueryable<Transaction>, ITransactionExtMask> TransactionExtFactory { get; set; }
+        // public static Func<IQueryable<BudgetCategory>, ICategoryExtMask> CategoryExtFactory { get; set; }
+        // public static Func<IQueryable<Payee>, IPayeeExtMask> PayeeExtFactory { get; set; }
+        // public static Func<IQueryable<Alias>, IAliasExtMask> AliasExtFactory { get; set; }
+        // public static Func<IQueryable<Transaction>, ITransactionExtMask> TransactionExtFactory { get; set; }
 
-        static ExtensionFactory() {
-            CategoryExtFactory = col => new CategoryExt(col);
-            PayeeExtFactory = col => new PayeeExt(col);
-            AliasExtFactory = col => new AliasExt(col);
-            TransactionExtFactory = col => new TransactionExt(col);
+        // static ExtensionFactory() {
+        //     CategoryExtFactory = col => new CategoryExt(col);
+        //     PayeeExtFactory = col => new PayeeExt(col);
+        //     AliasExtFactory = col => new AliasExt(col);
+        //     TransactionExtFactory = col => new TransactionExt(col);
+        // }
+
+        // TODO: figure out how to create generic implentation of this
+
+        public static IExtensionMask<T> Extension<T>(this IQueryable<T> collection) {
+            return new GenericExt<T>(collection);
         }
 
-        public static ICategoryExtMask Extension(this IQueryable<BudgetCategory> collection) {
-            return CategoryExtFactory(collection);
+        public static IExtensionMask<T> Extension<T>(this IQueryable<T> collection, Func<IQueryable<T>, IExtensionMask<T>> extensionFunc) {
+            return extensionFunc(collection);
         }
 
-        public static IPayeeExtMask Extension(this IQueryable<Payee> collection) {
-            return PayeeExtFactory(collection);
-        }
+        // public static ICategoryExtMask Extension(this IQueryable<BudgetCategory> collection) {
+        //     return CategoryExtFactory(collection);
+        // }
 
-        public static IAliasExtMask Extension(this IQueryable<Alias> collection) {
-            return AliasExtFactory(collection);
-        }
+        // public static IPayeeExtMask Extension(this IQueryable<Payee> collection) {
+        //     return PayeeExtFactory(collection);
+        // }
 
-        public static ITransactionExtMask Extension(this IQueryable<Transaction> collection) {
-            return TransactionExtFactory(collection);
-        }
+        // public static IAliasExtMask Extension(this IQueryable<Alias> collection) {
+        //     return AliasExtFactory(collection);
+        // }
+
+        // public static ITransactionExtMask Extension(this IQueryable<Transaction> collection) {
+        //     return TransactionExtFactory(collection);
+        // }
     }
 }

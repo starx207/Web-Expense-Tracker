@@ -227,7 +227,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(testID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(testID, "", 0, editedCategory.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             _mockRepo.Verify(m => m.AddBudgetCategory(It.IsAny<BudgetCategory>()), Times.Once());
@@ -277,7 +277,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category.Name, 0, category.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedPayees.Count, "Incorrect number of payees reassigned");
@@ -328,7 +328,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category.Name, 0, category.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedTransactions.Count, "Incorrect number of payees reassigned");
@@ -360,10 +360,10 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.InSequence(sequence).Setup(m => m.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(testID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(testID, "", 0, editedCategory.EffectiveFrom, BudgetType.Expense);
 
             // Assert
-            _mockRepo.Verify(m => m.EditBudgetCategory(editedCategory), Times.Once());
+            _mockRepo.Verify(m => m.EditBudgetCategory(It.Is<BudgetCategory>(c => c.ID == testID)), Times.Once());
             _mockRepo.Verify(m => m.SaveChangesAsync(), Times.Once());
         }
 
@@ -422,7 +422,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.EditPayee(It.IsAny<Payee>())).Callback<Payee>(p => reassignedPayees.Add(p));
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category.Name, 0, category.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedPayees.Count, "Incorrect number of payees reassigned");
@@ -483,7 +483,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.EditTransaction(It.IsAny<Transaction>())).Callback<Transaction>(t => reassignedTransactions.Add(t));
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(1, category);
+            var result = await _testService.UpdateCategoryAsync(1, category.Name, 0, category.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             Assert.AreEqual(expectedReassignments, reassignedTransactions.Count, "Incorrect number of transactions reassigned");
@@ -550,7 +550,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetCategories()).Returns(allCategories);
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(editedCategory.ID, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(editedCategory.ID, editedCategory.Name, 0, editedCategory.EffectiveFrom, BudgetType.Expense);
 
             // Redistribute payees based on what has changed
             allCategories.Single(c => c.ID == 1).Payees = allPayees.Where(p => p.BudgetCategoryID == 1).ToList();
@@ -593,7 +593,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.DeleteBudgetCategory(It.IsAny<BudgetCategory>())).Callback<BudgetCategory>(c => deletedCategories.Add(c));
 
             // Act
-            var result = await _testService.UpdateCategoryAsync(1, editedCategory);
+            var result = await _testService.UpdateCategoryAsync(1, editedCategory.Name, 0, editedCategory.EffectiveFrom, BudgetType.Expense);
 
             // Assert
             Assert.AreEqual(1, deletedCategories.Count, "Wrong number of categories deleted");
@@ -603,14 +603,15 @@ namespace ExpenseTracker.Services.Tests
         } 
 
         [TestMethod]
-        public async Task UpdateCategoryAsync_throws_IdMismatchException_when_id_doesnt_match_CategoryID() {
+        public async Task UpdateCategoryAsync_throws_IdNotFoundException_when_id_not_found_in_existing_Categories() {
             // Arrange
             var testID = 1;
             var category = new BudgetCategory { ID = testID + 1 };
+            _mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory> { category }.AsQueryable());
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<IdMismatchException>(() =>
-                _testService.UpdateCategoryAsync(testID, category)
+            await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>
+                _testService.UpdateCategoryAsync(testID, "", 0, DateTime.Now.AddDays(-1), BudgetType.Expense)
             , $"No exception thrown for Id = {testID} and BudgetCategory.ID = {category.ID}");
         }
 
@@ -620,10 +621,11 @@ namespace ExpenseTracker.Services.Tests
             var testID = 1;
             var futureDate = new DateTime(DateTime.Today.Year + 1, 1, 1);
             var category = new BudgetCategory { ID = testID, EffectiveFrom = futureDate };
+            _mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory> { category }.AsQueryable());
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
-                _testService.UpdateCategoryAsync(testID, category)
+                _testService.UpdateCategoryAsync(testID, "", 0, category.EffectiveFrom, BudgetType.Expense)
             , $"No exception thrown for effective date = '{futureDate.ToString()}'");
         }
 

@@ -5,40 +5,50 @@
 using ExpenseTracker.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Repository.Extensions
 {
-    internal class CategoryExt : ICategoryExtMask
+    internal class GenericExt<T> : IExtensionMask<T>
     {
-        IQueryable<BudgetCategory> _collection;
-        public CategoryExt(IQueryable<BudgetCategory> collection) => _collection = collection;
-        public async Task<List<BudgetCategory>> ToListAsync() => await _collection.ToListAsync();
-        public async Task<BudgetCategory> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
+        IQueryable<T> _collection;
+        public GenericExt(IQueryable<T> collection) => _collection = collection;
+        public async Task<List<T>> ToListAsync() => await _collection.ToListAsync();
+        public async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> selector) => await _collection.SingleOrDefaultAsync(selector);
     }
 
-    internal class PayeeExt: IPayeeExtMask
-    {
-        IQueryable<Payee> _collection;
-        public PayeeExt(IQueryable<Payee> collection) => _collection = collection;
-        public async Task<List<Payee>> ToListAsync() => await _collection.ToListAsync();
-        public async Task<Payee> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
-    }
+    // internal class CategoryExt : ICategoryExtMask
+    // {
+    //     IQueryable<BudgetCategory> _collection;
+    //     public CategoryExt(IQueryable<BudgetCategory> collection) => _collection = collection;
+    //     public async Task<List<BudgetCategory>> ToListAsync() => await _collection.ToListAsync();
+    //     public async Task<BudgetCategory> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
+    // }
 
-    internal class AliasExt: IAliasExtMask
-    {
-        IQueryable<Alias> _collection;
-        public AliasExt(IQueryable<Alias> collection) => _collection = collection;
-        public async Task<List<Alias>> ToListAsync() => await _collection.ToListAsync();
-        public async Task<Alias> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
-    }
+    // internal class PayeeExt: IPayeeExtMask
+    // {
+    //     IQueryable<Payee> _collection;
+    //     public PayeeExt(IQueryable<Payee> collection) => _collection = collection;
+    //     public async Task<List<Payee>> ToListAsync() => await _collection.ToListAsync();
+    //     public async Task<Payee> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
+    // }
 
-    internal class TransactionExt: ITransactionExtMask
-    {
-        IQueryable<Transaction> _collection;
-        public TransactionExt(IQueryable<Transaction> collection) => _collection = collection;
-        public async Task<List<Transaction>> ToListAsync() => await _collection.ToListAsync();
-        public async Task<Transaction> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
-    }
+    // internal class AliasExt: IAliasExtMask
+    // {
+    //     IQueryable<Alias> _collection;
+    //     public AliasExt(IQueryable<Alias> collection) => _collection = collection;
+    //     public async Task<List<Alias>> ToListAsync() => await _collection.ToListAsync();
+    //     public async Task<Alias> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
+    // }
+
+    // internal class TransactionExt: ITransactionExtMask
+    // {
+    //     IQueryable<Transaction> _collection;
+    //     public TransactionExt(IQueryable<Transaction> collection) => _collection = collection;
+    //     public async Task<List<Transaction>> ToListAsync() => await _collection.ToListAsync();
+    //     public async Task<Transaction> SingleOrDefaultAsync(int id) => await _collection.SingleOrDefaultAsync(c => c.ID == id);
+    // }
 }

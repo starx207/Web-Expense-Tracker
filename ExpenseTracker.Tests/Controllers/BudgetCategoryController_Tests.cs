@@ -329,14 +329,23 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
             // Arrange
-            var category = new BudgetCategory();
+            var testName = "test";
+            var testAmount = 20.12;
+            var testDate = DateTime.Parse("1/1/2018");
+            var testType = BudgetType.Expense;
+            var category = new BudgetCategory {
+                Name = testName,
+                Amount = testAmount,
+                EffectiveFrom = testDate,
+                Type = testType
+            };
 
             // Act
             var result = await _controller.Edit(1, category);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdateCategoryAsync(1, category), Times.Once());
+            _mockService.Verify(m => m.UpdateCategoryAsync(1, testName, testAmount, testDate, testType), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -362,7 +371,11 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ExpenseTrackerException());
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
+                It.IsAny<string>(),
+                It.IsAny<double>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<BudgetType>())).ThrowsAsync(new ExpenseTrackerException());
 
             // Act
             var result = await _controller.Edit(1, category);
@@ -375,7 +388,11 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new ConcurrencyException());
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
+                It.IsAny<string>(),
+                It.IsAny<double>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<BudgetType>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
 
             // Act & Assert
@@ -386,7 +403,11 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>())).ThrowsAsync(new Exception());
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
+                It.IsAny<string>(),
+                It.IsAny<double>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<BudgetType>())).ThrowsAsync(new Exception());
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(1, category));
@@ -396,8 +417,11 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<BudgetCategory>()))
-                .ThrowsAsync(new InvalidDateExpection("Test Message"));
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
+                It.IsAny<string>(),
+                It.IsAny<double>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<BudgetType>())).ThrowsAsync(new InvalidDateExpection("Test Message"));
 
             // Act
             var result = await _controller.Edit(1, category);
