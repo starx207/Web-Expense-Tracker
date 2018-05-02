@@ -34,6 +34,68 @@ namespace ExpenseTracker.Services
             return category;
         }
 
+        public async Task<int> UpdateCategoryAsync(int id, string name, double amount, DateTime effectiveFrom, BudgetType type) {
+            BudgetCategory originalCategory = await _context.GetCategories()
+                .SingleOrDefaultAsync(c => c.ID == id) ?? throw new IdNotFoundException($"No BudgetCategory found for Id = {id}");
+
+            if (effectiveFrom > DateTime.Now) {
+                throw new InvalidOperationException("EffectiveFrom Date cannot be a future date");
+            }
+
+            try {
+                if (effectiveFrom > originalCategory.EffectiveFrom) {
+                    // Add new category
+                    var categoryToAdd = new BudgetCategory {
+                        Name = name,
+                        EffectiveFrom = effectiveFrom,
+                        Amount = amount,
+                        Type = type
+                    };
+                    _context.AddBudgetCategory(categoryToAdd);
+
+                    // Reassign payees and transactions accordingly
+                    ReassignPayeesByDate(originalCategory, categoryToAdd);
+                    ReassingTransactionsByDate(originalCategory, categoryToAdd);
+                } else {
+                    // Update the original category's values
+                    originalCategory.Name = name;
+                    originalCategory.EffectiveFrom = effectiveFrom;
+                    originalCategory.Amount = amount;
+                    originalCategory.Type = type;
+
+                    if (effectiveFrom < originalCategory.EffectiveFrom) {
+                        // Check if there is an older category whose transactions/payees need to be split up
+                        var categoryToStealFrom = _context.GetCategories()
+                            .Where(c => c.Name == name && c.EffectiveFrom < effectiveFrom)
+                            .OrderByDescending(c => c.EffectiveFrom)
+                            .FirstOrDefault();
+                        
+                        if (categoryToStealFrom != null) {
+                            ReassignPayeesByDate(categoryToStealFrom, originalCategory);
+                            ReassingTransactionsByDate(categoryToStealFrom, originalCategory);
+                        }
+
+                        // Reassign payees/transactions from categories with newer EffectiveFrom dates and then delete the categories
+                        foreach (BudgetCategory categoryToDelete in _context.GetCategories()
+                            .Where(c => c.Name == name
+                                && c.EffectiveFrom >= effectiveFrom
+                                && c.ID != id)) {
+
+                            ReassignPayeesByDate(categoryToDelete, originalCategory);
+                            ReassingTransactionsByDate(categoryToDelete, originalCategory);
+                            _context.DeleteBudgetCategory(categoryToDelete);
+                        }
+                    }
+
+                    _context.EditBudgetCategory(originalCategory);
+                }
+                return await _context.SaveChangesAsync();
+            } catch (DbUpdateConcurrencyException) {
+                throw new ConcurrencyException();
+            }
+        }
+
+        // TODO: remove this version of UpdateCategoryAsync and convert all tests to use new version
         public async Task<int> UpdateCategoryAsync(int id, BudgetCategory category) {
             if (id != category.ID) {
                 throw new IdMismatchException($"Id = {id} does not match category Id of {category.ID}");
