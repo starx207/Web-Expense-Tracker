@@ -161,7 +161,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.AddCategoryAsync(category), Times.Once());
+            _mockService.Verify(m => m.AddCategoryAsync(category.Name, category.Amount, category.Type), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -169,13 +169,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_with_Invalid_model_state_returns_category_to_create_view() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _controller.ModelState.AddModelError("test", "test");
 
             // Act
             var result = await _controller.Create(category);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as BudgetCategory;
+            var model = viewResult.Model as CategoryCrudVm;
 
             // Assert
             Assert.IsNotNull(viewResult);
@@ -186,13 +186,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
-            var category = new BudgetCategory { Name = "test" };
+            var category = new CategoryCrudVm { Name = "test" };
             _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<BudgetCategory>())).ThrowsAsync(new UniqueConstraintViolationException());
 
             // Act
             var result = await _controller.Create(category);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as BudgetCategory;
+            var model = viewResult.Model as CategoryCrudVm;
 
             // Assert
             Assert.AreEqual(1, _controller.ModelState.ErrorCount);
@@ -345,7 +345,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdateCategoryAsync(1, testName, testAmount, testDate, testType), Times.Once());
+            _mockService.Verify(m => m.UpdateCategoryAsync(1, testAmount, testDate, testType), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -353,13 +353,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_to_view_for_invalid_model_state() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _controller.ModelState.AddModelError("test", "test");
 
             // Act
-            var result = await _controller.Edit(1, category);
+            var result = await _controller.Edit(category);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as BudgetCategory;
+            var model = viewResult.Model as CategoryCrudVm;
 
             // Assert
             Assert.IsNotNull(viewResult);
@@ -370,14 +370,14 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new ExpenseTrackerException());
 
             // Act
-            var result = await _controller.Edit(1, category);
+            var result = await _controller.Edit(category);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -386,7 +386,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
@@ -394,33 +394,33 @@ namespace ExpenseTracker.Controllers.Tests
             _mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => _controller.Edit(1, category));
+            await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => _controller.Edit(category));
         }
 
         [TestMethod]
         public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new Exception());
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(1, category));
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(category));
         }
 
         [TestMethod]
         public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new InvalidDateExpection("Test Message"));
 
             // Act
-            var result = await _controller.Edit(1, category);
+            var result = await _controller.Edit(category);
             var viewResult = result as ViewResult;
 
             // Assert
