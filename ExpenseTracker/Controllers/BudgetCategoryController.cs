@@ -5,6 +5,7 @@ using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,15 +24,20 @@ namespace ExpenseTracker.Controllers
                 // Setup required functions
                 collectionGetter: () => service.GetCategories(),
                 singleGetter: id => service.GetSingleCategoryAsync(id),
-                singleAdder: category => service.AddCategoryAsync(category.Name, category.Amount, category.Type),
+                singleAdder: vm => service.AddCategoryAsync(vm.Name, vm.Amount, vm.Type),
                 singleDeleter: id => service.RemoveCategoryAsync(id),
-                singleEditor: (category, id) => service.UpdateCategoryAsync(id, category.Amount, category.EffectiveFrom, category.Type),
+                singleEditor: (vm) => service.UpdateCategoryAsync(vm.NavId, vm.Amount, vm.EffectiveFrom, vm.Type),
                 viewModelCreator: category => new CategoryCrudVm(category),
-                existanceChecker: id => service.CategoryExists(id)
+                existanceChecker: vm => service.CategoryExists(vm.NavId)
             )  
             {
                 // Specify collection ordering
                 CollectionOrderFunc = category => category.Name;
+                ExceptionHandling = new Dictionary<Type, Action<Exception>> {
+                    {typeof(InvalidDateExpection), ex => {
+                        ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), ex.Message);
+                    }}
+                };
             } 
 
         #endregion // Constuctors

@@ -20,8 +20,8 @@ namespace ExpenseTracker.Controllers
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
         private Func<VM, Task<int>> _addObjectAsyncFunc;
-        private Func<VM, int, Task<int>> _editObjectAsyncFunc;
-        private Func<int, bool> _checkExistsFunc;
+        private Func<VM, Task<int>> _editObjectAsyncFunc;
+        private Func<VM, bool> _checkExistsFunc;
 
         #endregion // Private Members
 
@@ -54,8 +54,8 @@ namespace ExpenseTracker.Controllers
             Func<int?, Task<T>> singleGetter,
             Func<VM, Task<int>> singleAdder,
             Func<int, Task<int>> singleDeleter,
-            Func<VM, int, Task<int>> singleEditor,
-            Func<int, bool> existanceChecker) {
+            Func<VM, Task<int>> singleEditor,
+            Func<VM, bool> existanceChecker) {
 
             _getCollectionFunc = collectionGetter;
             _getSingleObjectAsyncFunc = singleGetter;
@@ -187,15 +187,14 @@ namespace ExpenseTracker.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Edit(VM editedObject) {
             if (ModelState.IsValid) {
-                int id = GetRoutedId();
                 try {
-                    await _editObjectAsyncFunc(editedObject, id);
+                    await _editObjectAsyncFunc(editedObject);
                     return RedirectToAction(nameof(Index));
                 } catch (Exception ex) {
                     // Concurrency exception should return NotFound as long as
                     // the id exists, otherwise should throw
                     if (ex is ConcurrencyException) {
-                        if (_checkExistsFunc(id)) {
+                        if (_checkExistsFunc(editedObject)) {
                             return NotFound();
                         } else {
                             throw;
