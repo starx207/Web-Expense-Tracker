@@ -27,9 +27,10 @@ namespace ExpenseTracker.Controllers
         public BudgetCategoryController(ICategoryManagerService service)
             : base(collectionGetter: () => service.GetCategories(),
                 singleGetter: id => service.GetSingleCategoryAsync(id),
-                singleAdder: category => service.AddCategoryAsync(category),
+                singleAdder: category => service.AddCategoryAsync(category.Name, category.Amount, category.Type),
                 singleDeleter: id => service.RemoveCategoryAsync(id),
                 viewModelCreator: category => new CategoryCrudVm(category))  {
+
                 _serviceRO = service;
                 CollectionOrderFunc = category => category.Name;
             } 
@@ -49,17 +50,11 @@ namespace ExpenseTracker.Controllers
             if (ModelState.IsValid)
             {
                 try {
-                    await _serviceRO.AddCategoryAsync(new BudgetCategory {
-                        Name = budgetCategory.Name,
-                        Amount = budgetCategory.Amount,
-                        EffectiveFrom = budgetCategory.EffectiveFrom,
-                        Type = budgetCategory.Type
-                    });
+                    await _serviceRO.AddCategoryAsync(budgetCategory.Name, budgetCategory.Amount, budgetCategory.Type);
                     return RedirectToAction(nameof(Index));
                 } catch (UniqueConstraintViolationException) {
                     ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Budget Category");
                 }
-                
             }
             return View(nameof(Create), budgetCategory);
         }
@@ -74,9 +69,9 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         public override async Task<IActionResult> Edit(CategoryCrudVm budgetCategory) {
             if (ModelState.IsValid) {
-                int id = (int)GetRoutedId();
+                int id = GetRoutedId();
                 try {
-                    await _serviceRO.UpdateCategoryAsync(id, budgetCategory.Name, budgetCategory.Amount, budgetCategory.EffectiveFrom, budgetCategory.Type);
+                    await _serviceRO.UpdateCategoryAsync(id, budgetCategory.Amount, budgetCategory.EffectiveFrom, budgetCategory.Type);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
                     ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), dteex.Message);

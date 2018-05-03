@@ -10,6 +10,7 @@ namespace ExpenseTracker.Models
         public int NavId { get; private set; }
 
         [Display(Name = "Effective From")]
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime EffectiveFrom { get; set; }
 
         public string Name { get; set; }

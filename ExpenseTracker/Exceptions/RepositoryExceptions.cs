@@ -51,6 +51,8 @@ namespace ExpenseTracker.Exceptions
     [Serializable]
     public class UniqueConstraintViolationException : ExpenseTrackerException
     {
+        public string PropertyName { get; set; }
+        public string PropertyValue { get; set; }
         public UniqueConstraintViolationException() { }
         public UniqueConstraintViolationException(string message) : base(message) { }
         public UniqueConstraintViolationException(string message, Exception inner) : base(message, inner) { }

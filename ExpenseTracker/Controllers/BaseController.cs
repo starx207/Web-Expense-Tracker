@@ -5,11 +5,11 @@ namespace ExpenseTracker.Controllers
 {
     public abstract class BaseController : Controller
     {
-        protected int? GetRoutedId() {
+        protected int GetRoutedId() {
             if (int.TryParse(RouteData.Values["id"].ToString(), out int id)) {
                 return id;
             }
-            return null;
+            return -1;
         }
 
         protected string GetRoutedAction() => RouteData.Values["action"].ToString();

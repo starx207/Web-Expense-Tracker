@@ -34,7 +34,7 @@ namespace ExpenseTracker.Services
             return category;
         }
 
-        public async Task<int> UpdateCategoryAsync(int id, string name, double amount, DateTime effectiveFrom, BudgetType type) {
+        public async Task<int> UpdateCategoryAsync(int id, double amount, DateTime effectiveFrom, BudgetType type) {
             BudgetCategory originalCategory = _context.GetCategories()
                 .FirstOrDefault(c => c.ID == id) ?? throw new IdNotFoundException($"No BudgetCategory found for Id = {id}");
 
@@ -46,7 +46,7 @@ namespace ExpenseTracker.Services
                 if (effectiveFrom > originalCategory.EffectiveFrom) {
                     // Add new category
                     var categoryToAdd = new BudgetCategory {
-                        Name = name,
+                        Name = originalCategory.Name,
                         EffectiveFrom = effectiveFrom,
                         Amount = amount,
                         Type = type
@@ -61,7 +61,7 @@ namespace ExpenseTracker.Services
                     if (effectiveFrom < originalCategory.EffectiveFrom) {
                         // Check if there is an older category whose transactions/payees need to be split up
                         var categoryToStealFrom = _context.GetCategories()
-                            .Where(c => c.Name == name && c.EffectiveFrom < effectiveFrom)
+                            .Where(c => c.Name == originalCategory.Name && c.EffectiveFrom < effectiveFrom)
                             .OrderByDescending(c => c.EffectiveFrom)
                             .FirstOrDefault();
                         
@@ -75,7 +75,7 @@ namespace ExpenseTracker.Services
 
                         // Reassign payees/transactions from categories with newer EffectiveFrom dates and then delete the categories
                         foreach (BudgetCategory categoryToDelete in _context.GetCategories()
-                            .Where(c => c.Name == name
+                            .Where(c => c.Name == originalCategory.Name
                                 && c.EffectiveFrom >= effectiveFrom
                                 && c.ID != id)) {
 
@@ -86,7 +86,6 @@ namespace ExpenseTracker.Services
                     }
 
                     // Update the original category's values
-                    originalCategory.Name = name;
                     originalCategory.EffectiveFrom = effectiveFrom;
                     originalCategory.Amount = amount;
                     originalCategory.Type = type;
@@ -158,9 +157,22 @@ namespace ExpenseTracker.Services
         //     }
         // }
 
+        // TODO: Add tests for this
+        public async Task<int> AddCategoryAsync(string name, double amount, BudgetType type) {
+            return await AddCategoryAsync(new BudgetCategory {
+                Name = name,
+                Amount = amount,
+                Type = type,
+                EffectiveFrom = DateTime.Now
+            });
+        }
+
         public async Task<int> AddCategoryAsync(BudgetCategory category) {
             if (_context.GetCategories().Any(c => c.Name == category.Name)) {
-                throw new UniqueConstraintViolationException($"There is already a Budget Category with Name = {category.Name}");
+                throw new UniqueConstraintViolationException($"There is already a Budget Category named '{category.Name}'") {
+                    PropertyName = nameof(BudgetCategory.Name),
+                    PropertyValue = category.Name
+                };
             }
             _context.AddBudgetCategory(category);
             return await _context.SaveChangesAsync();

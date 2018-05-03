@@ -3,6 +3,7 @@ using ExpenseTracker.Repository.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace ExpenseTracker.Controllers
         private Func<IQueryable<T>> _getCollectionFunc;
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
-        private Func<T, Task<int>> _addObjectAsyncFunc;
+        private Func<VM, Task<int>> _addObjectAsyncFunc;
 
         #endregion // Private Members
 
@@ -28,13 +29,15 @@ namespace ExpenseTracker.Controllers
         /// The Func to use to sort the collection of <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
-        protected Func<VM, object> CollectionOrderFunc { get; set; }
+        protected Func<VM, object> CollectionOrderFunc { get; set; } = null;
 
         /// <summary>
         /// Indicates whether the collection of <see cref="VM"/> should be sorted in descending order
         /// </summary>
         /// <returns></returns>
         protected bool OrderDescending { get; set; } = false;
+
+        protected Dictionary<Type, Action<Exception>> ExceptionHandling { get; set; } = null;
 
         #endregion // Protected Properties
 
@@ -47,7 +50,7 @@ namespace ExpenseTracker.Controllers
         public CRUDController(Func<T, VM> viewModelCreator,
             Func<IQueryable<T>> collectionGetter, 
             Func<int?, Task<T>> singleGetter,
-            Func<T, Task<int>> singleAdder,
+            Func<VM, Task<int>> singleAdder,
             Func<int, Task<int>> singleDeleter) {
 
             _getCollectionFunc = collectionGetter;
@@ -144,7 +147,25 @@ namespace ExpenseTracker.Controllers
         //       for now, I'll just add stubs here
 
         [HttpPost, ValidateAntiForgeryToken]
-        public abstract Task<IActionResult> Create(VM createdObject);
+        public virtual async Task<IActionResult> Create(VM createdObject) {
+            if (ModelState.IsValid) {
+                try {
+                    await _addObjectAsyncFunc(createdObject);
+                    RedirectToAction(nameof(Index));
+                } catch (UniqueConstraintViolationException uex) {
+                    ModelState.AddModelError(uex.PropertyName, uex.Message);
+                } catch (Exception ex) {
+                    if (ExceptionHandling == null) {
+                        throw;
+                    }
+                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Action<Exception> handler)) {
+                        throw;
+                    }
+                    handler(ex);
+                }
+            }
+            return View(nameof(Create), createdObject);
+        }
 
         [HttpPost, ValidateAntiForgeryToken]
         public abstract Task<IActionResult> Edit(VM editedObject);

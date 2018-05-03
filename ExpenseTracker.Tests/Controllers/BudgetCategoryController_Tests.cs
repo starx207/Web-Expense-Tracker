@@ -371,8 +371,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
-                It.IsAny<string>(),
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new ExpenseTrackerException());
@@ -388,8 +387,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
-                It.IsAny<string>(),
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new ConcurrencyException());
@@ -403,8 +401,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
-                It.IsAny<string>(),
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new Exception());
@@ -417,8 +414,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
             // Arrange
             var category = new BudgetCategory();
-            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), 
-                It.IsAny<string>(),
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new InvalidDateExpection("Test Message"));
