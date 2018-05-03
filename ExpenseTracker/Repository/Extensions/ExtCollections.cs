@@ -28,6 +28,11 @@ namespace ExpenseTracker.Repository.Extensions
         public CategoryExt(IQueryable<BudgetCategory> collection) : base(collection) { }
     }
 
+    internal class CategoryCrudExt : GenericExt<CategoryCrudVm> { 
+        public CategoryCrudExt() : base(new List<CategoryCrudVm>().AsQueryable()) { }
+        public CategoryCrudExt(IQueryable<CategoryCrudVm> collection) : base(collection) { }
+    }
+
     internal class PayeeExt: GenericExt<Payee> {
         public PayeeExt() : base(new List<Payee>().AsQueryable()) { }
         public PayeeExt(IQueryable<Payee> collection) : base(collection) { }

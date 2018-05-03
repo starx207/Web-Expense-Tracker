@@ -38,6 +38,10 @@ namespace ExpenseTracker.Controllers.Tests
 
         [TestMethod]
         public async Task Index_GET_returns_index_view() {
+            // Arrange
+            var mockCategoryExt = new Mock<CategoryCrudExt>();
+            ExtensionFactory.CategoryCrudExtFactory = ext => mockCategoryExt.Object;
+
             // Act
             var actionResult = await _controller.Index();
             var result = actionResult as ViewResult;
@@ -50,10 +54,10 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
             // Arrange
-            var categories = new List<BudgetCategory>();
-            var mockCategoryExt = new Mock<CategoryExt>();
+            var categories = new List<CategoryCrudVm>();
+            var mockCategoryExt = new Mock<CategoryCrudExt>();
             mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
-            ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
+            ExtensionFactory.CategoryCrudExtFactory = ext => mockCategoryExt.Object;
 
             // Act
             var result = (ViewResult)(await _controller.Index());
@@ -90,11 +94,11 @@ namespace ExpenseTracker.Controllers.Tests
 
             // Act
             var result = (ViewResult)(await _controller.Details(1));
-            var model = (BudgetCategory)result.Model;
+            var model = (CategoryCrudVm)result.Model;
 
             // Assert
             _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
-            Assert.AreEqual(category.ID, model.ID);
+            Assert.AreEqual(category.ID, model.NavId);
         }
 
         [TestMethod]
@@ -187,7 +191,8 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
             var category = new CategoryCrudVm { Name = "test" };
-            _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<BudgetCategory>())).ThrowsAsync(new UniqueConstraintViolationException());
+            _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<BudgetType>()))
+                .ThrowsAsync(new UniqueConstraintViolationException());
 
             // Act
             var result = await _controller.Create(category);
@@ -212,18 +217,18 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Delete_GET_returns_delete_view_with_model() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new BudgetCategory { ID = 2 };
             _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
 
             // Act
-            var result = await _controller.Delete(1);
+            var result = await _controller.Delete(2);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as BudgetCategory;
+            var model = viewResult.Model as CategoryCrudVm;
 
             // Assert
-            _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+            _mockService.Verify(m => m.GetSingleCategoryAsync(2), Times.Once());
             Assert.IsNotNull(viewResult);
-            Assert.AreSame(category, model);
+            Assert.AreEqual(category.ID, model.NavId);
         }
 
         [TestMethod]
@@ -286,19 +291,19 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_GET_returns_edit_view_with_correct_model() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new BudgetCategory { ID = 8 };
             _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ReturnsAsync(category);
 
             // Act
-            var result = await _controller.Edit(1);
+            var result = await _controller.Edit(8);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as BudgetCategory;
+            var model = viewResult.Model as CategoryCrudVm;
 
             // Assert
-            _mockService.Verify(m => m.GetSingleCategoryAsync(1), Times.Once());
+            _mockService.Verify(m => m.GetSingleCategoryAsync(8), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Edit", viewResult.ViewName);
-            Assert.AreSame(category, model);
+            Assert.AreEqual(category.ID, model.NavId);
         }
 
         [TestMethod]
@@ -329,15 +334,10 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
             // Arrange
-            var testName = "test";
-            var testAmount = 20.12;
-            var testDate = DateTime.Parse("1/1/2018");
-            var testType = BudgetType.Expense;
             var category = new CategoryCrudVm {
-                Name = testName,
-                Amount = testAmount,
-                EffectiveFrom = testDate,
-                Type = testType
+                Amount = 20.12,
+                EffectiveFrom = DateTime.Parse("1/1/2018"),
+                Type = BudgetType.Expense
             };
 
             // Act
@@ -345,7 +345,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdateCategoryAsync(1, testAmount, testDate, testType), Times.Once());
+            _mockService.Verify(m => m.UpdateCategoryAsync(category.NavId, category.Amount, category.EffectiveFrom, category.Type), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }

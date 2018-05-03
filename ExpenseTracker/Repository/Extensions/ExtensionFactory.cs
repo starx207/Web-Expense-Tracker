@@ -11,6 +11,7 @@ namespace ExpenseTracker.Repository.Extensions
     public static class ExtensionFactory
     {
         internal static Func<IQueryable<BudgetCategory>, CategoryExt> CategoryExtFactory { get; set; }
+        internal static Func<IQueryable<CategoryCrudVm>, CategoryCrudExt> CategoryCrudExtFactory { get; set; }
         internal static Func<IQueryable<Payee>, PayeeExt> PayeeExtFactory { get; set; }
         internal static Func<IQueryable<Alias>, AliasExt> AliasExtFactory { get; set; }
         internal static Func<IQueryable<Transaction>, TransactionExt> TransactionExtFactory { get; set; }
@@ -27,6 +28,9 @@ namespace ExpenseTracker.Repository.Extensions
         public static IExtensionMask<T> Extension<T>(this IQueryable<T> collection) {
             if (CategoryExtFactory != null && typeof(T) == typeof(BudgetCategory)) {
                 return (IExtensionMask<T>)CategoryExtFactory((IQueryable<BudgetCategory>)collection);
+            }
+            if (CategoryCrudExtFactory != null && typeof(T) == typeof(CategoryCrudVm)) {
+                return (IExtensionMask<T>)CategoryCrudExtFactory((IQueryable<CategoryCrudVm>)collection);
             }
             if (PayeeExtFactory != null && typeof(T) == typeof(Payee)) {
                 return (IExtensionMask<T>)PayeeExtFactory((IQueryable<Payee>)collection);
