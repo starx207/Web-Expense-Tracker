@@ -1,94 +1,100 @@
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
 /*
-    These classes were copied from the accepted answer on stackoverflow.com
-    https://stackoverflow.com/questions/40476233/how-to-mock-an-async-repository-with-entity-framework-core/40491640#40491640
 
-    The answer was modeled off the example here: https://msdn.microsoft.com/en-us/library/dn314429.aspx
+    I don't think I'm going to need this, but keeping for now just in case
+
  */
 
-namespace ExpenseTracker.Tests
-{
-    internal class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
-    {
-        public TestAsyncEnumerable(IEnumerable<T> enumerable)
-            : base(enumerable)
-        { }
+// using Microsoft.EntityFrameworkCore.Query.Internal;
+// using System.Collections.Generic;
+// using System.Linq;
+// using System.Linq.Expressions;
+// using System.Threading;
+// using System.Threading.Tasks;
 
-        public TestAsyncEnumerable(Expression expression)
-            : base(expression)
-        { }
+// /*
+//     These classes were copied from the accepted answer on stackoverflow.com
+//     https://stackoverflow.com/questions/40476233/how-to-mock-an-async-repository-with-entity-framework-core/40491640#40491640
 
-        public IAsyncEnumerator<T> GetEnumerator()
-        {
-            return new TestAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
-        }
+//     The answer was modeled off the example here: https://msdn.microsoft.com/en-us/library/dn314429.aspx
+//  */
 
-        IQueryProvider IQueryable.Provider
-        {
-            get { return new TestAsyncQueryProvider<T>(this); }
-        }
-    }
+// namespace ExpenseTracker.Tests
+// {
+//     internal class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
+//     {
+//         public TestAsyncEnumerable(IEnumerable<T> enumerable)
+//             : base(enumerable)
+//         { }
+
+//         public TestAsyncEnumerable(Expression expression)
+//             : base(expression)
+//         { }
+
+//         public IAsyncEnumerator<T> GetEnumerator()
+//         {
+//             return new TestAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
+//         }
+
+//         IQueryProvider IQueryable.Provider
+//         {
+//             get { return new TestAsyncQueryProvider<T>(this); }
+//         }
+//     }
 
 
-    internal class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
-    {
-        private readonly IEnumerator<T> _inner;
+//     internal class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
+//     {
+//         private readonly IEnumerator<T> _inner;
 
-        public TestAsyncEnumerator(IEnumerator<T> inner) {
-            _inner = inner;
-        }
+//         public TestAsyncEnumerator(IEnumerator<T> inner) {
+//             _inner = inner;
+//         }
 
-        public void Dispose() {
-            _inner.Dispose();
-        }
+//         public void Dispose() {
+//             _inner.Dispose();
+//         }
 
-        public T Current {
-            get {
-                return _inner.Current;
-            }
-        }
+//         public T Current {
+//             get {
+//                 return _inner.Current;
+//             }
+//         }
 
-        public Task<bool> MoveNext(CancellationToken cancellationToken) {
-            return Task.FromResult(_inner.MoveNext());
-        }
-    }
+//         public Task<bool> MoveNext(CancellationToken cancellationToken) {
+//             return Task.FromResult(_inner.MoveNext());
+//         }
+//     }
 
-    internal class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
-    {
-        private readonly IQueryProvider _inner;
+//     internal class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
+//     {
+//         private readonly IQueryProvider _inner;
 
-        internal TestAsyncQueryProvider(IQueryProvider inner) {
-            _inner = inner;
-        }
+//         internal TestAsyncQueryProvider(IQueryProvider inner) {
+//             _inner = inner;
+//         }
 
-        public IQueryable CreateQuery(Expression expression) {
-            return new TestAsyncEnumerable<TEntity>(expression);
-        }
+//         public IQueryable CreateQuery(Expression expression) {
+//             return new TestAsyncEnumerable<TEntity>(expression);
+//         }
 
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression) {
-            return new TestAsyncEnumerable<TElement>(expression);
-        }
+//         public IQueryable<TElement> CreateQuery<TElement>(Expression expression) {
+//             return new TestAsyncEnumerable<TElement>(expression);
+//         }
 
-        public object Execute(Expression expression) {
-            return _inner.Execute(expression);
-        }
+//         public object Execute(Expression expression) {
+//             return _inner.Execute(expression);
+//         }
 
-        public TResult Execute<TResult>(Expression expression) {
-            return _inner.Execute<TResult>(expression);
-        }
+//         public TResult Execute<TResult>(Expression expression) {
+//             return _inner.Execute<TResult>(expression);
+//         }
 
-        public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression) {
-            return new TestAsyncEnumerable<TResult>(expression);
-        }
+//         public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression) {
+//             return new TestAsyncEnumerable<TResult>(expression);
+//         }
 
-        public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken) {
-            return Task.FromResult(Execute<TResult>(expression));
-        }
-    }
-}
+//         public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken) {
+//             return Task.FromResult(Execute<TResult>(expression));
+//         }
+//     }
+// }
