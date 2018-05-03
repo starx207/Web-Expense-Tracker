@@ -1,4 +1,4 @@
-@model IEnumerable<ExpenseTracker.Models.BudgetCategory>
+@model IEnumerable<ExpenseTracker.Models.CategoryCrudVm>
 
 @{
     ViewData["Title"] = "Index";
@@ -43,9 +43,9 @@
                 @Html.DisplayFor(modelItem => item.Type)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.NavId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.NavId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.NavId">Delete</a>
             </td>
         </tr>
 }

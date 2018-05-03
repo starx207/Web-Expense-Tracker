@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-    public abstract class CRUDController<T> : BaseController
+    public abstract class CRUDController<VM, T> : BaseController
+        where VM : class
         where T : class
     {
         #region Private Members
 
+        private Func<T, VM> _viewModelCreator;
         private Func<IQueryable<T>> _getCollectionFunc;
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
@@ -23,13 +25,13 @@ namespace ExpenseTracker.Controllers
         #region Protected Properties
 
         /// <summary>
-        /// The Func to use to sort the collection of <see cref="T"/>
+        /// The Func to use to sort the collection of <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
-        protected Func<T, object> CollectionOrderFunc { get; set; }
+        protected Func<VM, object> CollectionOrderFunc { get; set; }
 
         /// <summary>
-        /// Indicates whether the collection of <see cref="T"/> should be sorted in descending order
+        /// Indicates whether the collection of <see cref="VM"/> should be sorted in descending order
         /// </summary>
         /// <returns></returns>
         protected bool OrderDescending { get; set; } = false;
@@ -41,15 +43,18 @@ namespace ExpenseTracker.Controllers
         /// <summary>
         /// Default constructor for a CRUDController
         /// </summary>
-        /// <param name="collectionGetter">The function used to get a collection of <see cref="T"/></param>
-        public CRUDController(Func<IQueryable<T>> collectionGetter, 
+        /// <param name="collectionGetter">The function used to get a collection of <see cref="VM"/></param>
+        public CRUDController(Func<T, VM> viewModelCreator,
+            Func<IQueryable<T>> collectionGetter, 
             Func<int?, Task<T>> singleGetter,
             Func<T, Task<int>> singleAdder,
             Func<int, Task<int>> singleDeleter) {
+
             _getCollectionFunc = collectionGetter;
             _getSingleObjectAsyncFunc = singleGetter;
             _removeObjectAsyncFunc = singleDeleter;
             _addObjectAsyncFunc = singleAdder;
+            _viewModelCreator = viewModelCreator;
         }
 
         #endregion // Constructors
@@ -59,11 +64,11 @@ namespace ExpenseTracker.Controllers
         #region GET Actions
 
         /// <summary>
-        /// Returns the Index view for <see cref="T"/>
+        /// Returns the Index view for <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
         public virtual async Task<IActionResult> Index() {
-            IQueryable<T> data = _getCollectionFunc();
+            IQueryable<VM> data = _getCollectionFunc().Select(d => _viewModelCreator(d));
             if (CollectionOrderFunc != null) {
                 if (OrderDescending) {
                     data = data.OrderByDescending(d => CollectionOrderFunc(d));
@@ -75,14 +80,14 @@ namespace ExpenseTracker.Controllers
         }
 
         /// <summary>
-        /// Returns the Details view for <see cref="T"/>
+        /// Returns the Details view for <see cref="VM"/>
         /// </summary>
         /// <param name="id">The Id of the object to display</param>
         /// <returns></returns>
         public virtual async Task<IActionResult> Details(int? id) {
-            T objectToShow;
+            VM objectToShow;
             try {
-                objectToShow = await _getSingleObjectAsyncFunc(id);
+                objectToShow = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
             } catch (IdNotFoundException) {
                 return NotFound();
             } catch (NullIdException) {
@@ -92,20 +97,20 @@ namespace ExpenseTracker.Controllers
         }
 
         /// <summary>
-        /// Returns the Create view for <see cref="T"/>
+        /// Returns the Create view for <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
         public virtual IActionResult Create() => View(nameof(Create));
 
         /// <summary>
-        /// Returns the Edit view for <see cref="T"/>
+        /// Returns the Edit view for <see cref="VM"/>
         /// </summary>
         /// <param name="id">The Id of the object to display</param>
         /// <returns></returns>
         public virtual async Task<IActionResult> Edit(int? id) {
-            T objectToEdit;
+            VM objectToEdit;
             try {
-                objectToEdit = await _getSingleObjectAsyncFunc(id);
+                objectToEdit = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -114,14 +119,14 @@ namespace ExpenseTracker.Controllers
         }
 
         /// <summary>
-        /// Returns the Delete view for <see cref="T"/>
+        /// Returns the Delete view for <see cref="VM"/>
         /// </summary>
         /// <param name="id">The Id of the object to delete</param>
         /// <returns></returns>
         public virtual async Task<IActionResult> Delete(int? id) {
-            T objectToDelete;
+            VM objectToDelete;
             try {
-                objectToDelete = await _getSingleObjectAsyncFunc(id);
+                objectToDelete = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
             } catch (IdNotFoundException) {
                 return NotFound();
             } catch (NullIdException) {
@@ -139,13 +144,13 @@ namespace ExpenseTracker.Controllers
         //       for now, I'll just add stubs here
 
         [HttpPost, ValidateAntiForgeryToken]
-        public abstract Task<IActionResult> Create(T createdObject);
+        public abstract Task<IActionResult> Create(VM createdObject);
 
         [HttpPost, ValidateAntiForgeryToken]
-        public abstract Task<IActionResult> Edit(int id, T editedObject);
+        public abstract Task<IActionResult> Edit(VM editedObject);
 
         /// <summary>
-        /// Attempts to delete an object from the collection of <see cref="T"/>
+        /// Attempts to delete an object from the collection of <see cref="VM"/>
         /// Then returns to <see cref="Index"/>
         /// </summary>
         /// <param name="id">The Id of the object to delete</param>

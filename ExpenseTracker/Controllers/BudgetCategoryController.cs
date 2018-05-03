@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-    public class BudgetCategoryController : CRUDController<BudgetCategory>
+    public class BudgetCategoryController : CRUDController<CategoryCrudVm, BudgetCategory>
     { 
         #region Private Members
 
@@ -28,7 +28,8 @@ namespace ExpenseTracker.Controllers
             : base(collectionGetter: () => service.GetCategories(),
                 singleGetter: id => service.GetSingleCategoryAsync(id),
                 singleAdder: category => service.AddCategoryAsync(category),
-                singleDeleter: id => service.RemoveCategoryAsync(id))  {
+                singleDeleter: id => service.RemoveCategoryAsync(id),
+                viewModelCreator: category => new CategoryCrudVm(category))  {
                 _serviceRO = service;
                 CollectionOrderFunc = category => category.Name;
             } 
@@ -44,11 +45,16 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to add</param>
         /// <returns></returns>
-        public override async Task<IActionResult> Create([Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
+        public override async Task<IActionResult> Create(CategoryCrudVm budgetCategory) {
             if (ModelState.IsValid)
             {
                 try {
-                    await _serviceRO.AddCategoryAsync(budgetCategory);
+                    await _serviceRO.AddCategoryAsync(new BudgetCategory {
+                        Name = budgetCategory.Name,
+                        Amount = budgetCategory.Amount,
+                        EffectiveFrom = budgetCategory.EffectiveFrom,
+                        Type = budgetCategory.Type
+                    });
                     return RedirectToAction(nameof(Index));
                 } catch (UniqueConstraintViolationException) {
                     ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Budget Category");
@@ -66,15 +72,16 @@ namespace ExpenseTracker.Controllers
         /// <param name="id">The id of the <see cref="BudgetCategory"/> to edit</param>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to edit</param>
         /// <returns></returns>
-        public override async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
+        public override async Task<IActionResult> Edit(CategoryCrudVm budgetCategory) {
             if (ModelState.IsValid) {
+                int id = (int)GetRoutedId();
                 try {
                     await _serviceRO.UpdateCategoryAsync(id, budgetCategory.Name, budgetCategory.Amount, budgetCategory.EffectiveFrom, budgetCategory.Type);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
                     ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), dteex.Message);
                 } catch (ExpenseTrackerException ex) {
-                    if (ex is ConcurrencyException && (_serviceRO.CategoryExists(budgetCategory.ID))) {
+                    if (ex is ConcurrencyException && (_serviceRO.CategoryExists(id))) {
                         throw;
                     }
                     return NotFound();

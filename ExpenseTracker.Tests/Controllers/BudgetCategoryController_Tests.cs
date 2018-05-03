@@ -154,7 +154,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_calls_AddCategoryAsync_and_redirects_to_index() {
             // Arrange
-            var category = new BudgetCategory();
+            var category = new CategoryCrudVm();
 
             // Act
             var result = await _controller.Create(category);
@@ -333,7 +333,7 @@ namespace ExpenseTracker.Controllers.Tests
             var testAmount = 20.12;
             var testDate = DateTime.Parse("1/1/2018");
             var testType = BudgetType.Expense;
-            var category = new BudgetCategory {
+            var category = new CategoryCrudVm {
                 Name = testName,
                 Amount = testAmount,
                 EffectiveFrom = testDate,
@@ -341,7 +341,7 @@ namespace ExpenseTracker.Controllers.Tests
             };
 
             // Act
-            var result = await _controller.Edit(1, category);
+            var result = await _controller.Edit(category);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert

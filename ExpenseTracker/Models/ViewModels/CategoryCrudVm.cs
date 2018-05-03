@@ -7,6 +7,8 @@ namespace ExpenseTracker.Models
     {
         #region Public Properties
 
+        public int NavId { get; private set; }
+
         [Display(Name = "Effective From")]
         public DateTime EffectiveFrom { get; set; }
 
@@ -21,7 +23,10 @@ namespace ExpenseTracker.Models
 
         #region Constructors
 
+        public CategoryCrudVm() { }
+
         public CategoryCrudVm(BudgetCategory category) {
+            NavId = category.ID;
             EffectiveFrom = category.EffectiveFrom;
             Name = category.Name;
             Amount = category.Amount;
