@@ -20,6 +20,8 @@ namespace ExpenseTracker.Controllers
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
         private Func<VM, Task<int>> _addObjectAsyncFunc;
+        private Func<VM, int, Task<int>> _editObjectAsyncFunc;
+        private Func<int, bool> _checkExistsFunc;
 
         #endregion // Private Members
 
@@ -51,13 +53,17 @@ namespace ExpenseTracker.Controllers
             Func<IQueryable<T>> collectionGetter, 
             Func<int?, Task<T>> singleGetter,
             Func<VM, Task<int>> singleAdder,
-            Func<int, Task<int>> singleDeleter) {
+            Func<int, Task<int>> singleDeleter,
+            Func<VM, int, Task<int>> singleEditor,
+            Func<int, bool> existanceChecker) {
 
             _getCollectionFunc = collectionGetter;
             _getSingleObjectAsyncFunc = singleGetter;
             _removeObjectAsyncFunc = singleDeleter;
             _addObjectAsyncFunc = singleAdder;
             _viewModelCreator = viewModelCreator;
+            _editObjectAsyncFunc = singleEditor;
+            _checkExistsFunc = existanceChecker;
         }
 
         #endregion // Constructors
@@ -143,18 +149,23 @@ namespace ExpenseTracker.Controllers
 
         #region POST Actions
 
-        // TODO: figure out how to implement binding for Create/Edit POST actions
-        //       for now, I'll just add stubs here
-
+        /// <summary>
+        /// Attempts to create an object of type <see cref="T"/>
+        /// If the model is not valid, returns to the view
+        /// </summary>
+        /// <param name="createdObject">The <see cref="VM"/> to use to create a new object of <see cref="T"/></param>
+        /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Create(VM createdObject) {
             if (ModelState.IsValid) {
                 try {
                     await _addObjectAsyncFunc(createdObject);
-                    RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index));
                 } catch (UniqueConstraintViolationException uex) {
                     ModelState.AddModelError(uex.PropertyName, uex.Message);
                 } catch (Exception ex) {
+                    // If the child class has defined Exception Handling for the exception
+                    // type, handle it, otherwise throw
                     if (ExceptionHandling == null) {
                         throw;
                     }
@@ -167,8 +178,43 @@ namespace ExpenseTracker.Controllers
             return View(nameof(Create), createdObject);
         }
 
+        /// <summary>
+        /// Attempts to edit an object of type <see cref="T"/>
+        /// If the model is not valid, returns to the view
+        /// </summary>
+        /// <param name="editedObject">The <see cref="VM"/> to use to edit an object of <see cref="T"/></param>
+        /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
-        public abstract Task<IActionResult> Edit(VM editedObject);
+        public virtual async Task<IActionResult> Edit(VM editedObject) {
+            if (ModelState.IsValid) {
+                int id = GetRoutedId();
+                try {
+                    await _editObjectAsyncFunc(editedObject, id);
+                    return RedirectToAction(nameof(Index));
+                } catch (Exception ex) {
+                    // Concurrency exception should return NotFound as long as
+                    // the id exists, otherwise should throw
+                    if (ex is ConcurrencyException) {
+                        if (_checkExistsFunc(id)) {
+                            return NotFound();
+                        } else {
+                            throw;
+                        }
+                    }
+
+                    // If the child class has defined Exception Handling for the exception
+                    // type, handle it, otherwise throw
+                    if (ExceptionHandling == null) {
+                        throw;
+                    }
+                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Action<Exception> handler)) {
+                        throw;
+                    }
+                    handler(ex);
+                }
+            }
+            return View(nameof(Edit), editedObject);
+        }
 
         /// <summary>
         /// Attempts to delete an object from the collection of <see cref="VM"/>
