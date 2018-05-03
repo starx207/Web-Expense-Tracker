@@ -1,4 +1,5 @@
 using ExpenseTracker.Exceptions;
+using ExpenseTracker.Repository.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -70,7 +71,7 @@ namespace ExpenseTracker.Controllers
                     data = data.OrderBy(d => CollectionOrderFunc(d));
                 }
             }
-            return View(nameof(Index), await data.ToListAsync());
+            return View(nameof(Index), await data.Extension().ToListAsync());
         }
 
         /// <summary>

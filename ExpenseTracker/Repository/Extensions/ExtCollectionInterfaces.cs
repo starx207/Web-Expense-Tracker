@@ -17,27 +17,11 @@ namespace ExpenseTracker.Repository.Extensions
         Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> selector);
     }
 
-    // public interface ICategoryExtMask
-    // {
-    //     Task<List<BudgetCategory>> ToListAsync();
-    //     Task<BudgetCategory> SingleOrDefaultAsync(int id);
-    // }
+    // public interface ICategoryExtMask : IExtensionMask<BudgetCategory> { }
 
-    // public interface IPayeeExtMask
-    // {
-    //     Task<List<Payee>> ToListAsync();
-    //     Task<Payee> SingleOrDefaultAsync(int id);
-    // }
+    // public interface IPayeeExtMask : IExtensionMask<Payee> { }
 
-    // public interface IAliasExtMask
-    // {
-    //     Task<List<Alias>> ToListAsync();
-    //     Task<Alias> SingleOrDefaultAsync(int id);
-    // }
+    // public interface IAliasExtMask : IExtensionMask<Alias> { }
 
-    // public interface ITransactionExtMask
-    // {
-    //     Task<List<Transaction>> ToListAsync();
-    //     Task<Transaction> SingleOrDefaultAsync(int id);
-    // }
+    // public interface ITransactionExtMask : IExtensionMask<Transaction> { }
 }

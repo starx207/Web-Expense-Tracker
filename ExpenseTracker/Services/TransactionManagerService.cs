@@ -29,7 +29,7 @@ namespace ExpenseTracker.Services
                 throw new NullIdException("No id specified");
             }
 
-            var transaction = await _context.GetTransactions(includeAll, includeAll).Extension().SingleOrDefaultAsync((int)id);
+            var transaction = await _context.GetTransactions(includeAll, includeAll).Extension().SingleOrDefaultAsync(t => t.ID == id);
 
             if (transaction == null) {
                 throw new IdNotFoundException($"No transaction found for ID = {id}");

@@ -25,7 +25,7 @@ namespace ExpenseTracker.Services
                 throw new NullIdException("No id specified");
             }
 
-            var category = await _context.GetCategories().Extension().SingleOrDefaultAsync((int)id);
+            var category = await _context.GetCategories().Extension().SingleOrDefaultAsync(c => c.ID == id);
                 
             if (category == null) {
                 throw new IdNotFoundException($"No category found for ID = {id}");
@@ -39,7 +39,7 @@ namespace ExpenseTracker.Services
                 .FirstOrDefault(c => c.ID == id) ?? throw new IdNotFoundException($"No BudgetCategory found for Id = {id}");
 
             if (effectiveFrom > DateTime.Now) {
-                throw new InvalidOperationException("EffectiveFrom Date cannot be a future date");
+                throw new InvalidDateExpection("EffectiveFrom Date cannot be a future date");
             }
 
             try {

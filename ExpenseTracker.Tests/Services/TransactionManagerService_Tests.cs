@@ -8,6 +8,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services.Tests
@@ -55,15 +56,14 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleTransactionAsync_returns_transaction() {
             // Arrange
             var transaction = new Transaction { ID = 3 };
-            var mockTransExt = new Mock<ITransactionExtMask>();
-            mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync(transaction);
+            var mockTransExt = new Mock<TransactionExt>();
+            mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync(transaction);
             ExtensionFactory.TransactionExtFactory = ext => mockTransExt.Object;
 
             // Act
             var result = await _testService.GetSingleTransactionAsync(3);
 
             // Assert
-            mockTransExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
             Assert.AreEqual(3, result.ID);
         }
 
@@ -78,8 +78,8 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSingleTransactionAsync_throws_IdNotFoundException_when_transaction_doesnt_exist() {
             // Arrange
-            var mockTransExt = new Mock<ITransactionExtMask>();
-            mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync((Transaction)null);
+            var mockTransExt = new Mock<TransactionExt>();
+            mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync((Transaction)null);
             ExtensionFactory.TransactionExtFactory = ext => mockTransExt.Object;
 
             // Act & Assert

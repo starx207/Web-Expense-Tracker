@@ -21,7 +21,7 @@ namespace ExpenseTracker.Services
                 throw new NullIdException("No id specified");
             }
 
-            var payee = await _context.GetPayees(includeAll, includeAll).Extension().SingleOrDefaultAsync((int)id);
+            var payee = await _context.GetPayees(includeAll, includeAll).Extension().SingleOrDefaultAsync(p => p.ID == id);
                 
             if (payee == null) {
                 throw new IdNotFoundException($"No payee found for ID = {id}");

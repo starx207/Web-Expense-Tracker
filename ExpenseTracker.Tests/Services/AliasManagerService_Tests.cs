@@ -4,8 +4,10 @@ using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services.Tests
@@ -52,15 +54,14 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleAliasAsync_returns_alias() {
             // Arrange
             var alias = new Alias { ID = 3 };
-            var mockAliasExt = new Mock<IAliasExtMask>();
-            mockAliasExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync(alias);
+            var mockAliasExt = new Mock<AliasExt>();
+            mockAliasExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Alias, bool>>>())).ReturnsAsync(alias);
             ExtensionFactory.AliasExtFactory = ext => mockAliasExt.Object;
 
             // Act
             var result = await _testService.GetSingleAliasAsync(3);
 
             // Assert
-            mockAliasExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
             Assert.AreEqual(3, result.ID);
         }
 
@@ -75,8 +76,8 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSingleAliasAsync_throws_IdNotFoundException_when_alias_doesnt_exist() {
             // Arrange
-            var mockAliasExt = new Mock<IAliasExtMask>();
-            mockAliasExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync((Alias)null);
+            var mockAliasExt = new Mock<AliasExt>();
+            mockAliasExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Alias, bool>>>())).ReturnsAsync((Alias)null);
             ExtensionFactory.AliasExtFactory = ext => mockAliasExt.Object;
 
             // Act & Assert

@@ -44,8 +44,6 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to add</param>
         /// <returns></returns>
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
         public override async Task<IActionResult> Create([Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
             if (ModelState.IsValid)
             {
@@ -68,12 +66,10 @@ namespace ExpenseTracker.Controllers
         /// <param name="id">The id of the <see cref="BudgetCategory"/> to edit</param>
         /// <param name="budgetCategory">The <see cref="BudgetCategory"/> to edit</param>
         /// <returns></returns>
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
         public override async Task<IActionResult> Edit(int id, [Bind("ID,Name,Amount,EffectiveFrom,Type")] BudgetCategory budgetCategory) {
             if (ModelState.IsValid) {
                 try {
-                    await Task.Delay(10); // _serviceRO.UpdateCategoryAsync(id, budgetCategory);
+                    await _serviceRO.UpdateCategoryAsync(id, budgetCategory.Name, budgetCategory.Amount, budgetCategory.EffectiveFrom, budgetCategory.Type);
                     return RedirectToAction(nameof(Index));
                 } catch (InvalidDateExpection dteex) {
                     ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), dteex.Message);
@@ -86,20 +82,6 @@ namespace ExpenseTracker.Controllers
             }
             return View(nameof(Edit), budgetCategory);
         }
-
-        // /// <summary>
-        // /// Attempts to delete the <see cref="BudgetCategory"/> specified in the view, 
-        // /// then redirects to <see cref="Index"/>
-        // /// POST: BudgetCategory/Delete/5
-        // /// </summary>
-        // /// <param name="id"></param>
-        // /// <returns></returns>
-        // [HttpPost, ActionName("Delete")]
-        // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> DeleteConfirmed(int id) {
-        //     await _serviceRO.RemoveCategoryAsync(id);
-        //     return RedirectToAction(nameof(Index));
-        // }
 
         #endregion // Public Methods
     }

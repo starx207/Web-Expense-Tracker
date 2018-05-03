@@ -10,26 +10,34 @@ namespace ExpenseTracker.Repository.Extensions
 {
     public static class ExtensionFactory
     {
-        // public static Func<IQueryable<BudgetCategory>, ICategoryExtMask> CategoryExtFactory { get; set; }
-        // public static Func<IQueryable<Payee>, IPayeeExtMask> PayeeExtFactory { get; set; }
-        // public static Func<IQueryable<Alias>, IAliasExtMask> AliasExtFactory { get; set; }
-        // public static Func<IQueryable<Transaction>, ITransactionExtMask> TransactionExtFactory { get; set; }
+        internal static Func<IQueryable<BudgetCategory>, CategoryExt> CategoryExtFactory { get; set; }
+        internal static Func<IQueryable<Payee>, PayeeExt> PayeeExtFactory { get; set; }
+        internal static Func<IQueryable<Alias>, AliasExt> AliasExtFactory { get; set; }
+        internal static Func<IQueryable<Transaction>, TransactionExt> TransactionExtFactory { get; set; }
 
-        // static ExtensionFactory() {
-        //     CategoryExtFactory = col => new CategoryExt(col);
-        //     PayeeExtFactory = col => new PayeeExt(col);
-        //     AliasExtFactory = col => new AliasExt(col);
-        //     TransactionExtFactory = col => new TransactionExt(col);
-        // }
+        static ExtensionFactory() {
+            CategoryExtFactory = null;
+            PayeeExtFactory = null;
+            AliasExtFactory = null;
+            TransactionExtFactory = null;
+        }
 
         // TODO: figure out how to create generic implentation of this
 
         public static IExtensionMask<T> Extension<T>(this IQueryable<T> collection) {
+            if (CategoryExtFactory != null && typeof(T) == typeof(BudgetCategory)) {
+                return (IExtensionMask<T>)CategoryExtFactory((IQueryable<BudgetCategory>)collection);
+            }
+            if (PayeeExtFactory != null && typeof(T) == typeof(Payee)) {
+                return (IExtensionMask<T>)PayeeExtFactory((IQueryable<Payee>)collection);
+            }
+            if (AliasExtFactory != null && typeof(T) == typeof(Alias)) {
+                return (IExtensionMask<T>)AliasExtFactory((IQueryable<Alias>)collection);
+            }
+            if (TransactionExtFactory != null && typeof(T) == typeof(Transaction)) {
+                return (IExtensionMask<T>)TransactionExtFactory((IQueryable<Transaction>)collection);
+            }
             return new GenericExt<T>(collection);
-        }
-
-        public static IExtensionMask<T> Extension<T>(this IQueryable<T> collection, Func<IQueryable<T>, IExtensionMask<T>> extensionFunc) {
-            return extensionFunc(collection);
         }
 
         // public static ICategoryExtMask Extension(this IQueryable<BudgetCategory> collection) {

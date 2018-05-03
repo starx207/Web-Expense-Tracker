@@ -24,7 +24,7 @@ namespace ExpenseTracker.Services
                 throw new NullIdException("No id specified");
             }
 
-            var alias = await _context.GetAliases(includeAll).Extension().SingleOrDefaultAsync((int)id);
+            var alias = await _context.GetAliases(includeAll).Extension().SingleOrDefaultAsync(a => a.ID == id);
 
             if (alias == null) {
                 throw new IdNotFoundException($"No alias found for ID = {id}");

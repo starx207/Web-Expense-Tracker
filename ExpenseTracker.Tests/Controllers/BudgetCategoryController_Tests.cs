@@ -51,7 +51,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
             // Arrange
             var categories = new List<BudgetCategory>();
-            var mockCategoryExt = new Mock<ICategoryExtMask>();
+            var mockCategoryExt = new Mock<CategoryExt>();
             mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
             ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
 

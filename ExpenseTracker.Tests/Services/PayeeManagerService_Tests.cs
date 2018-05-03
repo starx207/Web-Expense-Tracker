@@ -5,8 +5,10 @@ using ExpenseTracker.Repository.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services.Tests
@@ -54,15 +56,14 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSinglePayeeAsync_returns_payee() {
             // Arrange
             var payee = new Payee { ID = 3 };
-            var mockPayeeExt = new Mock<IPayeeExtMask>();
-            mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync(payee);
+            var mockPayeeExt = new Mock<PayeeExt>();
+            mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Payee, bool>>>())).ReturnsAsync(payee);
             ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
 
             // Act
             var result = await _testService.GetSinglePayeeAsync(3);
 
             // Assert
-            mockPayeeExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
             Assert.AreEqual(3, result.ID);
         }
 
@@ -77,8 +78,8 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSinglePayeeAsync_throws_IdNotFoundException_when_payee_doesnt_exist() {
             // Arrange
-            var mockPayeeExt = new Mock<IPayeeExtMask>();
-            mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync((Payee)null);
+            var mockPayeeExt = new Mock<PayeeExt>();
+            mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Payee, bool>>>())).ReturnsAsync((Payee)null);
             ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
 
             // Act & Assert

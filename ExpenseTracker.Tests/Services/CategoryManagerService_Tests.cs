@@ -7,6 +7,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Services.Tests
@@ -78,15 +79,14 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleCategoryAsync_returns_category() {
             // Arrange
             var category = new BudgetCategory { ID = 3 };
-            var mockCategoryExt = new Mock<ICategoryExtMask>();
-            mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync(category);
+            var mockCategoryExt = new Mock<CategoryExt>();
+            mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<BudgetCategory, bool>>>())).ReturnsAsync(category);
             ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
 
             // Act
             var result = await _testService.GetSingleCategoryAsync(3);
 
             // Assert
-            mockCategoryExt.Verify(m => m.SingleOrDefaultAsync(3), Times.Once());
             Assert.AreEqual(3, result.ID);
         }
 
@@ -101,8 +101,8 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSingleCategoryAsync_throws_IdNotFoundException_when_category_doesnt_exist() {
             // Arrange
-            var mockCategoryExt = new Mock<ICategoryExtMask>();
-            mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<int>())).ReturnsAsync((BudgetCategory)null);
+            var mockCategoryExt = new Mock<CategoryExt>();
+            mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<BudgetCategory, bool>>>())).ReturnsAsync((BudgetCategory)null);
             ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
 
             // Act & Assert
