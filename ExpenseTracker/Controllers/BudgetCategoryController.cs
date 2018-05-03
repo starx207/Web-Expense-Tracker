@@ -1,13 +1,9 @@
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
-using ExpenseTracker.Repository;
-using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
