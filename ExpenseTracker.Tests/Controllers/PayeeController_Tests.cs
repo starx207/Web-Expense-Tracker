@@ -53,9 +53,9 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Index_GET_passes_list_of_payees_to_viewmodel() {
             // Arrange
             var payees = new List<Payee>();
-            var mockPayeeExt = new Mock<PayeeExt>();
+            var mockPayeeExt = new Mock<IExtensionMask<Payee>>();
             mockPayeeExt.Setup(m => m.ToListAsync()).ReturnsAsync(payees);
-            ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
+            ExtensionFactoryHelpers<Payee>.ExtFactoryOverride = ext => mockPayeeExt.Object;
 
             // Act
             var result = (ViewResult)(await _controller.Index());

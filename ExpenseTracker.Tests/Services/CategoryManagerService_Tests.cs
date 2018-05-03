@@ -79,9 +79,9 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleCategoryAsync_returns_category() {
             // Arrange
             var category = new BudgetCategory { ID = 3 };
-            var mockCategoryExt = new Mock<CategoryExt>();
+            var mockCategoryExt = new Mock<IExtensionMask<BudgetCategory>>();
             mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<BudgetCategory, bool>>>())).ReturnsAsync(category);
-            ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
+            ExtensionFactoryHelpers<BudgetCategory>.ExtFactoryOverride = ext => mockCategoryExt.Object;
 
             // Act
             var result = await _testService.GetSingleCategoryAsync(3);
@@ -101,9 +101,9 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSingleCategoryAsync_throws_IdNotFoundException_when_category_doesnt_exist() {
             // Arrange
-            var mockCategoryExt = new Mock<CategoryExt>();
+            var mockCategoryExt = new Mock<IExtensionMask<BudgetCategory>>();
             mockCategoryExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<BudgetCategory, bool>>>())).ReturnsAsync((BudgetCategory)null);
-            ExtensionFactory.CategoryExtFactory = ext => mockCategoryExt.Object;
+            ExtensionFactoryHelpers<BudgetCategory>.ExtFactoryOverride = ext => mockCategoryExt.Object;
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>

@@ -39,8 +39,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Index_GET_returns_index_view() {
             // Arrange
-            var mockCategoryExt = new Mock<CategoryCrudExt>();
-            ExtensionFactory.CategoryCrudExtFactory = ext => mockCategoryExt.Object;
+            var mockExtension = new Mock<IExtensionMask<CategoryCrudVm>>();
+            ExtensionFactoryHelpers<CategoryCrudVm>.ExtFactoryOverride = ext => mockExtension.Object;
 
             // Act
             var actionResult = await _controller.Index();
@@ -55,9 +55,9 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Index_GET_passes_list_of_categories_to_viewmodel() {
             // Arrange
             var categories = new List<CategoryCrudVm>();
-            var mockCategoryExt = new Mock<CategoryCrudExt>();
+            var mockCategoryExt = new Mock<IExtensionMask<CategoryCrudVm>>();
             mockCategoryExt.Setup(m => m.ToListAsync()).ReturnsAsync(categories);
-            ExtensionFactory.CategoryCrudExtFactory = ext => mockCategoryExt.Object;
+            ExtensionFactoryHelpers<CategoryCrudVm>.ExtFactoryOverride = ext => mockCategoryExt.Object;
 
             // Act
             var result = (ViewResult)(await _controller.Index());

@@ -56,9 +56,9 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSingleTransactionAsync_returns_transaction() {
             // Arrange
             var transaction = new Transaction { ID = 3 };
-            var mockTransExt = new Mock<TransactionExt>();
+            var mockTransExt = new Mock<IExtensionMask<Transaction>>();
             mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync(transaction);
-            ExtensionFactory.TransactionExtFactory = ext => mockTransExt.Object;
+            ExtensionFactoryHelpers<Transaction>.ExtFactoryOverride = ext => mockTransExt.Object;
 
             // Act
             var result = await _testService.GetSingleTransactionAsync(3);
@@ -78,9 +78,9 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSingleTransactionAsync_throws_IdNotFoundException_when_transaction_doesnt_exist() {
             // Arrange
-            var mockTransExt = new Mock<TransactionExt>();
+            var mockTransExt = new Mock<IExtensionMask<Transaction>>();
             mockTransExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync((Transaction)null);
-            ExtensionFactory.TransactionExtFactory = ext => mockTransExt.Object;
+            ExtensionFactoryHelpers<Transaction>.ExtFactoryOverride = ext => mockTransExt.Object;
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>

@@ -22,29 +22,4 @@ namespace ExpenseTracker.Repository.Extensions
         public virtual async Task<List<T>> ToListAsync() => await _collection.ToListAsync();
         public virtual async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> selector) => await _collection.SingleOrDefaultAsync(selector);
     }
-
-    internal class CategoryExt : GenericExt<BudgetCategory> { 
-        public CategoryExt() : base(new List<BudgetCategory>().AsQueryable()) { }
-        public CategoryExt(IQueryable<BudgetCategory> collection) : base(collection) { }
-    }
-
-    internal class CategoryCrudExt : GenericExt<CategoryCrudVm> { 
-        public CategoryCrudExt() : base(new List<CategoryCrudVm>().AsQueryable()) { }
-        public CategoryCrudExt(IQueryable<CategoryCrudVm> collection) : base(collection) { }
-    }
-
-    internal class PayeeExt: GenericExt<Payee> {
-        public PayeeExt() : base(new List<Payee>().AsQueryable()) { }
-        public PayeeExt(IQueryable<Payee> collection) : base(collection) { }
-    }
-
-    internal class AliasExt: GenericExt<Alias> {
-        public AliasExt() : base(new List<Alias>().AsQueryable()) { }
-        public AliasExt(IQueryable<Alias> collection) : base(collection) { }
-    }
-
-    internal class TransactionExt: GenericExt<Transaction> {
-        public TransactionExt() : base(new List<Transaction>().AsQueryable()) { }
-        public TransactionExt(IQueryable<Transaction> collection) : base(collection) { }
-    }
 }

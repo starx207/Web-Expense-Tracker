@@ -54,9 +54,9 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Index_GET_passes_list_of_transactions_to_viewmodel() {
             // Arrange
             var transactions = new List<Transaction>();
-            var mockTransactionExt = new Mock<TransactionExt>();
+            var mockTransactionExt = new Mock<IExtensionMask<Transaction>>();
             mockTransactionExt.Setup(m => m.ToListAsync()).ReturnsAsync(transactions);
-            ExtensionFactory.TransactionExtFactory = ext => mockTransactionExt.Object;
+            ExtensionFactoryHelpers<Transaction>.ExtFactoryOverride = ext => mockTransactionExt.Object;
 
             // Act
             var result = (ViewResult)(await _controller.Index());

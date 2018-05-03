@@ -56,9 +56,9 @@ namespace ExpenseTracker.Services.Tests
         public async Task GetSinglePayeeAsync_returns_payee() {
             // Arrange
             var payee = new Payee { ID = 3 };
-            var mockPayeeExt = new Mock<PayeeExt>();
+            var mockPayeeExt = new Mock<IExtensionMask<Payee>>();
             mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Payee, bool>>>())).ReturnsAsync(payee);
-            ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
+            ExtensionFactoryHelpers<Payee>.ExtFactoryOverride = ext => mockPayeeExt.Object;
 
             // Act
             var result = await _testService.GetSinglePayeeAsync(3);
@@ -78,9 +78,9 @@ namespace ExpenseTracker.Services.Tests
         [TestMethod]
         public async Task GetSinglePayeeAsync_throws_IdNotFoundException_when_payee_doesnt_exist() {
             // Arrange
-            var mockPayeeExt = new Mock<PayeeExt>();
+            var mockPayeeExt = new Mock<IExtensionMask<Payee>>();
             mockPayeeExt.Setup(m => m.SingleOrDefaultAsync(It.IsAny<Expression<Func<Payee, bool>>>())).ReturnsAsync((Payee)null);
-            ExtensionFactory.PayeeExtFactory = ext => mockPayeeExt.Object;
+            ExtensionFactoryHelpers<Payee>.ExtFactoryOverride = ext => mockPayeeExt.Object;
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<IdNotFoundException>(() =>
