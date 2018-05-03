@@ -39,7 +39,7 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         protected bool OrderDescending { get; set; } = false;
 
-        protected Dictionary<Type, Action<Exception>> ExceptionHandling { get; set; } = null;
+        protected Dictionary<Type, Func<Exception, IActionResult>> ExceptionHandling { get; set; } = null;
 
         #endregion // Protected Properties
 
@@ -169,10 +169,13 @@ namespace ExpenseTracker.Controllers
                     if (ExceptionHandling == null) {
                         throw;
                     }
-                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Action<Exception> handler)) {
+                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Func<Exception, IActionResult> handler)) {
                         throw;
                     }
-                    handler(ex);
+                    var result = handler(ex);
+                    if (result != null) {
+                        return result;
+                    }
                 }
             }
             return View(nameof(Create), createdObject);
@@ -191,13 +194,13 @@ namespace ExpenseTracker.Controllers
                     await _editObjectAsyncFunc(editedObject);
                     return RedirectToAction(nameof(Index));
                 } catch (Exception ex) {
-                    // Concurrency exception should return NotFound as long as
-                    // the id exists, otherwise should throw
+                    // Concurrency exception should return NotFound if
+                    // the object doesn't exist, otherwise should throw
                     if (ex is ConcurrencyException) {
                         if (_checkExistsFunc(editedObject)) {
-                            return NotFound();
-                        } else {
                             throw;
+                        } else {
+                            return NotFound();
                         }
                     }
 
@@ -206,10 +209,17 @@ namespace ExpenseTracker.Controllers
                     if (ExceptionHandling == null) {
                         throw;
                     }
-                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Action<Exception> handler)) {
-                        throw;
+                    // First Check if Exception type directly handled
+                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Func<Exception, IActionResult> handler)) {
+                        // If not, check if parent type handled
+                        if (!ExceptionHandling.TryGetValue(ex.GetType().BaseType, out handler)) {
+                            throw;
+                        }
                     }
-                    handler(ex);
+                    var result = handler(ex);
+                    if (result != null) {
+                        return result;
+                    }
                 }
             }
             return View(nameof(Edit), editedObject);

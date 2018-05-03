@@ -33,9 +33,13 @@ namespace ExpenseTracker.Controllers
             {
                 // Specify collection ordering
                 CollectionOrderFunc = category => category.Name;
-                ExceptionHandling = new Dictionary<Type, Action<Exception>> {
+                ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
                     {typeof(InvalidDateExpection), ex => {
                         ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), ex.Message);
+                        return null;
+                    }},
+                    {typeof(ExpenseTrackerException), ex => {
+                        return NotFound();
                     }}
                 };
             } 
