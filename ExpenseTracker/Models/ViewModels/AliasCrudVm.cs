@@ -6,7 +6,7 @@ namespace ExpenseTracker.Models
     {
         #region Public Properties
 
-        public int AliasId { get; set; }
+        public int NavId { get; set; }
         public string Name { get; set; }
 
         [Display(Name = "Payee")]
@@ -17,7 +17,7 @@ namespace ExpenseTracker.Models
         #region Constructors
 
         public AliasCrudVm(Alias alias) {
-            AliasId = alias.ID;
+            NavId = alias.ID;
             Name = alias.Name;
             PayeeID = alias.PayeeID;
         }
