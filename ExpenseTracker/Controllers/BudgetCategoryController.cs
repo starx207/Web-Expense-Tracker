@@ -4,6 +4,7 @@ using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ExpenseTracker.Controllers
 {
@@ -18,7 +19,7 @@ namespace ExpenseTracker.Controllers
         public BudgetCategoryController(ICategoryManagerService service)
             : base(
                 // Setup required functions
-                collectionGetter: () => service.GetCategories(),
+                collectionGetter: () => service.GetCategories().OrderBy(c => c.Name),
                 singleGetter: id => service.GetSingleCategoryAsync(id),
                 singleAdder: vm => service.AddCategoryAsync(vm.Name, vm.Amount, vm.Type),
                 singleDeleter: id => service.RemoveCategoryAsync(id),
@@ -27,8 +28,6 @@ namespace ExpenseTracker.Controllers
                 existanceChecker: vm => service.CategoryExists(vm.NavId)
             )  
             {
-                // Specify collection ordering
-                CollectionOrderFunc = category => category.Name;
                 ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
                     {typeof(InvalidDateExpection), ex => {
                         ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), ex.Message);

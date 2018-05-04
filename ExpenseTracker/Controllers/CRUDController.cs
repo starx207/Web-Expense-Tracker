@@ -16,7 +16,6 @@ namespace ExpenseTracker.Controllers
     {
         #region Private Members
 
-        private Func<T, VM> _viewModelCreator;
         private Func<IQueryable<T>> _getCollectionFunc;
         private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
@@ -29,14 +28,10 @@ namespace ExpenseTracker.Controllers
         #region Protected Properties
 
         /// <summary>
-        /// The Func to use to sort the collection of <see cref="VM"/>
+        /// The Func to use for creating <see cref="VM"/> objects. Initialized in constructor,
+        /// but can be overridden later
         /// </summary>
-        protected Func<VM, object> CollectionOrderFunc { get; set; } = null;
-
-        /// <summary>
-        /// Indicates whether the collection of <see cref="VM"/> should be sorted in descending order
-        /// </summary>
-        protected bool OrderDescending { get; set; } = false;
+        protected Func<T, VM> ViewModelCreatorFunc { get; set; }
 
         /// <summary>
         /// A Dictionary of Exception Handling functions. The key should be the type of exception to handle.
@@ -68,7 +63,7 @@ namespace ExpenseTracker.Controllers
             _getSingleObjectAsyncFunc = singleGetter;
             _removeObjectAsyncFunc = singleDeleter;
             _addObjectAsyncFunc = singleAdder;
-            _viewModelCreator = viewModelCreator;
+            ViewModelCreatorFunc = viewModelCreator;
             _editObjectAsyncFunc = singleEditor;
             _checkExistsFunc = existanceChecker;
         }
@@ -84,14 +79,7 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <returns></returns>
         public virtual async Task<IActionResult> Index() {
-            IQueryable<VM> data = _getCollectionFunc().Select(d => _viewModelCreator(d));
-            if (CollectionOrderFunc != null) {
-                if (OrderDescending) {
-                    data = data.OrderByDescending(d => CollectionOrderFunc(d));
-                } else {
-                    data = data.OrderBy(d => CollectionOrderFunc(d));
-                }
-            }
+            IQueryable<VM> data = _getCollectionFunc().Select(d => ViewModelCreatorFunc(d));
             return View(nameof(Index), await data.Extension().ToListAsync());
         }
 
@@ -103,7 +91,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Details(int? id) {
             VM objectToShow;
             try {
-                objectToShow = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
+                objectToShow = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
             } catch (IdNotFoundException) {
                 return NotFound();
             } catch (NullIdException) {
@@ -126,7 +114,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Edit(int? id) {
             VM objectToEdit;
             try {
-                objectToEdit = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
+                objectToEdit = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -142,7 +130,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Delete(int? id) {
             VM objectToDelete;
             try {
-                objectToDelete = _viewModelCreator(await _getSingleObjectAsyncFunc(id));
+                objectToDelete = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
             } catch (IdNotFoundException) {
                 return NotFound();
             } catch (NullIdException) {
