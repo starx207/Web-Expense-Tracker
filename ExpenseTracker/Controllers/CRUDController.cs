@@ -30,15 +30,21 @@ namespace ExpenseTracker.Controllers
         /// <summary>
         /// The Func to use to sort the collection of <see cref="VM"/>
         /// </summary>
-        /// <returns></returns>
         protected Func<VM, object> CollectionOrderFunc { get; set; } = null;
 
         /// <summary>
         /// Indicates whether the collection of <see cref="VM"/> should be sorted in descending order
         /// </summary>
-        /// <returns></returns>
         protected bool OrderDescending { get; set; } = false;
 
+        /// <summary>
+        /// A Dictionary of Exception Handling functions. The key should be the type of exception to handle.
+        /// The value should be the function that will handle the exception type. Exception types will first
+        /// be compared at face-value before evaluating Base exception types.
+        /// 
+        /// The Function's return value should be an IActionResult of where to go next after the exception has been
+        /// handled. If you wish for execution to continue as normal, return null
+        /// </summary>
         protected Dictionary<Type, Func<Exception, IActionResult>> ExceptionHandling { get; set; } = null;
 
         #endregion // Protected Properties

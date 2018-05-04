@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using System.Web;
 
 namespace ExpenseTracker.Controllers
@@ -15,5 +16,12 @@ namespace ExpenseTracker.Controllers
         protected string GetRoutedAction() => RouteData.Values["action"].ToString();
 
         protected string GetRoutedController() => RouteData.Values["controller"].ToString();
+
+        protected string GetRequestParameter(string paramName) {
+            if (Request.Query.TryGetValue(paramName, out StringValues value)) {
+                return value[0];
+            }
+            return string.Empty;
+        }
     }
 }

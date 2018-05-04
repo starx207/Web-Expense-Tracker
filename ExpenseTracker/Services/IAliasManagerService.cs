@@ -8,7 +8,9 @@ namespace ExpenseTracker.Services
     {
         Task<Alias> GetSingleAliasAsync(int? id, bool includeAll = false);
         Task<int> UpdateAliasAsync(int id, Alias alias);
+        Task<int> UpdateAliasAsync(int id, string name, int payeeId);
         Task<int> AddAliasAsync(Alias alias);
+        Task<int> AddAliasAsync(string name, int payeeId);
         Task<int> RemoveAliasAsync(int id);
         bool AliasExists(int id);
     }

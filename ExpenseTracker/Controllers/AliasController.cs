@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-  public class AliasController : Controller
+  public class AliasController : BaseController
     {
         #region Private Members
 
@@ -37,9 +37,12 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="payeeID">The Id of the <see cref="Payee"/> the alias belongs to</param>
         /// <returns></returns>
-        public IActionResult Create(int? payeeID = null) {
-            CreatePayeeSelectList(payeeID);
-            return View(nameof(Create));
+        public IActionResult Create() {
+            var aliasVm = new AliasCrudVm(_serviceRO);
+            if (int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
+                aliasVm.PayeeID = fetchedId;
+            }
+            return View(nameof(Create), aliasVm);
         }
 
         /// <summary>
@@ -50,16 +53,15 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,PayeeID")] Alias alias) {
+        public async Task<IActionResult> Create(AliasCrudVm alias) {
             if (ModelState.IsValid) {
                 try {
-                    await _serviceRO.AddAliasAsync(alias);
+                    await _serviceRO.AddAliasAsync(alias.Name, (int)alias.PayeeID);
                     return RedirectToAction(_payeeIndexRO, nameof(Payee));
                 } catch (UniqueConstraintViolationException) {
                     ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
                 }
             }
-            CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Create), alias);
         }
 
@@ -70,13 +72,12 @@ namespace ExpenseTracker.Controllers
         /// <param name="id">The Id of the <see cref="Alias"/> to edit</param>
         /// <returns></returns>
         public async Task<IActionResult> Edit(int? id) {
-            Alias alias;
+            AliasCrudVm alias;
             try {
-                alias = await _serviceRO.GetSingleAliasAsync(id);
+                alias = new AliasCrudVm(await _serviceRO.GetSingleAliasAsync(id), _serviceRO);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
-            CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Edit), alias);
         }
 
@@ -90,21 +91,20 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,PayeeID")] Alias alias) {
+        public async Task<IActionResult> Edit(AliasCrudVm alias) {
             if (ModelState.IsValid) {
                 try {
-                    await _serviceRO.UpdateAliasAsync(id, alias);
+                    await _serviceRO.UpdateAliasAsync(alias.NavId, alias.Name, (int)alias.PayeeID);
                     return RedirectToAction(_payeeIndexRO, nameof(Payee));
-                } catch (UniqueConstraintViolationException) {
-                    ModelState.AddModelError(nameof(Alias.Name), "Name already in use by another Alias");
+                } catch (UniqueConstraintViolationException uex) {
+                    ModelState.AddModelError(uex.PropertyName, uex.Message);
                 } catch (ExpenseTrackerException ex) {
-                    if (ex is ConcurrencyException && _serviceRO.AliasExists(alias.ID)) {
+                    if (ex is ConcurrencyException && _serviceRO.AliasExists(alias.NavId)) {
                         throw;
                     }
                     return NotFound();
                 }
             }
-            CreatePayeeSelectList(alias.PayeeID);
             return View(nameof(Edit), alias);
         }
 
@@ -115,9 +115,9 @@ namespace ExpenseTracker.Controllers
         /// <param name="id">The Id of the <see cref="Alias"/> to show/delete</param>
         /// <returns></returns>
         public async Task<IActionResult> Delete(int? id) {
-            Alias alias;
+            AliasCrudVm alias;
             try {
-                alias = await _serviceRO.GetSingleAliasAsync(id, true);
+                alias = new AliasCrudVm(await _serviceRO.GetSingleAliasAsync(id, true), _serviceRO);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -140,16 +140,16 @@ namespace ExpenseTracker.Controllers
 
         #endregion // Public Actions
 
-        #region Helper Functions
+        // #region Helper Functions
 
-        /// <summary>
-        /// Creates a <see cref="SelectList"/> of <see cref="Payee"/> objects and assigns it to ViewData[PayeeList]
-        /// </summary>
-        /// <param name="idToSelect">The Id of the <see cref="Payee"/> to be pre-selected</param>
-        private void CreatePayeeSelectList(int? idToSelect = null) {
-            ViewData["PayeeList"] = new SelectList(_serviceRO.GetPayees().OrderBy(p => p.Name), "ID", "Name", idToSelect);
-        }
+        // /// <summary>
+        // /// Creates a <see cref="SelectList"/> of <see cref="Payee"/> objects and assigns it to ViewData[PayeeList]
+        // /// </summary>
+        // /// <param name="idToSelect">The Id of the <see cref="Payee"/> to be pre-selected</param>
+        // private void CreatePayeeSelectList(int? idToSelect = null) {
+        //     ViewData["PayeeList"] = new SelectList(_serviceRO.GetPayees().OrderBy(p => p.Name), "ID", "Name", idToSelect);
+        // }
 
-        #endregion // Helper Functions
+        // #endregion // Helper Functions
     }
 }

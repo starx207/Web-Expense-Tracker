@@ -33,6 +33,28 @@ namespace ExpenseTracker.Services
             return alias;
         }
 
+        public async Task<int> UpdateAliasAsync(int id, string name, int payeeId) {
+            Alias originalAlias = _context.GetAliases()
+                .FirstOrDefault(a => a.ID == id) ?? throw new IdNotFoundException($"No Alias found for Id = {id}");
+
+            if (_context.GetAliases().Any(a => a.ID != id && a.Name == originalAlias.Name)) {
+                throw new UniqueConstraintViolationException($"There is already and alias named '{name}'") {
+                    PropertyName = nameof(Alias.Name),
+                    PropertyValue = name
+                };
+            }
+
+            try {
+                originalAlias.Name = name;
+                originalAlias.PayeeID = payeeId;
+                _context.EditAlias(originalAlias);
+                return await _context.SaveChangesAsync();
+            } catch (DbUpdateConcurrencyException) {
+                throw new ConcurrencyException();
+            }
+        }
+
+        // TODO: Remove this implementation
         public async Task<int> UpdateAliasAsync(int id, Alias alias) {
             if (id != alias.ID) {
                 throw new IdMismatchException($"Id = {id} does not match alias Id of {alias.ID}");
@@ -49,6 +71,14 @@ namespace ExpenseTracker.Services
             } catch (DbUpdateConcurrencyException) {
                 throw new ConcurrencyException();
             }
+        }
+
+        // TODO: Add tests for this method
+        public async Task<int> AddAliasAsync(string name, int payeeId) {
+            return await AddAliasAsync(new Alias {
+                Name = name,
+                PayeeID = payeeId
+            });
         }
 
         public async Task<int> AddAliasAsync(Alias alias) {

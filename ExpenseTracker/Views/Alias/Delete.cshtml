@@ -1,4 +1,4 @@
-@model ExpenseTracker.Models.Alias
+@model ExpenseTracker.Models.AliasCrudVm
 
 @{
     ViewData["Title"] = "Delete";
@@ -18,15 +18,14 @@
             @Html.DisplayFor(model => model.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.AliasForPayee)
+            @Html.DisplayNameFor(model => model.PayeeName)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.AliasForPayee.Name)
+            @Html.DisplayFor(model => model.PayeeName)
         </dd>
     </dl>
     
     <form asp-action="Delete">
-        <input type="hidden" asp-for="ID" />
         <input type="submit" value="Delete" class="btn btn-default" /> |
         <a asp-action="Index" asp-controller="Payee">Back to List</a>
     </form>
