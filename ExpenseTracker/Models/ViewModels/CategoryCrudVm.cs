@@ -3,11 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ExpenseTracker.Models
 {
-    public class CategoryCrudVm
+    public class CategoryCrudVm : CrudViewModel
     {
         #region Public Properties
-
-        public int NavId { get; private set; }
 
         [Display(Name = "Effective From")]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]

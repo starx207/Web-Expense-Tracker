@@ -1,4 +1,5 @@
 using ExpenseTracker.Exceptions;
+using ExpenseTracker.Models;
 using ExpenseTracker.Repository.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace ExpenseTracker.Controllers
 {
     public abstract class CRUDController<VM, T> : BaseController
-        where VM : class
+        where VM : class, ICrudViewModel
         where T : class
     {
         #region Private Members
@@ -197,6 +198,9 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Edit(VM editedObject) {
             if (ModelState.IsValid) {
                 try {
+                    if (GetRoutedId() != editedObject.NavId) {
+                        return NotFound();
+                    }
                     await _editObjectAsyncFunc(editedObject);
                     return RedirectToAction(nameof(Index));
                 } catch (Exception ex) {

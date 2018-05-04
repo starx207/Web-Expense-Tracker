@@ -5,14 +5,9 @@ using System.Linq;
 
 namespace ExpenseTracker.Models
 {
-    public class AliasCrudVm
+    public class AliasCrudVm : CrudViewModel
     {
         #region Public Properties
-
-        /// <summary>
-        /// The <see cref="Alias"/> Id used for navigation
-        /// </summary>
-        public int NavId { get; set; }
 
         /// <summary>
         /// The name of the <see cref="Alias"/>
