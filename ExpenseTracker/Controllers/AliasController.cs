@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-  public class AliasController : BaseController
+  public class AliasController : CRUDController<AliasCrudVm, Alias>
     {
         #region Private Members
 
@@ -21,15 +21,42 @@ namespace ExpenseTracker.Controllers
 
         #region Contructors
 
-        /// <summary>
-        /// The default Constructor
-        /// </summary>
-        /// <param name="service">The service to use in the controller</param>
-        public AliasController(IAliasManagerService service) => _serviceRO = service;
+        // /// <summary>
+        // /// The default Constructor
+        // /// </summary>
+        // /// <param name="service">The service to use in the controller</param>
+        // public AliasController(IAliasManagerService service) => _serviceRO = service;
+
+        public AliasController(IAliasManagerService service) : base(
+            viewModelCreator: alias => throw new NotImplementedException("Needs implemented in constructor body"),
+            collectionGetter: () => throw new NotImplementedException(),
+            singleGetter: id => service.GetSingleAliasAsync(id),
+            singleAdder: alias => service.AddAliasAsync(alias.Name, (int)alias.PayeeID),
+            singleDeleter: id => service.RemoveAliasAsync(id),
+            singleEditor: alias => service.UpdateAliasAsync(alias.NavId, alias.Name, (int)alias.PayeeID),
+            existanceChecker: alias => service.AliasExists(alias.NavId)
+        ) 
+        {
+            // Define how a view model should be created
+            ViewModelCreatorFunc = alias => {
+                var vm = new AliasCrudVm(alias, service);
+                if (GetRoutedAction() == nameof(Create) &&
+                    int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
+                    
+                    vm.PayeeID = fetchedId;
+                }
+
+                return vm;
+            };
+        }
 
         #endregion // Constructors
 
         #region Public Actions
+
+        // Alias has no views for these actions
+        public override async Task<IActionResult> Index() => await Task.FromResult(NotFound());
+        public override async Task<IActionResult> Details(int? id) => await Task.FromResult(NotFound());
 
         /// <summary>
         /// Returns Create view for <see cref="Alias"/>
@@ -139,17 +166,10 @@ namespace ExpenseTracker.Controllers
         }
 
         #endregion // Public Actions
+    
+        #region Private Helpers
 
-        // #region Helper Functions
 
-        // /// <summary>
-        // /// Creates a <see cref="SelectList"/> of <see cref="Payee"/> objects and assigns it to ViewData[PayeeList]
-        // /// </summary>
-        // /// <param name="idToSelect">The Id of the <see cref="Payee"/> to be pre-selected</param>
-        // private void CreatePayeeSelectList(int? idToSelect = null) {
-        //     ViewData["PayeeList"] = new SelectList(_serviceRO.GetPayees().OrderBy(p => p.Name), "ID", "Name", idToSelect);
-        // }
-
-        // #endregion // Helper Functions
+        #endregion // Private helpers
     }
 }
