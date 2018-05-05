@@ -49,14 +49,14 @@ namespace ExpenseTracker.Exceptions
     }
 
     [Serializable]
-    public class UniqueConstraintViolationException : ExpenseTrackerException
+    public class ModelValidationException : ExpenseTrackerException
     {
         public string PropertyName { get; set; } = string.Empty;
         public string PropertyValue { get; set; } = string.Empty;
-        public UniqueConstraintViolationException() { }
-        public UniqueConstraintViolationException(string message) : base(message) { }
-        public UniqueConstraintViolationException(string message, Exception inner) : base(message, inner) { }
-        protected UniqueConstraintViolationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        public ModelValidationException() { }
+        public ModelValidationException(string message) : base(message) { }
+        public ModelValidationException(string message, Exception inner) : base(message, inner) { }
+        protected ModelValidationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
     [Serializable]

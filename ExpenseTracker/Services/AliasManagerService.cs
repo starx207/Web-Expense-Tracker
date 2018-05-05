@@ -38,7 +38,7 @@ namespace ExpenseTracker.Services
                 .FirstOrDefault(a => a.ID == id) ?? throw new IdNotFoundException($"No Alias found for Id = {id}");
 
             if (_context.GetAliases().Any(a => a.ID != id && a.Name == originalAlias.Name)) {
-                throw new UniqueConstraintViolationException($"There is already and alias named '{name}'") {
+                throw new ModelValidationException($"There is already and alias named '{name}'") {
                     PropertyName = nameof(Alias.Name),
                     PropertyValue = name
                 };
@@ -60,7 +60,7 @@ namespace ExpenseTracker.Services
                 throw new IdMismatchException($"Id = {id} does not match alias Id of {alias.ID}");
             }
             if (_context.GetAliases().Any(a => a.ID != id && a.Name == alias.Name)) {
-                throw new UniqueConstraintViolationException($"There is already and alias named '{alias.Name}'") {
+                throw new ModelValidationException($"There is already and alias named '{alias.Name}'") {
                     PropertyName = nameof(Alias.Name),
                     PropertyValue = alias.Name
                 };
@@ -83,7 +83,7 @@ namespace ExpenseTracker.Services
 
         public async Task<int> AddAliasAsync(Alias alias) {
             if (_context.GetAliases().Any(a => a.Name == alias.Name)) {
-                throw new UniqueConstraintViolationException($"There is already and alias named '{alias.Name}'") {
+                throw new ModelValidationException($"There is already and alias named '{alias.Name}'") {
                     PropertyName = nameof(Alias.Name),
                     PropertyValue = alias.Name
                 };

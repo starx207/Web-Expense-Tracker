@@ -81,7 +81,7 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _serviceRO.AddPayeeAsync(payee);
                     return RedirectToAction(nameof(Index));
-                } catch (UniqueConstraintViolationException) {
+                } catch (ModelValidationException) {
                     ModelState.AddModelError(nameof(BudgetCategory.Name), "Name already in use by another Payee");
                 }
             }

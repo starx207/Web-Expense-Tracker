@@ -154,8 +154,8 @@ namespace ExpenseTracker.Controllers
                 try {
                     await _addObjectAsyncFunc(createdObject);
                     return RedirectToAction(nameof(Index));
-                } catch (UniqueConstraintViolationException uex) {
-                    ModelState.AddModelError(uex.PropertyName, uex.Message);
+                } catch (ModelValidationException mvex) {
+                    ModelState.AddModelError(mvex.PropertyName, mvex.Message);
                 } catch (Exception ex) {
                     var result = ApplyCustomExceptionHandling(ex);
                     if (result != null) {
@@ -186,8 +186,8 @@ namespace ExpenseTracker.Controllers
                         throw;
                     }
                     return NotFound();
-                } catch (UniqueConstraintViolationException uex) {
-                    ModelState.AddModelError(uex.PropertyName, uex.Message);
+                } catch (ModelValidationException mvex) {
+                    ModelState.AddModelError(mvex.PropertyName, mvex.Message);
                 } catch (Exception ex) {
                     var result = ApplyCustomExceptionHandling(ex);
                     if (result != null) {
