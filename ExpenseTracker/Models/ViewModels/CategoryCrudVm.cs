@@ -25,6 +25,8 @@ namespace ExpenseTracker.Models
         public CategoryCrudVm() { }
 
         public CategoryCrudVm(BudgetCategory category) {
+            if (category == null) { return; }
+            
             NavId = category.ID;
             EffectiveFrom = category.EffectiveFrom;
             Name = category.Name;
