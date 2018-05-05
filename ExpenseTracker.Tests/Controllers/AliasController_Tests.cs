@@ -62,7 +62,7 @@ namespace ExpenseTracker.Controllers.Tests
                 .Returns(payees);
             
             // Act
-            var result = (ViewResult)_controller.Create(testID);
+            var result = (ViewResult)_controller.Create();
 
             // Assert
             AssertThatViewDataIsSelectList(result.ViewData, _payeeListKeyRO, payees.Select(p => p.ID.ToString()), testID.ToString());
@@ -75,14 +75,14 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_calls_AddAliasAsync_and_redirects_to_payee_Index() {
             // Arrange
-            var alias = new Alias();
+            var alias = new AliasCrudVm();
 
             // Act
             var result = await _controller.Create(alias);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.AddAliasAsync(alias), Times.Once());
+            _mockService.Verify(m => m.AddAliasAsync(alias.Name, (int)alias.PayeeID), Times.Once());
             Assert.AreEqual("Payee", redirectResult.ControllerName);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -90,7 +90,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_returns_to_create_view_when_model_state_invalid() {
             // Arrange
-            var alias = new Alias();
+            var alias = new AliasCrudVm();
             _controller.ModelState.AddModelError("test", "test");
 
             // Act
@@ -110,7 +110,7 @@ namespace ExpenseTracker.Controllers.Tests
                 new Payee { ID = 2 }
             }.AsQueryable();
             _mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
-            var alias = new Alias { PayeeID = 1 };
+            var alias = new AliasCrudVm { PayeeID = 1 };
             _controller.ModelState.AddModelError("test", "test");
 
             // Act
@@ -123,19 +123,19 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
-            var alias = new Alias { Name = "test" };
-            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<Alias>())).ThrowsAsync(new UniqueConstraintViolationException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new UniqueConstraintViolationException());
 
             // Act
             var result = await _controller.Create(alias);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Alias;
+            var model = viewResult.Model as AliasCrudVm;
 
             // Assert
             Assert.AreEqual(1, _controller.ModelState.ErrorCount);
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Create", viewResult.ViewName);
-            Assert.AreSame(alias, model);
+            Assert.AreEqual(alias.NavId, model.NavId);
         }
 
         #endregion // Create POST
@@ -149,19 +149,19 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Delete_GET_returns_delete_view_with_correct_model() {
             // Arrange
-            var alias = new Alias();
+            var alias = new Alias { ID = 1 };
             _mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(alias);
 
             // Act
             var result = await _controller.Delete(1);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Alias;
+            var model = viewResult.Model as AliasCrudVm;
 
             // Assert
             _mockService.Verify(m => m.GetSingleAliasAsync(1, true), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Delete", viewResult.ViewName);
-            Assert.AreSame(alias, model);
+            Assert.AreEqual(alias.ID, model.NavId);
         }
 
         [TestMethod]
@@ -213,19 +213,19 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_GET_returns_Edit_view_with_correct_model() {
             // Arrange
-            var alias = new Alias();
+            var alias = new Alias { ID = 1 };
             _mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(alias);
 
             // Act
             var result = await _controller.Edit(1);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Alias;
+            var model = viewResult.Model as AliasCrudVm;
 
             // Assert
             _mockService.Verify(m => m.GetSingleAliasAsync(1, false), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Edit", viewResult.ViewName);
-            Assert.AreSame(alias, model);
+            Assert.AreEqual(alias.ID, model.NavId);
         }
 
         [TestMethod]
@@ -253,7 +253,7 @@ namespace ExpenseTracker.Controllers.Tests
             _mockService.Setup(m => m.GetSingleAliasAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
 
             // Act
-            var result = await _controller.Edit(null);
+            var result = await _controller.Edit(1);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -276,14 +276,15 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_calls_UpdateAliasAsync_and_redirects_to_payee_index() {
             // Arrange
-            var alias = new Alias();
+            var alias = new AliasCrudVm { NavId = 1 };
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, alias);
+            var result = await _controller.Edit(alias);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdateAliasAsync(1, alias), Times.Once());
+            _mockService.Verify(m => m.UpdateAliasAsync(1, alias.Name, (int)alias.PayeeID), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Payee", redirectResult.ControllerName);
             Assert.AreEqual("Index", redirectResult.ActionName);
@@ -292,11 +293,12 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_IdMismatchException_thrown() {
             // Arrange
-            var alias = new Alias();
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new IdMismatchException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new IdMismatchException());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, alias);
+            var result = await _controller.Edit(alias);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -305,12 +307,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_ConcurrencyException_thrown_and_alias_does_not_exist() {
             // Arrange
-            var alias = new Alias();
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new ConcurrencyException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.AliasExists(It.IsAny<int>())).Returns(false);
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, alias);
+            var result = await _controller.Edit(alias);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -319,41 +322,43 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_rethrows_ConcurrencyException_when_alias_exists() {
             // Arrange
-            var alias = new Alias();
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new ConcurrencyException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.AliasExists(It.IsAny<int>())).Returns(true);
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<ConcurrencyException>(() =>
-                _controller.Edit(1, alias));
+                _controller.Edit(alias));
         }
 
         [TestMethod]
         public async Task Edit_POST_throws_exceptions_not_of_type_IdMismatch() {
             // Arrange
-            var alias = new Alias();
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new Exception());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new Exception());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<Exception>(() =>
-                _controller.Edit(1, alias));
+                _controller.Edit(alias));
         }
 
         [TestMethod]
         public async Task Edit_POST_returns_to_view_with_correct_model_when_ModelState_is_invalid() {
             // Arrange
-            var alias = new Alias();
+            var alias = new AliasCrudVm{ NavId = 1 };
             _controller.ModelState.AddModelError("test", "test");
 
             // Act
-            var result = await _controller.Edit(1, alias);
+            var result = await _controller.Edit(alias);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Alias;
+            var model = viewResult.Model as AliasCrudVm;
 
             // Assert
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Edit", viewResult.ViewName);
-            Assert.AreSame(alias, model);
+            Assert.AreEqual(alias.NavId, model.NavId);
         }
 
         [TestMethod]
@@ -364,12 +369,12 @@ namespace ExpenseTracker.Controllers.Tests
                 new Payee { ID = 2 },
                 new Payee { ID = 3 }
             }.AsQueryable();
-            var alias = new Alias { PayeeID = 3 };
+            var alias = new AliasCrudVm { PayeeID = 3 };
             _controller.ModelState.AddModelError("test", "test");
             _mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act
-            var result = (ViewResult)(await _controller.Edit(1, alias));
+            var result = (ViewResult)(await _controller.Edit(alias));
 
             // Assert
             AssertThatViewDataIsSelectList(result.ViewData, _payeeListKeyRO, payees.Select(p => p.ID.ToString()), alias.PayeeID.ToString());
@@ -378,19 +383,20 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
-            var alias = new Alias { Name = "test" };
+            var alias = new AliasCrudVm { NavId = 3 };
             _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new UniqueConstraintViolationException());
+            SetupControllerRouteData(_controller, "id", 3);
 
             // Act
-            var result = await _controller.Edit(1, alias);
+            var result = await _controller.Edit(alias);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Alias;
+            var model = viewResult.Model as AliasCrudVm;
 
             // Assert
             Assert.AreEqual(1, _controller.ModelState.ErrorCount);
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Edit", viewResult.ViewName);
-            Assert.AreSame(alias, model);
+            Assert.AreEqual(alias.NavId, model.NavId);
         }
 
         #endregion // Edit POST

@@ -182,7 +182,7 @@ namespace ExpenseTracker.Controllers
                     await _editObjectAsyncFunc(editedObject);
                     return RedirectToAction(nameof(Index));
                 } catch (ConcurrencyException) {
-                    if (!_checkExistsFunc(editedObject)) {
+                    if (_checkExistsFunc(editedObject)) {
                         throw;
                     }
                     return NotFound();

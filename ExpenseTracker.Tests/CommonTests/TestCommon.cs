@@ -1,7 +1,14 @@
-using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ExpenseTracker.TestResources
 {
@@ -45,6 +52,21 @@ namespace ExpenseTracker.TestResources
 
                 Assert.IsTrue(isSelected, $"The SelectList item with value = '{selectedValue}' is not selected");
             }
+        }
+
+        protected void SetupControllerRouteData(Controller controller, string routeKey, object routeValue) {
+            SetupControllerRouteData(controller, new Dictionary<string, object> { { routeKey, routeValue } });
+        }
+
+        protected void SetupControllerRouteData(Controller controller, Dictionary<string, object> routeValues) {
+            var routeData = new RouteData();
+            foreach (var pair in routeValues) {
+                routeData.Values.Add(pair.Key, pair.Value);
+            }
+            var mockHttpContext = new Mock<HttpContext>();
+            var mockActionDescriptor = new Mock<ControllerActionDescriptor>();
+            var actionContext = new ActionContext(mockHttpContext.Object, routeData, mockActionDescriptor.Object);
+            controller.ControllerContext = new ControllerContext(actionContext);
         }
 
         #endregion // Assertion Helpers

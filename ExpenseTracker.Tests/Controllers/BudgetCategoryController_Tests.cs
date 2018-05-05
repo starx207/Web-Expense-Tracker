@@ -1,8 +1,10 @@
 using ExpenseTracker.Exceptions;
+using ExpenseTracker.Models;
 using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
-using ExpenseTracker.Models;
+using ExpenseTracker.TestResources;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -13,7 +15,7 @@ using System.Threading.Tasks;
 namespace ExpenseTracker.Controllers.Tests
 {
     [TestClass]
-    public class BudgetCategoryController_Tests
+    public class BudgetCategoryController_Tests : TestCommon
     {
         #region Private Members
 
@@ -335,11 +337,13 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_calls_UpdateCategoryAsync_and_redirects_to_Index() {
             // Arrange
             var category = new CategoryCrudVm {
+                NavId = 1,
                 Amount = 20.12,
                 EffectiveFrom = DateTime.Parse("1/1/2018"),
                 Type = BudgetType.Expense
             };
-
+            SetupControllerRouteData(_controller, "id", 1);
+            
             // Act
             var result = await _controller.Edit(category);
             var redirectResult = result as RedirectToActionResult;
@@ -370,11 +374,12 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
-            var category = new CategoryCrudVm();
+            var category = new CategoryCrudVm { NavId = 1 };
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new ExpenseTrackerException());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
             var result = await _controller.Edit(category);
@@ -386,12 +391,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_throws_ConcurrencyExceptions_if_the_category_exists() {
             // Arrange
-            var category = new CategoryCrudVm();
+            var category = new CategoryCrudVm { NavId = 1 };
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.CategoryExists(It.IsAny<int>())).Returns(true);
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<ConcurrencyException>(() => _controller.Edit(category));
@@ -400,11 +406,12 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_throws_Exceptions_not_of_type_ExpesneTrackerException() {
             // Arrange
-            var category = new CategoryCrudVm();
+            var category = new CategoryCrudVm { NavId = 1 };
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new Exception());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(category));
@@ -413,11 +420,12 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_to_Edit_and_sets_ModelState_Error_when_InvalidDateException_thrown() {
             // Arrange
-            var category = new CategoryCrudVm();
+            var category = new CategoryCrudVm { NavId = 1 };
             _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(),
                 It.IsAny<double>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<BudgetType>())).ThrowsAsync(new InvalidDateExpection("Test Message"));
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
             var result = await _controller.Edit(category);
