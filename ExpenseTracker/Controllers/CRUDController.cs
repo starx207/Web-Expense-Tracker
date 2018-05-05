@@ -51,21 +51,21 @@ namespace ExpenseTracker.Controllers
         /// Default constructor for a CRUDController
         /// </summary>
         /// <param name="collectionGetter">The function used to get a collection of <see cref="VM"/></param>
-        public CRUDController(Func<T, VM> viewModelCreator,
-            Func<IQueryable<T>> collectionGetter, 
-            Func<int?, Task<T>> singleGetter,
-            Func<VM, Task<int>> singleAdder,
-            Func<int, Task<int>> singleDeleter,
-            Func<VM, Task<int>> singleEditor,
-            Func<VM, bool> existanceChecker) {
+        public CRUDController(Func<T, VM> viewModelCreator = null,
+            Func<IQueryable<T>> collectionGetter = null, 
+            Func<int?, Task<T>> singleGetter = null,
+            Func<VM, Task<int>> singleAdder = null,
+            Func<int, Task<int>> singleDeleter = null,
+            Func<VM, Task<int>> singleEditor = null,
+            Func<VM, bool> existanceChecker = null) {
 
-            _getCollectionFunc = collectionGetter;
-            _getSingleObjectAsyncFunc = singleGetter;
-            _removeObjectAsyncFunc = singleDeleter;
-            _addObjectAsyncFunc = singleAdder;
-            ViewModelCreatorFunc = viewModelCreator;
-            _editObjectAsyncFunc = singleEditor;
-            _checkExistsFunc = existanceChecker;
+            _getCollectionFunc = collectionGetter ?? (() => throw new NotImplementedException("No method defined for retrieving class collection"));
+            _getSingleObjectAsyncFunc = singleGetter ?? (id => throw new NotImplementedException("No method defined for retrieving class instance"));
+            _removeObjectAsyncFunc = singleDeleter ?? (id => throw new NotImplementedException("No method defined for deleting class instance"));
+            _addObjectAsyncFunc = singleAdder ?? (viewModel => throw new NotImplementedException("No method defined for adding class instance"));
+            ViewModelCreatorFunc = viewModelCreator ?? (baseType => throw new NotImplementedException("No method defined for creating view model"));
+            _editObjectAsyncFunc = singleEditor ?? (viewModel => throw new NotImplementedException("No method defined for editing class instance"));
+            _checkExistsFunc = existanceChecker ?? (viewModel => throw new NotImplementedException("No method defined for checking object existance"));
         }
 
         #endregion // Constructors
@@ -104,7 +104,7 @@ namespace ExpenseTracker.Controllers
         /// Returns the Create view for <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
-        public virtual IActionResult Create() => View(nameof(Create));
+        public virtual IActionResult Create() => View(nameof(Create), ViewModelCreatorFunc(null));
 
         /// <summary>
         /// Returns the Edit view for <see cref="VM"/>
@@ -131,9 +131,7 @@ namespace ExpenseTracker.Controllers
             VM objectToDelete;
             try {
                 objectToDelete = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
-            } catch (IdNotFoundException) {
-                return NotFound();
-            } catch (NullIdException) {
+            } catch (ExpenseTrackerException) {
                 return NotFound();
             }
 
@@ -159,15 +157,7 @@ namespace ExpenseTracker.Controllers
                 } catch (UniqueConstraintViolationException uex) {
                     ModelState.AddModelError(uex.PropertyName, uex.Message);
                 } catch (Exception ex) {
-                    // If the child class has defined Exception Handling for the exception
-                    // type, handle it, otherwise throw
-                    if (ExceptionHandling == null) {
-                        throw;
-                    }
-                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Func<Exception, IActionResult> handler)) {
-                        throw;
-                    }
-                    var result = handler(ex);
+                    var result = ApplyCustomExceptionHandling(ex);
                     if (result != null) {
                         return result;
                     }
@@ -191,30 +181,15 @@ namespace ExpenseTracker.Controllers
                     }
                     await _editObjectAsyncFunc(editedObject);
                     return RedirectToAction(nameof(Index));
-                } catch (Exception ex) {
-                    // Concurrency exception should return NotFound if
-                    // the object doesn't exist, otherwise should throw
-                    if (ex is ConcurrencyException) {
-                        if (_checkExistsFunc(editedObject)) {
-                            throw;
-                        } else {
-                            return NotFound();
-                        }
-                    }
-
-                    // If the child class has defined Exception Handling for the exception
-                    // type, handle it, otherwise throw
-                    if (ExceptionHandling == null) {
+                } catch (ConcurrencyException) {
+                    if (!_checkExistsFunc(editedObject)) {
                         throw;
                     }
-                    // First Check if Exception type directly handled
-                    if (!ExceptionHandling.TryGetValue(ex.GetType(), out Func<Exception, IActionResult> handler)) {
-                        // If not, check if parent type handled
-                        if (!ExceptionHandling.TryGetValue(ex.GetType().BaseType, out handler)) {
-                            throw;
-                        }
-                    }
-                    var result = handler(ex);
+                    return NotFound();
+                } catch (UniqueConstraintViolationException uex) {
+                    ModelState.AddModelError(uex.PropertyName, uex.Message);
+                } catch (Exception ex) {
+                    var result = ApplyCustomExceptionHandling(ex);
                     if (result != null) {
                         return result;
                     }
@@ -238,5 +213,30 @@ namespace ExpenseTracker.Controllers
         #endregion // POST Actions
 
         #endregion // Public Actions
+
+        #region Private Helpers
+
+        private IActionResult ApplyCustomExceptionHandling(Exception ex) {
+            if (ExceptionHandling == null) { throw ex; }
+
+            // Is Exception Type handled?
+            Func<Exception, IActionResult> handler = GetHandler(ex.GetType()) ?? throw ex;
+
+            // handle the exception
+            return handler(ex);
+        }
+
+        private Func<Exception, IActionResult> GetHandler(Type exceptionType) {
+            if (ExceptionHandling.TryGetValue(exceptionType, out Func<Exception, IActionResult> handler)) {
+                return handler; // return the handler
+            }
+            if (exceptionType == typeof(Exception)) { 
+                return null; // We've reached the base exception type and it is not handled
+            }
+            // Recurse to the exceptionTypes base type and recheck handling
+            return GetHandler(exceptionType.BaseType);
+        }
+
+        #endregion // Private Helpers
     }
 }
