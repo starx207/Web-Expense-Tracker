@@ -194,7 +194,7 @@ namespace ExpenseTracker.Controllers.Tests
             // Arrange
             var category = new CategoryCrudVm { Name = "test" };
             _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<BudgetType>()))
-                .ThrowsAsync(new UniqueConstraintViolationException());
+                .ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(category);

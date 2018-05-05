@@ -142,7 +142,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetCategories()).Returns(categories);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+            await Assert.ThrowsExceptionAsync<ModelValidationException>(() =>
                 _testService.AddCategoryAsync(category) );
         }
 

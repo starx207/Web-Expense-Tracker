@@ -119,7 +119,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+            await Assert.ThrowsExceptionAsync<ModelValidationException>(() =>
                 _testService.AddPayeeAsync(payee) );
         }
 

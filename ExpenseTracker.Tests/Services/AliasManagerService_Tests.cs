@@ -131,7 +131,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+            await Assert.ThrowsExceptionAsync<ModelValidationException>(() =>
                 _testService.UpdateAliasAsync(2, alias) );
         }
 
@@ -167,7 +167,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<UniqueConstraintViolationException>(() =>
+            await Assert.ThrowsExceptionAsync<ModelValidationException>(() =>
                 _testService.AddAliasAsync(alias) );
         }
 
