@@ -124,7 +124,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
             var alias = new AliasCrudVm { NavId = 1 };
-            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new UniqueConstraintViolationException());
+            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(alias);
@@ -335,7 +335,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_throws_exceptions_not_of_type_IdMismatch() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1 };
+            var alias = new AliasCrudVm { NavId = 1, PayeeID = 3 };
             _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new Exception());
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -361,30 +361,31 @@ namespace ExpenseTracker.Controllers.Tests
             Assert.AreEqual(alias.NavId, model.NavId);
         }
 
-        [TestMethod]
-        public async Task Edit_POST_correctly_populates_select_list_when_ModelState_invalid() {
-            // Arrange
-            var payees = new List<Payee> {
-                new Payee { ID = 1 },
-                new Payee { ID = 2 },
-                new Payee { ID = 3 }
-            }.AsQueryable();
-            var alias = new AliasCrudVm { PayeeID = 3 };
-            _controller.ModelState.AddModelError("test", "test");
-            _mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
+        // TODO: Move this test to AliasCrudVm tests because that view model not handles the select list
+        // [TestMethod]
+        // public async Task Edit_POST_correctly_populates_select_list_when_ModelState_invalid() {
+        //     // Arrange
+        //     var payees = new List<Payee> {
+        //         new Payee { ID = 1 },
+        //         new Payee { ID = 2 },
+        //         new Payee { ID = 3 }
+        //     }.AsQueryable();
+        //     var alias = new AliasCrudVm { PayeeID = 3 };
+        //     _controller.ModelState.AddModelError("test", "test");
+        //     _mockService.Setup(m => m.GetPayees(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(payees);
 
-            // Act
-            var result = (ViewResult)(await _controller.Edit(alias));
+        //     // Act
+        //     var result = (ViewResult)(await _controller.Edit(alias));
 
-            // Assert
-            AssertThatViewDataIsSelectList(result.ViewData, _payeeListKeyRO, payees.Select(p => p.ID.ToString()), alias.PayeeID.ToString());
-        }
+        //     // Assert
+        //     AssertThatViewDataIsSelectList(result.ViewData, _payeeListKeyRO, payees.Select(p => p.ID.ToString()), alias.PayeeID.ToString());
+        // }
 
         [TestMethod]
         public async Task Edit_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 3 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<Alias>())).ThrowsAsync(new UniqueConstraintViolationException());
+            var alias = new AliasCrudVm { NavId = 3, PayeeID = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ModelValidationException());
             SetupControllerRouteData(_controller, "id", 3);
 
             // Act

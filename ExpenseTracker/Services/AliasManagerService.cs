@@ -37,16 +37,11 @@ namespace ExpenseTracker.Services
             Alias originalAlias = _context.GetAliases()
                 .FirstOrDefault(a => a.ID == id) ?? throw new IdNotFoundException($"No Alias found for Id = {id}");
 
-            if (_context.GetAliases().Any(a => a.ID != id && a.Name == originalAlias.Name)) {
-                throw new ModelValidationException($"There is already and alias named '{name}'") {
-                    PropertyName = nameof(Alias.Name),
-                    PropertyValue = name
-                };
-            }
+            originalAlias.Name = name;
+            originalAlias.PayeeID = payeeId;
+            ValidateAlias(originalAlias);
 
             try {
-                originalAlias.Name = name;
-                originalAlias.PayeeID = payeeId;
                 _context.EditAlias(originalAlias);
                 return await _context.SaveChangesAsync();
             } catch (DbUpdateConcurrencyException) {
@@ -82,12 +77,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddAliasAsync(Alias alias) {
-            if (_context.GetAliases().Any(a => a.Name == alias.Name)) {
-                throw new ModelValidationException($"There is already and alias named '{alias.Name}'") {
-                    PropertyName = nameof(Alias.Name),
-                    PropertyValue = alias.Name
-                };
-            }
+            ValidateAlias(alias);
             _context.AddAlias(alias);
             return await _context.SaveChangesAsync();
         }
@@ -102,6 +92,13 @@ namespace ExpenseTracker.Services
 
         public bool AliasExists(int id) {
             return _context.GetAliases().Any(a => a.ID == id);
+        }
+
+        private void ValidateAlias(Alias alias) {
+            ModelValidation<Alias>.ValidateModel(alias);
+            if (_context.GetAliases().Any(a => a.ID != alias.ID && a.Name == alias.Name)) {
+                throw new ModelValidationException(nameof(Alias.Name), alias.Name, "Name already in use");
+            }
         }
     }
 }

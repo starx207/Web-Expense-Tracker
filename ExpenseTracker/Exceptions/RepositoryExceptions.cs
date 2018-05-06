@@ -54,6 +54,18 @@ namespace ExpenseTracker.Exceptions
         public string PropertyName { get; set; } = string.Empty;
         public string PropertyValue { get; set; } = string.Empty;
         public ModelValidationException() { }
+        public ModelValidationException(string propertyName, string propertyValue) {
+            PropertyName = propertyName;
+            PropertyValue = propertyValue;
+        }
+        public ModelValidationException(string propertyName, string propertyValue, string message) : base(message) {
+            PropertyName = propertyName;
+            PropertyValue = propertyValue;
+        }
+        public ModelValidationException(string propertyName, string propertyValue, string message, Exception inner) : base(message, inner) {
+            PropertyName = propertyName;
+            PropertyValue = propertyValue;
+        }
         public ModelValidationException(string message) : base(message) { }
         public ModelValidationException(string message, Exception inner) : base(message, inner) { }
         protected ModelValidationException(SerializationInfo info, StreamingContext context) : base(info, context) { }

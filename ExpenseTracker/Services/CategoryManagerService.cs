@@ -38,10 +38,6 @@ namespace ExpenseTracker.Services
             BudgetCategory originalCategory = _context.GetCategories()
                 .FirstOrDefault(c => c.ID == id) ?? throw new IdNotFoundException($"No BudgetCategory found for Id = {id}");
 
-            if (effectiveFrom > DateTime.Now) {
-                throw new InvalidDateExpection("EffectiveFrom Date cannot be a future date");
-            }
-
             try {
                 if (effectiveFrom > originalCategory.EffectiveFrom) {
                     // Add new category
@@ -51,6 +47,7 @@ namespace ExpenseTracker.Services
                         Amount = amount,
                         Type = type
                     };
+                    ValidateBudgetCategory(categoryToAdd, false);
                     _context.AddBudgetCategory(categoryToAdd);
 
                     // Reassign payees and transactions accordingly
@@ -90,6 +87,7 @@ namespace ExpenseTracker.Services
                     originalCategory.Amount = amount;
                     originalCategory.Type = type;
 
+                    ValidateBudgetCategory(originalCategory, false);
                     _context.EditBudgetCategory(originalCategory);
                 }
                 return await _context.SaveChangesAsync();
@@ -168,12 +166,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddCategoryAsync(BudgetCategory category) {
-            if (_context.GetCategories().Any(c => c.Name == category.Name)) {
-                throw new ModelValidationException($"There is already a Budget Category named '{category.Name}'") {
-                    PropertyName = nameof(BudgetCategory.Name),
-                    PropertyValue = category.Name
-                };
-            }
+            ValidateBudgetCategory(category, true);
             _context.AddBudgetCategory(category);
             return await _context.SaveChangesAsync();
         }
@@ -205,6 +198,20 @@ namespace ExpenseTracker.Services
 
                 tran.OverrideCategoryID = toCategory.ID;
                 _context.EditTransaction(tran);
+            }
+        }
+
+        private void ValidateBudgetCategory(BudgetCategory category, bool isAdd) {
+            ModelValidation<BudgetCategory>.ValidateModel(category);
+            if (category.EffectiveFrom > DateTime.Now) {
+                throw new ModelValidationException(nameof(BudgetCategory.EffectiveFrom), 
+                    category.EffectiveFrom.ToLongDateString(),
+                    "EffectiveFrom date cannot be a future date");
+            }
+            if (isAdd && _context.GetCategories().Any(c => c.Name == category.Name)) {
+                throw new ModelValidationException(nameof(BudgetCategory.Name),
+                    category.Name,
+                    "Name already in use");
             }
         }
     }

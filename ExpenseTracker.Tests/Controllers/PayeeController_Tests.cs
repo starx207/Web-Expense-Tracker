@@ -202,7 +202,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
             var payee = new Payee { Name = "test" };
-            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<Payee>())).ThrowsAsync(new UniqueConstraintViolationException());
+            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<Payee>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(payee);
