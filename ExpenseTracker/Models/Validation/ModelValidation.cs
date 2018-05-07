@@ -52,6 +52,7 @@ namespace ExpenseTracker.Models
                     return;
                 }
             }
+            // TODO: Add descriptive error message default
             throw new ModelValidationException(property.Name, "", attribute.ErrorMessage);
         }
 
@@ -60,6 +61,7 @@ namespace ExpenseTracker.Models
             if (value.Length <= attribute.MaximumLength && value.Length >= attribute.MinimumLength) {
                 return;
             }
+            // TODO: Add descriptive error message default
             throw new ModelValidationException(property.Name, value, attribute.ErrorMessage);
         }
 
@@ -68,6 +70,7 @@ namespace ExpenseTracker.Models
             if (Regex.IsMatch(value, attribute.Pattern)) {
                 return;
             }
+            // TODO: Add descriptive error message default
             throw new ModelValidationException(property.Name, value, attribute.ErrorMessage);
         }
 

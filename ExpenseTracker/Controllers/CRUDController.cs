@@ -150,7 +150,6 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Create(VM createdObject) {
-            if (ModelState.IsValid) {
                 try {
                     await _addObjectAsyncFunc(createdObject);
                     return RedirectToAction(nameof(Index));
@@ -162,7 +161,6 @@ namespace ExpenseTracker.Controllers
                         return result;
                     }
                 }
-            }
             return View(nameof(Create), createdObject);
         }
 
@@ -174,7 +172,6 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Edit(VM editedObject) {
-            if (ModelState.IsValid) {
                 try {
                     if (GetRoutedId() != editedObject.NavId) {
                         return NotFound();
@@ -194,7 +191,6 @@ namespace ExpenseTracker.Controllers
                         return result;
                     }
                 }
-            }
             return View(nameof(Edit), editedObject);
         }
 
