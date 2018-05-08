@@ -10,14 +10,12 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-    public abstract class CRUDController<VM, T> : BaseController
+    public abstract class CRUDController<VM> : BaseController
         where VM : class, ICrudViewModel
-        where T : class
     {
         #region Private Members
 
-        private Func<IQueryable<T>> _getCollectionFunc;
-        private Func<int?, Task<T>> _getSingleObjectAsyncFunc;
+        private Func<Task<IEnumerable<VM>>> _getCollectionFunc;
         private Func<int, Task<int>> _removeObjectAsyncFunc;
         private Func<VM, Task<int>> _addObjectAsyncFunc;
         private Func<VM, Task<int>> _editObjectAsyncFunc;
@@ -31,7 +29,7 @@ namespace ExpenseTracker.Controllers
         /// The Func to use for creating <see cref="VM"/> objects. Initialized in constructor,
         /// but can be overridden later
         /// </summary>
-        protected Func<T, VM> ViewModelCreatorFunc { get; set; }
+        protected Func<int?, Task<VM>> ViewModelCreatorFunc { get; set; }
 
         /// <summary>
         /// A Dictionary of Exception Handling functions. The key should be the type of exception to handle.
@@ -51,16 +49,14 @@ namespace ExpenseTracker.Controllers
         /// Default constructor for a CRUDController
         /// </summary>
         /// <param name="collectionGetter">The function used to get a collection of <see cref="VM"/></param>
-        public CRUDController(Func<T, VM> viewModelCreator = null,
-            Func<IQueryable<T>> collectionGetter = null, 
-            Func<int?, Task<T>> singleGetter = null,
+        public CRUDController(Func<int?, Task<VM>> viewModelCreator = null,
+            Func<Task<IEnumerable<VM>>> collectionGetter = null,
             Func<VM, Task<int>> singleAdder = null,
             Func<int, Task<int>> singleDeleter = null,
             Func<VM, Task<int>> singleEditor = null,
             Func<VM, bool> existanceChecker = null) {
 
             _getCollectionFunc = collectionGetter ?? (() => throw new NotImplementedException("No method defined for retrieving class collection"));
-            _getSingleObjectAsyncFunc = singleGetter ?? (id => throw new NotImplementedException("No method defined for retrieving class instance"));
             _removeObjectAsyncFunc = singleDeleter ?? (id => throw new NotImplementedException("No method defined for deleting class instance"));
             _addObjectAsyncFunc = singleAdder ?? (viewModel => throw new NotImplementedException("No method defined for adding class instance"));
             ViewModelCreatorFunc = viewModelCreator ?? (baseType => throw new NotImplementedException("No method defined for creating view model"));
@@ -79,8 +75,7 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <returns></returns>
         public virtual async Task<IActionResult> Index() {
-            IQueryable<VM> data = _getCollectionFunc().Select(d => ViewModelCreatorFunc(d));
-            return View(nameof(Index), await data.Extension().ToListAsync());
+            return View(nameof(Index), await _getCollectionFunc());
         }
 
         /// <summary>
@@ -91,7 +86,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Details(int? id) {
             VM objectToShow;
             try {
-                objectToShow = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
+                objectToShow = await ViewModelCreatorFunc(id);
             } catch (IdNotFoundException) {
                 return NotFound();
             } catch (NullIdException) {
@@ -104,7 +99,7 @@ namespace ExpenseTracker.Controllers
         /// Returns the Create view for <see cref="VM"/>
         /// </summary>
         /// <returns></returns>
-        public virtual IActionResult Create() => View(nameof(Create), ViewModelCreatorFunc(null));
+        public virtual async Task<IActionResult> Create() => View(nameof(Create), await ViewModelCreatorFunc(null));
 
         /// <summary>
         /// Returns the Edit view for <see cref="VM"/>
@@ -114,7 +109,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Edit(int? id) {
             VM objectToEdit;
             try {
-                objectToEdit = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
+                objectToEdit = await ViewModelCreatorFunc(id);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }
@@ -130,7 +125,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Delete(int? id) {
             VM objectToDelete;
             try {
-                objectToDelete = ViewModelCreatorFunc(await _getSingleObjectAsyncFunc(id));
+                objectToDelete = await ViewModelCreatorFunc(id);
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }

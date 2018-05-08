@@ -11,12 +11,11 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
-  public class AliasController : CRUDController<AliasCrudVm, Alias>
+  public class AliasController : CRUDController<AliasCrudVm>
     {
         #region Contructors
 
         public AliasController(IAliasManagerService service) : base(
-            singleGetter: id => service.GetSingleAliasAsync(id),
             singleAdder: alias => service.AddAliasAsync(alias.Name, (int)alias.PayeeID),
             singleDeleter: id => service.RemoveAliasAsync(id),
             singleEditor: alias => service.UpdateAliasAsync(alias.NavId, alias.Name, (int)alias.PayeeID),
@@ -24,14 +23,16 @@ namespace ExpenseTracker.Controllers
         ) 
         {
             // Define how a view model should be created
-            ViewModelCreatorFunc = alias => {
+            ViewModelCreatorFunc = async id => {
+                Alias alias = null;
+                if (id != null) {
+                    alias = await service.GetSingleAliasAsync(id, true);
+                }
                 var vm = new AliasCrudVm(alias, service);
                 if (GetRoutedAction() == nameof(Create) &&
                     int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
-                    
-                    vm.PayeeID = fetchedId;
+                        vm.PayeeID = fetchedId;
                 }
-
                 return vm;
             };
 
