@@ -143,9 +143,9 @@ namespace ExpenseTracker.Controllers.Tests
         #region Create GET
 
         [TestMethod]
-        public void Create_GET_returns_create_view() {
+        public async Task Create_GET_returns_create_view() {
             // Act
-            var actionResult = _controller.Create();
+            var actionResult = await _controller.Create();
             var result = actionResult as ViewResult;
 
             // Assert
@@ -355,10 +355,12 @@ namespace ExpenseTracker.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task Edit_POST_returns_to_view_for_invalid_model_state() {
+        public async Task Edit_POST_returns_to_view_when_ModelValidationException_thrown() {
             // Arrange
-            var category = new CategoryCrudVm();
-            _controller.ModelState.AddModelError("test", "test");
+            var category = new CategoryCrudVm { NavId = 1 };
+            SetupControllerRouteData(_controller, "id", category.NavId);
+            _mockService.Setup(m => m.UpdateCategoryAsync(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<DateTime>(), It.IsAny<BudgetType>()))
+                .ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Edit(category);

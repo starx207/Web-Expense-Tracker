@@ -40,9 +40,9 @@ namespace ExpenseTracker.Controllers.Tests
         #region Create GET
 
         [TestMethod]
-        public void Create_GET_returns_create_view() {
+        public async Task Create_GET_returns_create_view() {
             // Act
-            var result = _controller.Create();
+            var result = await _controller.Create();
             var viewResult = result as ViewResult;
 
             // Assert
@@ -51,7 +51,7 @@ namespace ExpenseTracker.Controllers.Tests
         }
 
         [TestMethod]
-        public void Create_GET_correctly_populates_payee_select_list() {
+        public async Task Create_GET_correctly_populates_payee_select_list() {
             // Arrange
             var payees = new List<Payee> {
                 new Payee { ID = 1 },
@@ -62,7 +62,7 @@ namespace ExpenseTracker.Controllers.Tests
                 .Returns(payees);
             
             // Act
-            var result = (ViewResult)_controller.Create();
+            var result = (ViewResult)(await _controller.Create());
 
             // Assert
             AssertThatViewDataIsSelectList(result.ViewData, _payeeListKeyRO, payees.Select(p => p.ID.ToString()), testID.ToString());
