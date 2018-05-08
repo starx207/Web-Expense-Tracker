@@ -54,7 +54,7 @@ namespace ExpenseTracker.Models
             NavId = alias.ID;
             Name = alias.Name;
             PayeeID = alias.PayeeID;
-            PayeeName = alias.AliasForPayee.Name;
+            PayeeName = alias.AliasForPayee?.Name;
         }
 
         /// <summary>

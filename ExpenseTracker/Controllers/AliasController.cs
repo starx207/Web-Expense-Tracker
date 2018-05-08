@@ -24,11 +24,10 @@ namespace ExpenseTracker.Controllers
         {
             // Define how a view model should be created
             ViewModelCreatorFunc = async id => {
-                Alias alias = null;
-                if (id != null) {
-                    alias = await service.GetSingleAliasAsync(id, true);
+                if (id == null && GetRoutedAction() != nameof(Create)) {
+                    return null;
                 }
-                var vm = new AliasCrudVm(alias, service);
+                var vm = new AliasCrudVm(await service.GetSingleAliasAsync(id, true), service);
                 if (GetRoutedAction() == nameof(Create) &&
                     int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
                         vm.PayeeID = fetchedId;

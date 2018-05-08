@@ -86,10 +86,8 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Details(int? id) {
             VM objectToShow;
             try {
-                objectToShow = await ViewModelCreatorFunc(id);
-            } catch (IdNotFoundException) {
-                return NotFound();
-            } catch (NullIdException) {
+                objectToShow = (await ViewModelCreatorFunc(id)) ?? throw new NullViewModelException();
+            } catch (ExpenseTrackerException) {
                 return NotFound();
             }
             return View(nameof(Details), objectToShow);
@@ -125,7 +123,7 @@ namespace ExpenseTracker.Controllers
         public virtual async Task<IActionResult> Delete(int? id) {
             VM objectToDelete;
             try {
-                objectToDelete = await ViewModelCreatorFunc(id);
+                objectToDelete = (await ViewModelCreatorFunc(id)) ?? throw new NullViewModelException();
             } catch (ExpenseTrackerException) {
                 return NotFound();
             }

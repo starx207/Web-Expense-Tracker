@@ -116,10 +116,7 @@ namespace ExpenseTracker.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task Details_GET_returns_NotFound_when_NullIdException_thrown() {
-            // Arrange
-            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
-
+        public async Task Details_GET_returns_NotFound_when_id_is_null() {
             // Act
             var result = await _controller.Details(null);
 
@@ -173,10 +170,12 @@ namespace ExpenseTracker.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task Create_POST_with_Invalid_model_state_returns_category_to_create_view() {
+        public async Task Create_POST_returns_category_to_create_view_when_ModelValidationException_thrown() {
             // Arrange
-            var category = new CategoryCrudVm();
-            _controller.ModelState.AddModelError("test", "test");
+            var category = new CategoryCrudVm { NavId = 1 };
+            SetupControllerRouteData(_controller, "id", category.NavId);
+            _mockService.Setup(m => m.AddCategoryAsync(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<BudgetType>()))
+                .ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(category);
@@ -246,10 +245,7 @@ namespace ExpenseTracker.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task Delete_GET_returns_NotFound_when_NullIdException_thrown() {
-            // Arrange
-            _mockService.Setup(m => m.GetSingleCategoryAsync(It.IsAny<int?>())).ThrowsAsync(new NullIdException());
-
+        public async Task Delete_GET_returns_NotFound_when_null_id_passed() {
             // Act
             var result = await _controller.Delete(null);
 

@@ -79,4 +79,13 @@ namespace ExpenseTracker.Exceptions
         public InvalidDateExpection(string message, Exception inner) : base(message, inner) { }
         protected InvalidDateExpection(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
+
+    [Serializable]
+    public class NullViewModelException : ExpenseTrackerException
+    {
+        public NullViewModelException() { }
+        public NullViewModelException(string message) : base(message) { }
+        public NullViewModelException(string message, Exception inner) : base(message, inner) { }
+        protected NullViewModelException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
 }
