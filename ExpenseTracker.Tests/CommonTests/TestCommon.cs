@@ -106,6 +106,7 @@ namespace ExpenseTracker.TestResources
 
             var mockHttpContext = new Mock<HttpContext>();
             var mockHttpRequest = new Mock<HttpRequest>();
+            // TODO: Need to setup the getter for request.Query
             mockHttpRequest.SetupGet(m => m.QueryString).Returns(queryString);
             mockHttpContext.SetupGet(m => m.Request).Returns(mockHttpRequest.Object);
 
