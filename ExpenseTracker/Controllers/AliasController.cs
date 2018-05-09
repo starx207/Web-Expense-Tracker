@@ -27,7 +27,12 @@ namespace ExpenseTracker.Controllers
                 if (id == null && GetRoutedAction() != nameof(Create)) {
                     return null;
                 }
-                var vm = new AliasCrudVm(await service.GetSingleAliasAsync(id, true), service);
+                AliasCrudVm vm = null;
+                if (id == null) {
+                    vm = new AliasCrudVm(null, service);
+                } else {
+                    vm = new AliasCrudVm(await service.GetSingleAliasAsync(id, true), service);
+                }
                 if (GetRoutedAction() == nameof(Create) &&
                     int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
                         vm.PayeeID = fetchedId;
