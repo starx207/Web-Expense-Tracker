@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
 
 namespace ExpenseTracker.TestResources
 {
@@ -91,12 +92,12 @@ namespace ExpenseTracker.TestResources
         }
 
         protected void SetupControllerContext(Controller controller, Dictionary<string, object> routeValues, Dictionary<string, object> queryValues) {
-            var queryString = new QueryString();
-            if (queryValues != null) {
-                foreach (var pair in queryValues) {
-                    queryString.Add(pair.Key, pair.Value.ToString());
-                }
-            }
+            // var queryString = new QueryString();
+            // if (queryValues != null) {
+            //     foreach (var pair in queryValues) {
+            //         queryString.Add(pair.Key, pair.Value.ToString());
+            //     }
+            // }
             var routeData = new RouteData();
             if (routeValues != null) {
                 foreach (var pair in routeValues) {
@@ -106,8 +107,19 @@ namespace ExpenseTracker.TestResources
 
             var mockHttpContext = new Mock<HttpContext>();
             var mockHttpRequest = new Mock<HttpRequest>();
+            var mockQueryCollection = new Mock<IQueryCollection>();
             // TODO: Need to setup the getter for request.Query
-            mockHttpRequest.SetupGet(m => m.QueryString).Returns(queryString);
+            StringValues retVals;
+            if (queryValues != null) {
+                foreach (var query in queryValues) {
+                    retVals = new StringValues(query.Value.ToString());
+                    mockQueryCollection.Setup(m => m.TryGetValue(query.Key, out retVals)).Returns(true);
+                }
+            } else {
+                retVals = new StringValues("");
+                mockQueryCollection.Setup(m => m.TryGetValue(It.IsAny<string>(), out retVals)).Returns(false);
+            }
+            mockHttpRequest.SetupGet(m => m.Query).Returns(mockQueryCollection.Object);
             mockHttpContext.SetupGet(m => m.Request).Returns(mockHttpRequest.Object);
 
             var mockActionDescriptor = new Mock<ControllerActionDescriptor>();

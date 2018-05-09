@@ -19,7 +19,6 @@ namespace ExpenseTracker.Controllers.Tests
 
         private AliasController _controller;
         private Mock<IAliasManagerService> _mockService;
-        private readonly string _payeeListKeyRO = "PayeeList";
 
         #endregion // Private Members
 

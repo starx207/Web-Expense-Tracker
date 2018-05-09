@@ -211,6 +211,9 @@ namespace ExpenseTracker.Services.Tests
             var testID = 1;
             var originalCategory = new BudgetCategory { 
                 ID = testID,
+                Name = "Test",
+                Amount = 0,
+                Type = BudgetType.Expense,
                 EffectiveFrom = DateTime.Parse("1/1/2017") 
             };
             var editedCategory = new BudgetCategory { 
@@ -345,6 +348,9 @@ namespace ExpenseTracker.Services.Tests
             var testID = 1;
             var originalCategory = new BudgetCategory { 
                 ID = testID,
+                Name = "Test",
+                Amount = 0,
+                Type = BudgetType.Expense,
                 EffectiveFrom = DateTime.Parse(originalDateString) 
             };
             var editedCategory = new BudgetCategory { 
@@ -616,7 +622,7 @@ namespace ExpenseTracker.Services.Tests
         }
 
         [TestMethod]
-        public async Task UpdateCategoryAsync_throws_InvalidDateException_when_effectiveFrom_is_future_date() {
+        public async Task UpdateCategoryAsync_throws_ModelValidationException_when_effectiveFrom_is_future_date() {
             // Arrange
             var testID = 1;
             var futureDate = new DateTime(DateTime.Today.Year + 1, 1, 1);
@@ -624,7 +630,7 @@ namespace ExpenseTracker.Services.Tests
             _mockRepo.Setup(m => m.GetCategories()).Returns(new List<BudgetCategory> { category }.AsQueryable());
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<InvalidDateExpection>(() =>
+            await Assert.ThrowsExceptionAsync<ModelValidationException>(() =>
                 _testService.UpdateCategoryAsync(testID, 0, category.EffectiveFrom, BudgetType.Expense)
             , $"No exception thrown for effective date = '{futureDate.ToString()}'");
         }

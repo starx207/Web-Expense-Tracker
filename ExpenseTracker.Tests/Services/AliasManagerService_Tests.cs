@@ -158,10 +158,10 @@ namespace ExpenseTracker.Services.Tests
         }
 
         [TestMethod]
-        public async Task AddAliasAsync_throw_UniqueConstraintViolationException_when_duplicate_name() {
+        public async Task AddAliasAsync_throw_ModelValidationException_when_duplicate_name() {
             // Arrange
             var aliases = new List<Alias> {
-                new Alias { Name = "test" }
+                new Alias { ID = 1, Name = "test" }
             }.AsQueryable();
             var alias = new Alias { Name = "test" };
             _mockRepo.Setup(m => m.GetAliases(It.IsAny<bool>())).Returns(aliases);
