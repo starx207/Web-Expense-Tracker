@@ -108,7 +108,6 @@ namespace ExpenseTracker.TestResources
             var mockHttpContext = new Mock<HttpContext>();
             var mockHttpRequest = new Mock<HttpRequest>();
             var mockQueryCollection = new Mock<IQueryCollection>();
-            // TODO: Need to setup the getter for request.Query
             StringValues retVals;
             if (queryValues != null) {
                 foreach (var query in queryValues) {
