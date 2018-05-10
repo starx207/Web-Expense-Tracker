@@ -23,22 +23,7 @@ namespace ExpenseTracker.Controllers
         ) 
         {
             // Define how a view model should be created
-            ViewModelCreatorFunc = async id => {
-                if (id == null && GetRoutedAction() != nameof(Create)) {
-                    return null;
-                }
-                AliasCrudVm vm = null;
-                if (id == null) {
-                    vm = new AliasCrudVm(null, service);
-                } else {
-                    vm = new AliasCrudVm(await service.GetSingleAliasAsync(id, true), service);
-                }
-                if (GetRoutedAction() == nameof(Create) &&
-                    int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
-                        vm.PayeeID = fetchedId;
-                }
-                return vm;
-            };
+            ViewModelCreatorFunc = id => CreateViewModel(id, service);
 
             ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
                 {typeof(ExpenseTrackerException), ex => NotFound()}
@@ -54,5 +39,26 @@ namespace ExpenseTracker.Controllers
         public override async Task<IActionResult> Details(int? id) => await Task.FromResult(NotFound());
 
         #endregion // Public Actions
+
+        #region Internal Helpers
+
+        internal async Task<AliasCrudVm> CreateViewModel(int? id, IAliasManagerService service) {
+            if (id == null && GetRoutedAction() != nameof(Create)) {
+                return null;
+            }
+            AliasCrudVm vm = null;
+            if (id == null) {
+                vm = new AliasCrudVm(null, service);
+            } else {
+                vm = new AliasCrudVm(await service.GetSingleAliasAsync(id, true), service);
+            }
+            if (GetRoutedAction() == nameof(Create) &&
+                int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
+                    vm.PayeeID = fetchedId;
+            }
+            return vm;
+        }
+
+        #endregion // Internal Helpers
     }
 }
