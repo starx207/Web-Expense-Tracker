@@ -1,4 +1,4 @@
-@model IEnumerable<ExpenseTracker.Models.Payee>
+@model IEnumerable<ExpenseTracker.Models.PayeeCrudVm>
 
 @{
     ViewData["Title"] = "Index";
@@ -20,7 +20,7 @@
                     @Html.DisplayNameFor(model => model.EffectiveFrom)
                 </th>
             <th>
-                @Html.DisplayNameFor(model => model.Category)
+                @Html.DisplayNameFor(model => model.CategoryName)
             </th>
             <th></th>
         </tr>
@@ -30,8 +30,8 @@
         <tr>
             <td>
                 @if (item.Aliases != null && item.Aliases.Count() > 0) {
-                    <input type="checkbox" class="expandHack" id="@item.ID">
-                    <label for="@item.ID" class="expandDropdown"><div></div></label>
+                    <input type="checkbox" class="expandHack" id="@item.NavId">
+                    <label for="@item.NavId" class="expandDropdown"><div></div></label>
                 }
             </td>
             <td>
@@ -41,17 +41,17 @@
                 @Html.DisplayFor(modelItem => item.EffectiveFrom)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
+                @Html.DisplayFor(modelItem => item.CategoryName)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a> |
-                <a asp-action="Create" asp-controller="Alias" asp-route-payeeID="@item.ID">Add Alias</a>
+                <a asp-action="Edit" asp-route-id="@item.NavId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.NavId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.NavId">Delete</a> |
+                <a asp-action="Create" asp-controller="Alias" asp-route-payeeID="@item.NavId">Add Alias</a>
             </td>
         </tr>
         @if (item.Aliases != null && item.Aliases.Count() > 0) {
-            <tr id="@("detail" + item.ID)" class="aliasTable">
+            <tr id="@("detail" + item.NavId)" class="aliasTable">
                 <td colspan="6" style="padding: 1% 7%">
                     <table class="table">
                         @foreach (var alias in item.Aliases) {
@@ -60,8 +60,8 @@
                                     @Html.DisplayFor(modelItem => alias.Name)
                                 </td>
                                 <td>
-                                    <a asp-action="Edit" asp-controller="Alias" asp-route-id="@alias.ID">Edit</a> |
-                                    <a asp-action="Delete" asp-controller="Alias" asp-route-id="@alias.ID">Delete</a>
+                                    <a asp-action="Edit" asp-controller="Alias" asp-route-id="@alias.NavId">Edit</a> |
+                                    <a asp-action="Delete" asp-controller="Alias" asp-route-id="@alias.NavId">Delete</a>
                                 </td>
                             </tr>
                         }

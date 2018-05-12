@@ -1,7 +1,8 @@
-@model ExpenseTracker.Models.Payee
+@model ExpenseTracker.Models.PayeeCrudVm
 
 @{
     ViewData["Title"] = "Create";
+    SelectList categories = new SelectList(Model.CategoryOptions, Model.CategoryName);
 }
 
 <h2>Create</h2>
@@ -23,10 +24,11 @@
                 <span asp-validation-for="EffectiveFrom" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="BudgetCategoryID" class="control-label"></label>
-                <select asp-for="BudgetCategoryID" class ="form-control" asp-items="ViewBag.CategoryList">
+                <label asp-for="CategoryName" class="control-label"></label>
+                <select asp-for="CategoryName" class ="form-control" asp-items="@categories">
                     <option value="">-- Please Select --</option>
                 </select>
+                <span asp-validation-for="CategoryName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-default" />

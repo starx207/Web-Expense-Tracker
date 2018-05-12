@@ -1,4 +1,4 @@
-@model ExpenseTracker.Models.Payee
+@model ExpenseTracker.Models.PayeeCrudVm
 
 @{
     ViewData["Title"] = "Delete";
@@ -24,15 +24,15 @@
             @Html.DisplayFor(model => model.EffectiveFrom)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Category)
+            @Html.DisplayNameFor(model => model.CategoryName)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Category.Name)
+            @Html.DisplayFor(model => model.CategoryName)
         </dd>
     </dl>
     
     <form asp-action="Delete">
-        <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="NavId" />
         <input type="submit" value="Delete" class="btn btn-default" /> |
         <a asp-action="Index">Back to List</a>
     </form>
