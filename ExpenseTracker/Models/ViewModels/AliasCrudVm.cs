@@ -51,13 +51,6 @@ namespace ExpenseTracker.Models
             PayeeName = alias.AliasForPayee?.Name;
         }
 
-        /// <summary>
-        /// Initialize an empty ViewModel with a populated <see cref="Payee"/> list
-        /// </summary>
-        /// <param name="service">The service to get <see cref="Payee"/> list from</param>
-        /// <returns></returns>
-        public AliasCrudVm(IAliasManagerService service) : this(null, service) { }
-
         #endregion // Constructors
     }
 }
