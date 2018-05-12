@@ -51,6 +51,14 @@ namespace ExpenseTracker.Models
             PayeeName = alias.AliasForPayee?.Name;
         }
 
+        public AliasCrudVm(Alias alias) {
+            if (alias == null) { return; }
+            NavId = alias.ID;
+            Name = alias.Name;
+            PayeeName = alias.AliasForPayee?.Name;
+            PayeeOptions = new List<string>();
+        }
+
         #endregion // Constructors
     }
 }
