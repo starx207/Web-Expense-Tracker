@@ -1,6 +1,7 @@
 using ExpenseTracker.Exceptions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
+using ExpenseTracker.Repository.Extensions;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,9 +17,9 @@ namespace ExpenseTracker.Controllers
         #region Contructors
 
         public AliasController(IAliasManagerService service) : base(
-            singleAdder: alias => service.AddAliasAsync(alias.Name, (int)alias.PayeeID),
+            singleAdder: alias => service.AddAliasAsync(alias.Name, alias.PayeeName),
             singleDeleter: id => service.RemoveAliasAsync(id),
-            singleEditor: alias => service.UpdateAliasAsync(alias.NavId, alias.Name, (int)alias.PayeeID),
+            singleEditor: alias => service.UpdateAliasAsync(alias.NavId, alias.Name, alias.PayeeName),
             existanceChecker: alias => service.AliasExists(alias.NavId)
         ) 
         {
@@ -54,7 +55,10 @@ namespace ExpenseTracker.Controllers
             }
             if (GetRoutedAction() == nameof(Create) &&
                 int.TryParse(GetRequestParameter("payeeID"), out int fetchedId)) {
-                    vm.PayeeID = fetchedId;
+                    Payee payee = await service.GetPayees().Extension().SingleOrDefaultAsync(p => p.ID == fetchedId);
+                    if (payee != null) {
+                        vm.PayeeName = payee.Name;
+                    }
             }
             return vm;
         }

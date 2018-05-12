@@ -88,4 +88,13 @@ namespace ExpenseTracker.Exceptions
         public NullViewModelException(string message, Exception inner) : base(message, inner) { }
         protected NullViewModelException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
+
+    [Serializable]
+    public class NullModelException : ExpenseTrackerException
+    {
+        public NullModelException() { }
+        public NullModelException(string message) : base(message) { }
+        public NullModelException(string message, Exception inner) : base(message, inner) { }
+        protected NullModelException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
 }

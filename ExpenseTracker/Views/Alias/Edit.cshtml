@@ -2,10 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit";
-    SelectList payees = new SelectList(Model.PayeeOptions, 
-        nameof(ExpenseTracker.Models.Payee.ID), 
-        nameof(ExpenseTracker.Models.Payee.Name), 
-        Model.PayeeID);
+    SelectList payees = new SelectList(Model.PayeeOptions, Model.PayeeName);
 }
 
 <h2>Edit</h2>
@@ -23,11 +20,11 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="PayeeID" class="control-label"></label>
-                <select asp-for="PayeeID" class="form-control" asp-items="@payees">
+                <label asp-for="PayeeName" class="control-label"></label>
+                <select asp-for="PayeeName" class="form-control" asp-items="@payees">
                     <option value="">-- Please Select --</option>
                 </select>
-                <span asp-validation-for="PayeeID" class="text-danger"></span>
+                <span asp-validation-for="PayeeName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-default" />

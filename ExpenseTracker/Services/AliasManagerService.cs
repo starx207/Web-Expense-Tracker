@@ -33,6 +33,15 @@ namespace ExpenseTracker.Services
             return alias;
         }
 
+        public async Task<int> UpdateAliasAsync(int id, string name, string payeeName) {
+            Payee payee = _context.GetPayees()
+                .Where(p => p.Name == payeeName)
+                .OrderByDescending(p => p.EffectiveFrom)
+                .FirstOrDefault() ?? throw new NullModelException($"There is no payee named '{payeeName}'");
+
+            return await UpdateAliasAsync(id, name, payee.ID);
+        }
+
         public async Task<int> UpdateAliasAsync(int id, string name, int payeeId) {
             Alias originalAlias = _context.GetAliases()
                 .FirstOrDefault(a => a.ID == id) ?? throw new IdNotFoundException($"No Alias found for Id = {id}");
@@ -66,6 +75,19 @@ namespace ExpenseTracker.Services
             } catch (DbUpdateConcurrencyException) {
                 throw new ConcurrencyException();
             }
+        }
+
+        // TODO: Add tests for this method
+        public async Task<int> AddAliasAsync(string name, string payeeName) {
+            Payee payee = _context.GetPayees()
+                .Where(p => p.Name == payeeName)
+                .OrderByDescending(p => p.EffectiveFrom)
+                .FirstOrDefault() ?? throw new NullModelException($"There is no payee named '{payeeName}'");
+
+            return await AddAliasAsync(new Alias {
+                Name = name,
+                PayeeID = payee.ID
+            });
         }
 
         // TODO: Add tests for this method

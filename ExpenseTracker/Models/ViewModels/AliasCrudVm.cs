@@ -15,11 +15,6 @@ namespace ExpenseTracker.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// The Id of the <see cref="Payee"/> this <see cref="Alias"/> is assigned to
-        /// </summary>
-        public int? PayeeID { get; set; }
-
-        /// <summary>
         /// The name of the <see cref="Payee"/> this <see cref="Alias"/> is assigned to
         /// </summary>
         public string PayeeName { get; set; }
@@ -27,7 +22,7 @@ namespace ExpenseTracker.Models
         /// <summary>
         /// A list of <see cref="Payee"/> names and Ids to use in the select list
         /// </summary>
-        public List<Payee> PayeeOptions { get; set; }
+        public List<string> PayeeOptions { get; set; }
 
         #endregion // Public Properties
 
@@ -44,16 +39,15 @@ namespace ExpenseTracker.Models
         /// <param name="alias">The <see cref="Alias"/> to initialize with</param>
         /// <param name="service">The service to get <see cref="Payee"/> list from</param>
         public AliasCrudVm(Alias alias, ICommonService service) {
-            PayeeOptions = new List<Payee>();
+            PayeeOptions = new List<string>();
             foreach (Payee payee in service.GetPayees().OrderBy(p => p.Name)) {
-                PayeeOptions.Add(payee);
+                PayeeOptions.Add(payee.Name);
             }
 
             if (alias == null) { return; }
 
             NavId = alias.ID;
             Name = alias.Name;
-            PayeeID = alias.PayeeID;
             PayeeName = alias.AliasForPayee?.Name;
         }
 
