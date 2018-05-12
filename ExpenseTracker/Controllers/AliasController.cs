@@ -23,7 +23,7 @@ namespace ExpenseTracker.Controllers
         ) 
         {
             // Define how a view model should be created
-            ViewModelCreatorFunc = id => CreateViewModel(id, service);
+            ViewModelCreator = id => CreateViewModel(id, service);
 
             ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
                 {typeof(ExpenseTrackerException), ex => NotFound()}

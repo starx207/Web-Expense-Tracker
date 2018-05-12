@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Controllers
 {
@@ -20,23 +21,14 @@ namespace ExpenseTracker.Controllers
         public BudgetCategoryController(ICategoryManagerService service)
             : base(
                 // Setup required functions
-                collectionGetter: async () => await service.GetCategories()
-                    .OrderBy(c => c.Name.ToLower())
-                    .Select(c => new CategoryCrudVm(c))
-                    .Extension().ToListAsync(),
                 singleAdder: vm => service.AddCategoryAsync(vm.Name, vm.Amount, vm.Type),
                 singleDeleter: id => service.RemoveCategoryAsync(id),
                 singleEditor: vm => service.UpdateCategoryAsync(vm.NavId, vm.Amount, vm.EffectiveFrom, vm.Type),
                 existanceChecker: vm => service.CategoryExists(vm.NavId)
             )  
             {
-                ViewModelCreatorFunc = async id => {
-                    CategoryCrudVm vm = null;
-                    if (id != null) {
-                        vm = new CategoryCrudVm(await service.GetSingleCategoryAsync(id));
-                    }
-                    return vm;
-                };
+                CollectionGetter = () => GetViewModelCollection(service);
+                ViewModelCreator = id => CreateViewModel(id, service);
                 ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
                     {typeof(InvalidDateExpection), ex => {
                         ModelState.AddModelError(nameof(BudgetCategory.EffectiveFrom), ex.Message);
@@ -49,5 +41,24 @@ namespace ExpenseTracker.Controllers
             } 
 
         #endregion // Constuctors
+
+        #region Internal Helpers
+
+        internal async Task<IEnumerable<CategoryCrudVm>> GetViewModelCollection(ICategoryManagerService service) {
+            return await service.GetCategories()
+                .OrderBy(c => c.Name.ToLower())
+                .Select(c => new CategoryCrudVm(c))
+                .Extension().ToListAsync();
+        }
+
+        internal async Task<CategoryCrudVm> CreateViewModel(int? id, ICategoryManagerService service) {
+            CategoryCrudVm vm = null;
+            if (id != null) {
+                vm = new CategoryCrudVm(await service.GetSingleCategoryAsync(id));
+            }
+            return vm;
+        }
+
+        #endregion // Internal Helpers
     }
 }
