@@ -32,6 +32,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddPayeeAsync(string name, string categoryName) {
+            // TODO: add model validation
             BudgetCategory category = _context.GetCategories()
                 .Where(c => c.Name == categoryName)
                 .OrderByDescending(c => c.EffectiveFrom)
@@ -45,6 +46,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddPayeeAsync(Payee payee) {
+            // TODO: Add model validation
             if (_context.GetPayees().Any(p => p.Name == payee.Name)) {
                 throw new ModelValidationException($"There is already a payee named '{payee.Name}'") {
                     PropertyName = nameof(Payee.Name),
@@ -57,6 +59,7 @@ namespace ExpenseTracker.Services
 
         // TODO: add tests for this method
         public async Task<int> UpdatePayeeAsync(int id, string name, DateTime effectiveFrom, string categoryName) {
+            // TODO: Add model validation
             BudgetCategory category = _context.GetCategories()
                 .Where(c => c.Name == categoryName)
                 .OrderByDescending(c => c.EffectiveFrom)
@@ -77,6 +80,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> UpdatePayeeAsync(int id, Payee payee) {
+            // TODO: Add model validation
             if (id != payee.ID) {
                 throw new IdMismatchException($"Id = {id} does not match payee Id of {payee.ID}");
             }
