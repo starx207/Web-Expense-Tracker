@@ -3,6 +3,7 @@ using ExpenseTracker.Models;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,6 +31,19 @@ namespace ExpenseTracker.Services
             return payee;
         }
 
+        public async Task<int> AddPayeeAsync(string name, string categoryName) {
+            BudgetCategory category = _context.GetCategories()
+                .Where(c => c.Name == categoryName)
+                .OrderByDescending(c => c.EffectiveFrom)
+                .FirstOrDefault() ?? throw new NullModelException($"There is no Budget Category named '{categoryName}'");
+
+            return await AddPayeeAsync(new Payee {
+                Name = name,
+                EffectiveFrom = DateTime.Now,
+                BudgetCategoryID = category.ID
+            });
+        }
+
         public async Task<int> AddPayeeAsync(Payee payee) {
             if (_context.GetPayees().Any(p => p.Name == payee.Name)) {
                 throw new ModelValidationException($"There is already a payee named '{payee.Name}'") {
@@ -39,6 +53,27 @@ namespace ExpenseTracker.Services
             }
             _context.AddPayee(payee);
             return await _context.SaveChangesAsync();
+        }
+
+        // TODO: add tests for this method
+        public async Task<int> UpdatePayeeAsync(int id, string name, DateTime effectiveFrom, string categoryName) {
+            BudgetCategory category = _context.GetCategories()
+                .Where(c => c.Name == categoryName)
+                .OrderByDescending(c => c.EffectiveFrom)
+                .FirstOrDefault() ?? throw new NullModelException($"There is no Budget Category named '{categoryName}'");
+
+            Payee payee = await _context.GetPayees()
+                .Extension().SingleOrDefaultAsync(p => p.ID == id) ?? throw new NullModelException($"Could not find Payee with Id = {id}");
+            
+            try {
+                payee.Name = name;
+                payee.EffectiveFrom = effectiveFrom;
+                payee.BudgetCategoryID = category.ID;
+                _context.EditPayee(payee);
+                return await _context.SaveChangesAsync();
+            } catch (DbUpdateConcurrencyException) {
+                throw new ConcurrencyException();
+            }
         }
 
         public async Task<int> UpdatePayeeAsync(int id, Payee payee) {

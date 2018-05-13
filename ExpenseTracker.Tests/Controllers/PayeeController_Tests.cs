@@ -20,7 +20,6 @@ namespace ExpenseTracker.Controllers.Tests
 
         private Mock<IPayeeManagerService> _mockService;
         private PayeeController _controller;
-        private readonly string _categorySelectListKeyRO = "CategoryList";
 
         #endregion // Private Members
 
@@ -40,6 +39,10 @@ namespace ExpenseTracker.Controllers.Tests
 
         [TestMethod]
         public async Task Index_GET_returns_view() {
+            // Arrange
+            var mockPayeeExt = new Mock<IExtensionMask<PayeeCrudVm>>();
+            ExtensionFactoryHelpers<PayeeCrudVm>.ExtFactoryOverride = ext => mockPayeeExt.Object;
+
             // Act
             var result = await _controller.Index();
             var viewResult = result as ViewResult;
@@ -52,10 +55,10 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Index_GET_passes_list_of_payees_to_viewmodel() {
             // Arrange
-            var payees = new List<Payee>();
-            var mockPayeeExt = new Mock<IExtensionMask<Payee>>();
+            var payees = new List<PayeeCrudVm>();
+            var mockPayeeExt = new Mock<IExtensionMask<PayeeCrudVm>>();
             mockPayeeExt.Setup(m => m.ToListAsync()).ReturnsAsync(payees);
-            ExtensionFactoryHelpers<Payee>.ExtFactoryOverride = ext => mockPayeeExt.Object;
+            ExtensionFactoryHelpers<PayeeCrudVm>.ExtFactoryOverride = ext => mockPayeeExt.Object;
 
             // Act
             var result = (ViewResult)(await _controller.Index());
@@ -73,25 +76,27 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Details_GET_returns_view_with_correct_model() {
             // Arrange
-            var payee = new Payee();
+            var payee = new Payee { ID = 1 };
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
+            SetupControllerRouteData(_controller, "action", "Details");
 
             // Act
             var result = await _controller.Details(1);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
             _mockService.Verify(m => m.GetSinglePayeeAsync(1, true), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Details", viewResult.ViewName);
-            Assert.AreSame(payee, model);
+            Assert.AreEqual(payee.ID, model.NavId);
         }
 
         [TestMethod]
         public async Task Details_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
+            SetupControllerRouteData(_controller, "action", "Details");
 
             // Act
             var result = await _controller.Details(null);
@@ -103,6 +108,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Details_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
             // Arrange
+            SetupControllerRouteData(_controller, "action", "Details");
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
             // Act & Assert
@@ -116,9 +122,12 @@ namespace ExpenseTracker.Controllers.Tests
         #region Create GET
 
         [TestMethod]
-        public void Create_GET_returns_view() {
+        public async Task Create_GET_returns_view() {
+            // Arrange
+            SetupControllerRouteData(_controller, "action", "Create");
+
             // Act
-            var result = _controller.Create();
+            var result = await _controller.Create();
             var viewResult = result as ViewResult;
 
             // Assert
@@ -126,22 +135,24 @@ namespace ExpenseTracker.Controllers.Tests
             Assert.AreEqual("Create", viewResult.ViewName);
         }
 
-        [TestMethod]
-        public void Create_GET_populates_category_select_list() {
-            // Arrange
-            var categories = new List<BudgetCategory> {
-                new BudgetCategory { ID = 1 },
-                new BudgetCategory { ID = 2 },
-                new BudgetCategory { ID = 3 }
-            }.AsQueryable();
-            _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
+        // TODO: move this test to vm tests, as vm now handles this
+        // [TestMethod]
+        // public async Task Create_GET_populates_category_select_list() {
+        //     // Arrange
+        //     var categories = new List<BudgetCategory> {
+        //         new BudgetCategory { ID = 1 },
+        //         new BudgetCategory { ID = 2 },
+        //         new BudgetCategory { ID = 3 }
+        //     }.AsQueryable();
+        //     _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
+        //     SetupControllerRouteData(_controller, "action", "Create");
 
-            // Act
-            var result = (ViewResult)_controller.Create();
+        //     // Act
+        //     var result = (ViewResult)(await _controller.Create());
 
-            // Assert
-            AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()));
-        }
+        //     // Assert
+        //     AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()));
+        // }
 
         #endregion // Create GET
 
@@ -150,28 +161,29 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_calls_AddPayeeAsync_and_redirects_to_index() {
             // Arrange
-            var payee = new Payee();
+            var payee = new PayeeCrudVm();
 
             // Act
             var result = await _controller.Create(payee);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.AddPayeeAsync(payee), Times.Once());
+            _mockService.Verify(m => m.AddPayeeAsync(payee.Name, payee.CategoryName), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
 
         [TestMethod]
-        public async Task Create_POST_returns_view_with_payee_for_invalid_modelstate() {
+        public async Task Create_POST_returns_view_with_payee_when_ModelValidationException_thrown() {
             // Arrange
-            var payee = new Payee();
-            _controller.ModelState.AddModelError("test", "test");
+            var payee = new PayeeCrudVm();
+            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(payee);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
             Assert.IsNotNull(viewResult);
@@ -179,35 +191,36 @@ namespace ExpenseTracker.Controllers.Tests
             Assert.AreSame(payee, model);
         }
 
-        [TestMethod]
-        public async Task Create_POST_correctly_populates_category_select_on_invalid_modelstate() {
-            // Arrange
-            var categories = new List<BudgetCategory> {
-                new BudgetCategory { ID = 1 },
-                new BudgetCategory { ID = 2 },
-                new BudgetCategory { ID = 3 }
-            }.AsQueryable();
-            var payee = new Payee { BudgetCategoryID = 3 };
-            _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
-            _controller.ModelState.AddModelError("test", "test");
+        // TODO: Move this test to view model tests as this is handled by the view model now
+        // [TestMethod]
+        // public async Task Create_POST_correctly_populates_category_select_on_invalid_modelstate() {
+        //     // Arrange
+        //     var categories = new List<BudgetCategory> {
+        //         new BudgetCategory { ID = 1, Name = "test1" },
+        //         new BudgetCategory { ID = 2, Name = "test2" },
+        //         new BudgetCategory { ID = 3, Name = "test3" }
+        //     }.AsQueryable();
+        //     var payee = new PayeeCrudVm { CategoryName = "test3" };
+        //     _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
+        //     _controller.ModelState.AddModelError("test", "test");
             
-            // Act
-            var result = (ViewResult)(await _controller.Create(payee));
+        //     // Act
+        //     var result = (ViewResult)(await _controller.Create(payee));
 
-            // Assert
-            AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
-        }
+        //     // Assert
+        //     AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+        // }
 
         [TestMethod]
-        public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+        public async Task Create_POST_adds_modelstate_error_when_ModelValidationException_thrown() {
             // Arrange
-            var payee = new Payee { Name = "test" };
-            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<Payee>())).ThrowsAsync(new ModelValidationException());
+            var payee = new PayeeCrudVm { Name = "test" };
+            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(payee);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
             Assert.AreEqual(1, _controller.ModelState.ErrorCount);
@@ -227,25 +240,27 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Delete_GET_calls_GetSinglePayeeAsync_and_returns_view() {
             // Arrange
-            var payee = new Payee();
+            var payee = new Payee { ID = 1 };
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
+            SetupControllerRouteData(_controller, "action", "Delete");
 
             // Act
             var result = await _controller.Delete(1);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
             _mockService.Verify(m => m.GetSinglePayeeAsync(1, true), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Delete", viewResult.ViewName);
-            Assert.AreSame(payee, model);
+            Assert.AreEqual(payee.ID, model.NavId);
         }
 
         [TestMethod]
         public async Task Delete_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
+            SetupControllerRouteData(_controller, "action", "Delete");
 
             // Act
             var result = await _controller.Delete(null);
@@ -258,6 +273,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Delete_GET_throws_Exceptions_not_of_type_ExpenseTrackerException() {
             // Arrange
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
+            SetupControllerRouteData(_controller, "action", "Delete");
 
             // Act & Assert
             await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Delete(1));
@@ -290,47 +306,50 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_GET_calls_GetSinglePayeeAsync_and_returns_view_with_model() {
             // Arrange
-            var payee = new Payee();
+            var payee = new Payee { ID = 1 };
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
+            SetupControllerRouteData(_controller, "action", "Edit");
 
             // Act
             var result = await _controller.Edit(1);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
-            _mockService.Verify(m => m.GetSinglePayeeAsync(1, false), Times.Once());
+            _mockService.Verify(m => m.GetSinglePayeeAsync(1, true), Times.Once());
             Assert.IsNotNull(viewResult);
             Assert.AreEqual("Edit", viewResult.ViewName);
-            Assert.AreSame(payee, model);
+            Assert.AreEqual(payee.ID, model.NavId);
         }
 
-        [TestMethod]
-        public async Task Edit_GET_correctly_populates_category_select_list() {
-            // Arrange
-            var categories = new List<BudgetCategory> {
-                new BudgetCategory { ID = 1 },
-                new BudgetCategory { ID = 2 },
-                new BudgetCategory { ID = 3 }
-            }.AsQueryable();
-            var payee = new Payee { BudgetCategoryID = 1 };
-            _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
-            _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
+        // TODO: Move this to viewmodel tests. Vm now handles this
+        // [TestMethod]
+        // public async Task Edit_GET_correctly_populates_category_select_list() {
+        //     // Arrange
+        //     var categories = new List<BudgetCategory> {
+        //         new BudgetCategory { ID = 1 },
+        //         new BudgetCategory { ID = 2 },
+        //         new BudgetCategory { ID = 3 }
+        //     }.AsQueryable();
+        //     var payee = new Payee { BudgetCategoryID = 1 };
+        //     _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
+        //     _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ReturnsAsync(payee);
 
-            // Act
-            var result = (ViewResult)(await _controller.Edit(1));
+        //     // Act
+        //     var result = (ViewResult)(await _controller.Edit(1));
 
-            // Assert
-            AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
-        }
+        //     // Assert
+        //     AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+        // }
 
         [TestMethod]
         public async Task Edit_GET_returns_NotFound_when_ExpenseTrackerException_thrown() {
             // Arrange
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new ExpenseTrackerException());
-
+            SetupControllerRouteData(_controller, "action", "Edit");
+            
             // Act
-            var result = await _controller.Edit(null);
+            var result = await _controller.Edit(1);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -339,6 +358,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_GET_throws_exceptions_not_of_type_ExpenseTrackerException() {
             // Arrange
+            SetupControllerRouteData(_controller, "action", "Edit");
             _mockService.Setup(m => m.GetSinglePayeeAsync(It.IsAny<int?>(), It.IsAny<bool>())).ThrowsAsync(new Exception());
 
             // Act & Assert
@@ -352,28 +372,31 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_calls_UpdatePayeeAsync_and_redirects_to_index() {
             // Arrange
-            var payee = new Payee();
+            var payee = new PayeeCrudVm { NavId = 1 };
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, payee);
+            var result = await _controller.Edit(payee);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdatePayeeAsync(1, payee), Times.Once());
+            _mockService.Verify(m => m.UpdatePayeeAsync(1, payee.Name, payee.EffectiveFrom, payee.CategoryName), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
 
         [TestMethod]
-        public async Task Edit_POST_returns_payee_to_view_when_modelstate_invalid() {
+        public async Task Edit_POST_returns_payee_to_view_when_ModelValidationException_thrown() {
             // Arrange
-            var payee = new Payee();
-            _controller.ModelState.AddModelError("test", "test");
+            var payee = new PayeeCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>()))
+                .ThrowsAsync(new ModelValidationException());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, payee);
+            var result = await _controller.Edit(payee);
             var viewResult = result as ViewResult;
-            var model = viewResult.Model as Payee;
+            var model = viewResult.Model as PayeeCrudVm;
 
             // Assert
             Assert.IsNotNull(viewResult);
@@ -381,33 +404,35 @@ namespace ExpenseTracker.Controllers.Tests
             Assert.AreSame(payee, model);
         }
 
-        [TestMethod]
-        public async Task Edit_POST_correctly_populates_category_list_when_ModelState_invalid() {
-            // Arrange
-            var categories = new List<BudgetCategory> {
-                new BudgetCategory { ID = 1 },
-                new BudgetCategory { ID = 2 },
-                new BudgetCategory { ID = 3 }
-            }.AsQueryable();
-            var payee = new Payee { BudgetCategoryID = 1 };
-            _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
-            _controller.ModelState.AddModelError("test", "test");
+        // TODO: Move this test to view model tests as the vm handles this now
+        // [TestMethod]
+        // public async Task Edit_POST_correctly_populates_category_list_when_ModelState_invalid() {
+        //     // Arrange
+        //     var categories = new List<BudgetCategory> {
+        //         new BudgetCategory { ID = 1 },
+        //         new BudgetCategory { ID = 2 },
+        //         new BudgetCategory { ID = 3 }
+        //     }.AsQueryable();
+        //     var payee = new Payee { BudgetCategoryID = 1 };
+        //     _mockService.Setup(m => m.GetCategories(It.IsAny<bool>())).Returns(categories);
+        //     _controller.ModelState.AddModelError("test", "test");
 
-            // Act
-            var result = (ViewResult)(await _controller.Edit(1, payee));
+        //     // Act
+        //     var result = (ViewResult)(await _controller.Edit(1, payee));
 
-            // Assert
-            AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
-        }
+        //     // Assert
+        //     AssertThatViewDataIsSelectList(result.ViewData, _categorySelectListKeyRO, categories.Select(c => c.ID.ToString()), payee.BudgetCategoryID.ToString());
+        // }
 
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_IdMismatchException_thrown() {
             // Arrange
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new IdMismatchException());
-            var payee = new Payee();
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new IdMismatchException());
+            var payee = new PayeeCrudVm { NavId = 1 };
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, payee);
+            var result = await _controller.Edit(payee);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -416,12 +441,13 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_ConcurrencyException_thrown_and_payee_does_not_exist() {
             // Arrange
-            var payee = new Payee();
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new ConcurrencyException());
+            var payee = new PayeeCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.PayeeExists(It.IsAny<int>())).Returns(false);
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act
-            var result = await _controller.Edit(1, payee);
+            var result = await _controller.Edit(payee);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -430,11 +456,12 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_thows_exceptions_not_of_type_IdMismatch() {
             // Arrange
-            var payee = new Payee();
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<Payee>())).ThrowsAsync(new Exception());
+            var payee = new PayeeCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new Exception());
+            SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(1, payee));
+            await Assert.ThrowsExceptionAsync<Exception>(() => _controller.Edit(payee));
         }
 
         #endregion // Edit POST

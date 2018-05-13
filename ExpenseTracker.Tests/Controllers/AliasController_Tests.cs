@@ -79,22 +79,22 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_calls_AddAliasAsync_and_redirects_to_Index() {
             // Arrange
-            var alias = new AliasCrudVm { PayeeID = 1 };
+            var alias = new AliasCrudVm();
 
             // Act
             var result = await _controller.Create(alias);
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.AddAliasAsync(alias.Name, (int)alias.PayeeID), Times.Once());
+            _mockService.Verify(m => m.AddAliasAsync(alias.Name, alias.PayeeName), Times.Once());
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
 
         [TestMethod]
         public async Task Create_POST_returns_to_create_view_when_ModelValidationException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm { PayeeID = 1 };
-            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ModelValidationException());
+            var alias = new AliasCrudVm();
+            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(alias);
@@ -127,8 +127,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Create_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 1 };
-            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ModelValidationException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.AddAliasAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(alias);
@@ -286,7 +286,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_calls_UpdateAliasAsync_and_redirects_to_index() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 1 };
+            var alias = new AliasCrudVm { NavId = 1 };
             SetupControllerRouteData(_controller, "id", 1);
 
             // Act
@@ -294,7 +294,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdateAliasAsync(1, alias.Name, (int)alias.PayeeID), Times.Once());
+            _mockService.Verify(m => m.UpdateAliasAsync(1, alias.Name, alias.PayeeName), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -302,8 +302,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_IdMismatchException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 1 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new IdMismatchException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new IdMismatchException());
             SetupControllerRouteData(_controller, "id", 1);
 
             // Act
@@ -316,8 +316,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_ConcurrencyException_thrown_and_alias_does_not_exist() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 1 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ConcurrencyException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.AliasExists(It.IsAny<int>())).Returns(false);
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -331,8 +331,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_rethrows_ConcurrencyException_when_alias_exists() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 1 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ConcurrencyException());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.AliasExists(It.IsAny<int>())).Returns(true);
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -344,8 +344,8 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_throws_exceptions_not_of_type_IdMismatch() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 1, PayeeID = 3 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new Exception());
+            var alias = new AliasCrudVm { NavId = 1 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception());
             SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert
@@ -356,9 +356,9 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_to_view_with_correct_model_when_ModelValidationException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm{ NavId = 1, PayeeID = 1 };
+            var alias = new AliasCrudVm{ NavId = 1 };
             SetupControllerRouteData(_controller, "id", alias.NavId);
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new ModelValidationException());
 
             // Act
@@ -393,10 +393,10 @@ namespace ExpenseTracker.Controllers.Tests
         // }
 
         [TestMethod]
-        public async Task Edit_POST_adds_modelstate_error_when_UniqueConstraintViolationException_thrown() {
+        public async Task Edit_POST_adds_modelstate_error_when_ModelValidationException_thrown() {
             // Arrange
-            var alias = new AliasCrudVm { NavId = 3, PayeeID = 1 };
-            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new ModelValidationException());
+            var alias = new AliasCrudVm { NavId = 3 };
+            _mockService.Setup(m => m.UpdateAliasAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ModelValidationException());
             SetupControllerRouteData(_controller, "id", 3);
 
             // Act

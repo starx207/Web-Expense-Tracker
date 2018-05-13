@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using ExpenseTracker.Services;
 
 namespace ExpenseTracker.Models
@@ -10,11 +11,12 @@ namespace ExpenseTracker.Models
         #region Public Properties
 
         [Display(Name = "Effective From")]
-        [DisplayFormat(DataFormatString = "MM/dd/yyyy", ApplyFormatInEditMode=true)]
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode=true)]
         public DateTime EffectiveFrom { get; set; }
 
         public string Name { get; set; }
 
+        [Display(Name = "Budget Category")]
         public string CategoryName { get; set; }
 
         public List<string> CategoryOptions { get; set; }
@@ -27,11 +29,20 @@ namespace ExpenseTracker.Models
 
         public PayeeCrudVm() { }
 
+        public PayeeCrudVm(Payee payee, List<string> allCategoryNames) {
+            InitializeViewModel(payee, allCategoryNames);
+        }
+
         public PayeeCrudVm(Payee payee, ICommonService service) {
-            CategoryOptions = new List<string>();
-            foreach (var category in service.GetCategories()) {
-                CategoryOptions.Add(category.Name);
-            }
+            InitializeViewModel(payee, service.GetCategories().Select(c => c.Name).ToList());
+        }
+
+        #endregion // Constructors
+
+        #region Private Helpers
+
+        private void InitializeViewModel(Payee payee, List<string> allCategoryNames) {
+            CategoryOptions = allCategoryNames;
             CategoryOptions.Sort();
 
             if (payee == null) { return; }
@@ -42,11 +53,13 @@ namespace ExpenseTracker.Models
             CategoryName = payee.Category?.Name;
 
             Aliases = new List<AliasCrudVm>();
+            if (payee.Aliases == null) { return; }
+            
             foreach (var alias in payee.Aliases) {
                 Aliases.Add(new AliasCrudVm(alias));
             }
         }
 
-        #endregion // Constructors
+        #endregion // Private Helpers
     }
 }
