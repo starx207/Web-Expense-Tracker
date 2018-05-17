@@ -8,6 +8,12 @@ namespace ExpenseTracker.Models
 {
     public class PayeeCrudVm : CrudViewModel
     {
+        #region Private Members
+
+        private List<string> _categoryOptions;
+
+        #endregion // Private Members
+
         #region Public Properties
 
         [Display(Name = "Effective From")]
@@ -19,7 +25,13 @@ namespace ExpenseTracker.Models
         [Display(Name = "Budget Category")]
         public string CategoryName { get; set; }
 
-        public List<string> CategoryOptions { get; set; }
+        public List<string> CategoryOptions { 
+            get => _categoryOptions;
+            set {
+                _categoryOptions = value;
+                _categoryOptions.Sort();
+            }
+        }
 
         public List<AliasCrudVm> Aliases { get; set; }
 
@@ -43,7 +55,6 @@ namespace ExpenseTracker.Models
 
         private void InitializeViewModel(Payee payee, List<string> allCategoryNames) {
             CategoryOptions = allCategoryNames;
-            CategoryOptions.Sort();
 
             if (payee == null) { return; }
 
