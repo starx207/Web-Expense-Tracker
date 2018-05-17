@@ -57,7 +57,7 @@ namespace ExpenseTracker.Models
         }
 
         private static void ValidateStringLengthAttribute(StringLengthAttribute attribute, PropertyInfo property, T model) {
-            string value = property.GetValue(model, null).ToString();
+            string value = (property.GetValue(model, null) ?? string.Empty).ToString();
             if (value.Length <= attribute.MaximumLength && value.Length >= attribute.MinimumLength) {
                 return;
             }
@@ -66,7 +66,7 @@ namespace ExpenseTracker.Models
         }
 
         private static void ValidateRegularExpressionAttribute(RegularExpressionAttribute attribute, PropertyInfo property, T model) {
-            string value = property.GetValue(model, null).ToString();
+            string value = (property.GetValue(model, null) ?? string.Empty).ToString();
             if (Regex.IsMatch(value, attribute.Pattern)) {
                 return;
             }
