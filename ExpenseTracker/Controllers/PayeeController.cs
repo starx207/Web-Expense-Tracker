@@ -25,8 +25,8 @@ namespace ExpenseTracker.Controllers
         /// </summary>
         /// <param name="service">The service to use in the controller</param>
         public PayeeController(IPayeeManagerService service) : base (
-            singleAdder: payee => service.AddPayeeAsync(payee.Name, payee.CategoryName),
-            singleEditor: payee => service.UpdatePayeeAsync(payee.NavId, payee.Name, payee.EffectiveFrom, payee.CategoryName),
+            singleAdder: payee => service.AddPayeeAsync(payee),
+            singleEditor: payee => service.UpdatePayeeAsync(payee),
             existanceChecker: payee => service.PayeeExists(payee.NavId),
             singleDeleter: id => service.RemovePayeeAsync(id)
         ) 
@@ -37,10 +37,15 @@ namespace ExpenseTracker.Controllers
             // Setup CRUDController functions
             CollectionGetter = () => GetViewModelCollection(service);
             ViewModelCreator = id => GetViewModel(id, service);
+            FailedPostRebinder = payee => payee.CategoryOptions = _allCategoryNames;
 
             // Setup error handling
             ExceptionHandling = new Dictionary<Type, Func<Exception, IActionResult>> {
-                {typeof(ExpenseTrackerException), ex => NotFound()}
+                {typeof(ExpenseTrackerException), ex => NotFound()},
+                {typeof(NullModelException), ex => {
+                    ModelState.AddModelError("", ex.Message);
+                    return null;
+                }}
             };
         }
 
