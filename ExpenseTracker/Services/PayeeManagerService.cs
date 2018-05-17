@@ -31,12 +31,25 @@ namespace ExpenseTracker.Services
             return payee;
         }
 
+        // TODO: Add tests for this method
+        public async Task<int> AddPayeeAsync(PayeeCrudVm payeeVm) {
+            try {
+                return await AddPayeeAsync(payeeVm.Name, payeeVm.CategoryName);
+            } catch (ModelValidationException ex) {
+                if (ex.PropertyName == nameof(Payee.BudgetCategoryID)) {
+                    throw new ModelValidationException(nameof(payeeVm.CategoryName), payeeVm.CategoryName,
+                        $"There is no Budget Category named '{payeeVm.CategoryName}'");
+                }
+                throw;
+            }
+        }
+
         public async Task<int> AddPayeeAsync(string name, string categoryName) {
-            // TODO: add model validation
             BudgetCategory category = _context.GetCategories()
                 .Where(c => c.Name == categoryName)
                 .OrderByDescending(c => c.EffectiveFrom)
-                .FirstOrDefault() ?? throw new NullModelException($"There is no Budget Category named '{categoryName}'");
+                .FirstOrDefault() ?? throw new ModelValidationException(nameof(Payee.BudgetCategoryID), null,
+                    $"There is no Budget Category named '{categoryName}'");
 
             return await AddPayeeAsync(new Payee {
                 Name = name,
@@ -46,24 +59,31 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> AddPayeeAsync(Payee payee) {
-            // TODO: Add model validation
-            if (_context.GetPayees().Any(p => p.Name == payee.Name)) {
-                throw new ModelValidationException($"There is already a payee named '{payee.Name}'") {
-                    PropertyName = nameof(Payee.Name),
-                    PropertyValue = payee.Name
-                };
-            }
+            ValidatePayee(payee);
             _context.AddPayee(payee);
             return await _context.SaveChangesAsync();
         }
 
+        // TODO: Add tests for this method
+        public async Task<int> UpdatePayeeAsync(PayeeCrudVm payeeVm) {
+            try {
+                return await UpdatePayeeAsync(payeeVm.NavId, payeeVm.Name, payeeVm.EffectiveFrom, payeeVm.CategoryName);
+            } catch (ModelValidationException ex) {
+                if (ex.PropertyName == nameof(Payee.BudgetCategoryID)) {
+                    throw new ModelValidationException(nameof(payeeVm.CategoryName), payeeVm.CategoryName,
+                        $"There is no Budget Category named '{payeeVm.CategoryName}'");
+                }
+                throw;
+            }
+        }
+
         // TODO: add tests for this method
         public async Task<int> UpdatePayeeAsync(int id, string name, DateTime effectiveFrom, string categoryName) {
-            // TODO: Add model validation
             BudgetCategory category = _context.GetCategories()
                 .Where(c => c.Name == categoryName)
                 .OrderByDescending(c => c.EffectiveFrom)
-                .FirstOrDefault() ?? throw new NullModelException($"There is no Budget Category named '{categoryName}'");
+                .FirstOrDefault() ?? throw new ModelValidationException(nameof(Payee.BudgetCategoryID), null,
+                        $"There is no Budget Category named '{categoryName}'");
 
             Payee payee = await _context.GetPayees()
                 .Extension().SingleOrDefaultAsync(p => p.ID == id) ?? throw new NullModelException($"Could not find Payee with Id = {id}");
@@ -72,6 +92,7 @@ namespace ExpenseTracker.Services
                 payee.Name = name;
                 payee.EffectiveFrom = effectiveFrom;
                 payee.BudgetCategoryID = category.ID;
+                ValidatePayee(payee);
                 _context.EditPayee(payee);
                 return await _context.SaveChangesAsync();
             } catch (DbUpdateConcurrencyException) {
@@ -80,7 +101,7 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> UpdatePayeeAsync(int id, Payee payee) {
-            // TODO: Add model validation
+            ValidatePayee(payee);
             if (id != payee.ID) {
                 throw new IdMismatchException($"Id = {id} does not match payee Id of {payee.ID}");
             }
@@ -104,6 +125,13 @@ namespace ExpenseTracker.Services
 
         public bool PayeeExists(int id) {
             return _context.GetPayees().Any(p => p.ID == id);
+        }
+
+        private void ValidatePayee(Payee payee) {
+            ModelValidation<Payee>.ValidateModel(payee);
+            if (_context.GetPayees().Any(p => p.ID != payee.ID && p.Name == payee.Name)) {
+                throw new ModelValidationException(nameof(Payee.Name), payee.Name, "Name already in use");
+            }
         }
     }
 }

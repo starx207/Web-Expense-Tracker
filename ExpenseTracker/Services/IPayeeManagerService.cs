@@ -8,8 +8,10 @@ namespace ExpenseTracker.Services
     public interface IPayeeManagerService : ICommonService
     {
         Task<Payee> GetSinglePayeeAsync(int? id, bool includeAll = false);
+        Task<int> AddPayeeAsync(PayeeCrudVm payeeVm);
         Task<int> AddPayeeAsync(string name, string categoryName);
         Task<int> AddPayeeAsync(Payee payee);
+        Task<int> UpdatePayeeAsync(PayeeCrudVm payeeVm);
         Task<int> UpdatePayeeAsync(int id, string name, DateTime effectiveFrom, string categoryName);
         Task<int> UpdatePayeeAsync(int id, Payee payee);
         Task<int> RemovePayeeAsync(int id);
