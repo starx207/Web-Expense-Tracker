@@ -16,6 +16,13 @@ namespace ExpenseTracker.Controllers
         #region Protected Properties
 
         /// <summary>
+        /// The Func to rebind elements of the view model before returning to the view
+        /// on a failed POST action
+        /// </summary>
+        /// <returns></returns>
+        protected Action<VM> FailedPostRebinder { get; set; }
+
+        /// <summary>
         /// The Func to use to check if an object of type <see cref="VM"/> exists
         /// </summary>
         /// <returns></returns>
@@ -163,17 +170,20 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Create(VM createdObject) {
-                try {
-                    await SingleAdder(createdObject);
-                    return RedirectToAction(nameof(Index));
-                } catch (ModelValidationException mvex) {
-                    ModelState.AddModelError(mvex.PropertyName, mvex.Message);
-                } catch (Exception ex) {
-                    var result = ApplyCustomExceptionHandling(ex);
-                    if (result != null) {
-                        return result;
-                    }
+            try {
+                await SingleAdder(createdObject);
+                return RedirectToAction(nameof(Index));
+            } catch (ModelValidationException mvex) {
+                ModelState.AddModelError(mvex.PropertyName, mvex.Message);
+            } catch (Exception ex) {
+                var result = ApplyCustomExceptionHandling(ex);
+                if (result != null) {
+                    return result;
                 }
+            }
+            if (FailedPostRebinder != null) {
+                FailedPostRebinder(createdObject);
+            }
             return View(nameof(Create), createdObject);
         }
 
@@ -185,25 +195,28 @@ namespace ExpenseTracker.Controllers
         /// <returns></returns>
         [HttpPost, ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Edit(VM editedObject) {
-                try {
-                    if (GetRoutedId() != editedObject.NavId) {
-                        return NotFound();
-                    }
-                    await SingleEditor(editedObject);
-                    return RedirectToAction(nameof(Index));
-                } catch (ConcurrencyException) {
-                    if (ExistanceChecker(editedObject)) {
-                        throw;
-                    }
+            try {
+                if (GetRoutedId() != editedObject.NavId) {
                     return NotFound();
-                } catch (ModelValidationException mvex) {
-                    ModelState.AddModelError(mvex.PropertyName, mvex.Message);
-                } catch (Exception ex) {
-                    var result = ApplyCustomExceptionHandling(ex);
-                    if (result != null) {
-                        return result;
-                    }
                 }
+                await SingleEditor(editedObject);
+                return RedirectToAction(nameof(Index));
+            } catch (ConcurrencyException) {
+                if (ExistanceChecker(editedObject)) {
+                    throw;
+                }
+                return NotFound();
+            } catch (ModelValidationException mvex) {
+                ModelState.AddModelError(mvex.PropertyName, mvex.Message);
+            } catch (Exception ex) {
+                var result = ApplyCustomExceptionHandling(ex);
+                if (result != null) {
+                    return result;
+                }
+            }
+            if (FailedPostRebinder != null) {
+                FailedPostRebinder(editedObject);
+            }
             return View(nameof(Edit), editedObject);
         }
 
