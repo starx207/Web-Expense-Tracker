@@ -168,7 +168,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.AddPayeeAsync(payee.Name, payee.CategoryName), Times.Once());
+            _mockService.Verify(m => m.AddPayeeAsync(payee), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -177,7 +177,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Create_POST_returns_view_with_payee_when_ModelValidationException_thrown() {
             // Arrange
             var payee = new PayeeCrudVm();
-            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<PayeeCrudVm>()))
                 .ThrowsAsync(new ModelValidationException());
 
             // Act
@@ -215,7 +215,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Create_POST_adds_modelstate_error_when_ModelValidationException_thrown() {
             // Arrange
             var payee = new PayeeCrudVm { Name = "test" };
-            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new ModelValidationException());
+            _mockService.Setup(m => m.AddPayeeAsync(It.IsAny<PayeeCrudVm>())).ThrowsAsync(new ModelValidationException());
 
             // Act
             var result = await _controller.Create(payee);
@@ -380,7 +380,7 @@ namespace ExpenseTracker.Controllers.Tests
             var redirectResult = result as RedirectToActionResult;
 
             // Assert
-            _mockService.Verify(m => m.UpdatePayeeAsync(1, payee.Name, payee.EffectiveFrom, payee.CategoryName), Times.Once());
+            _mockService.Verify(m => m.UpdatePayeeAsync(payee), Times.Once());
             Assert.IsNotNull(redirectResult);
             Assert.AreEqual("Index", redirectResult.ActionName);
         }
@@ -389,7 +389,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_payee_to_view_when_ModelValidationException_thrown() {
             // Arrange
             var payee = new PayeeCrudVm { NavId = 1 };
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>()))
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<PayeeCrudVm>()))
                 .ThrowsAsync(new ModelValidationException());
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -427,7 +427,7 @@ namespace ExpenseTracker.Controllers.Tests
         [TestMethod]
         public async Task Edit_POST_returns_NotFound_when_IdMismatchException_thrown() {
             // Arrange
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new IdMismatchException());
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<PayeeCrudVm>())).ThrowsAsync(new IdMismatchException());
             var payee = new PayeeCrudVm { NavId = 1 };
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -442,7 +442,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_returns_NotFound_when_ConcurrencyException_thrown_and_payee_does_not_exist() {
             // Arrange
             var payee = new PayeeCrudVm { NavId = 1 };
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new ConcurrencyException());
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<PayeeCrudVm>())).ThrowsAsync(new ConcurrencyException());
             _mockService.Setup(m => m.PayeeExists(It.IsAny<int>())).Returns(false);
             SetupControllerRouteData(_controller, "id", 1);
 
@@ -457,7 +457,7 @@ namespace ExpenseTracker.Controllers.Tests
         public async Task Edit_POST_thows_exceptions_not_of_type_IdMismatch() {
             // Arrange
             var payee = new PayeeCrudVm { NavId = 1 };
-            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>())).ThrowsAsync(new Exception());
+            _mockService.Setup(m => m.UpdatePayeeAsync(It.IsAny<PayeeCrudVm>())).ThrowsAsync(new Exception());
             SetupControllerRouteData(_controller, "id", 1);
 
             // Act & Assert

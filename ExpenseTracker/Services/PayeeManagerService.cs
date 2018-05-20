@@ -101,10 +101,10 @@ namespace ExpenseTracker.Services
         }
 
         public async Task<int> UpdatePayeeAsync(int id, Payee payee) {
-            ValidatePayee(payee);
             if (id != payee.ID) {
                 throw new IdMismatchException($"Id = {id} does not match payee Id of {payee.ID}");
             }
+            ValidatePayee(payee);
             try {
                 _context.EditPayee(payee);
                 return await _context.SaveChangesAsync();
